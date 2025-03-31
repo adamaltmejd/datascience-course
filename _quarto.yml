@@ -1,0 +1,31 @@
+project:
+  type: default
+  preview:
+    port: 4000
+    browser: true
+  render:
+    - "*.qmd"
+author:
+  - name: Adam Altmejd Selder
+    orcid: 0000-0002-4248-0677
+    email: adam.altmejd@sofi.su.se
+    affiliations: Swedish Institute for Social Research (SOFI)
+from: markdown+emoji
+engine: knitr
+fig-format: svg
+knitr:
+  opts_chunk:
+    cache: false
+    echo: true
+    warning: false
+    message: false
+    fig-align: center
+    out.width: 720px
+    dev: "svglite"
+    # collapse: true
+    # comment: "#>"
+    R.options:
+      knitr.graphics.auto_pdf: true
+fig-align: center
+bibliography: ["datascience-course.bib"]
+#highlight-style: github

@@ -1,0 +1,22 @@
+---
+title: "Lecture 5: Data wrangling"
+subtitle: "EC7412 Part II: Data Science for Economists"
+date: 2025-04-25
+---
+
+# Introduction {background-color="#40666e"}
+
+## Getting data into R
+
+
+## Next lecture: Accessing servers, automation, LLMs {.title-slide background-color="#40666e"}
+
+
+
+<!--
+## Lecture 4 - Data wrangling II
+ - Need to decide if I want to do this in R only or in many languages. Might get too complicated since syntax becomes quite different in R (tidyverse or data.table), Python (Polars), Julia (DataFrames.jl), not to speak of Stata…
+- Split-apply-combine strategy
+- Joining
+- Reshaping
+- Regular expressions -->

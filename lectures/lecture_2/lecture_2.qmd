@@ -1,0 +1,637 @@
+---
+title: "Lecture 2: Project management, version control, and the shell"
+subtitle: "EC7412 Part II: Data Science for Economists"
+date: 2025-04-11
+engine: knitr
+---
+
+# Project management {background-color="#40666e"}
+
+## Project management
+### Software install check (Problem set 0)
+
+Did you...
+
+- Install [R](https://www.r-project.org/)
+- Install [VS Code](https://code.visualstudio.com/) and the [vscode-R extension](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r)?
+- Install and configure [Git](https://git-scm.com/downloads)?
+- Creat an account on [GitHub](https://github.com/) and [GitHub Education](https://github.com/education)?
+
+You will need it to follow along today
+
+::: {.aside}
+Great Git+R setup guide if you want to learn more: <http://happygitwithr.com>
+:::
+
+## Project management
+### Why?
+
+- Replication is key
+- Running code should give same results, now and later
+- Without replication, results are not credible
+- Much easier if considered from the start
+- Your collaborators (and future self) will thank you!
+
+## Project management
+### Warning signs
+
+- You can't find the file you are looking for
+- You're not sure if your data has been processed
+  - Have outliers been removed?
+- You have data/script files in your home/download folder
+  - What project is `summarize_earnings.R` for?
+- You don't know if you working with the latest version (of a script or text)
+- You and your colleagues are working on different versions
+
+## Project management
+### Good code makes replication straight forward
+
+- Like math (but unlike words) good code provides exact documentation
+- How was income calculated, were outliers removed, what was done with missing or invalid observations
+- Needs to be in the back of your mind constantly
+
+## Project management
+### File and folder structure
+
+:::: {.columns}
+::: {.column width="60%"}
+- One (self-contained) folder per project
+- Use **relative** paths
+- Never change raw data, process data to new file(s)
+- Consistent and careful naming
+- Split code into multiple files by feature
+- Document everything, describe project in `README.md` file
+- Have a backup strategy
+:::
+::: {.column width="40%"}
+![&nbsp;](project_folder_structure.png)
+:::
+::::
+
+::: notes
+Strömberg: Separating data-manipulation and data-analysis is an example of modularity. ... The logic
+for this is simple. Lots of things can go wrong. You want to be able to isolate what went
+wrong. You also want to be able to isolate what went right. (Jonathan Nagler of NYU)
+:::
+
+## Project management
+### Use self-contained project folders
+
+- Each project has its own folder (named "project_name")
+- Perhaps in a parent folder called "projects"
+- **All** project files are in this folder
+- *Self-contained*: does not reference any files outside folder
+
+::: {.incremental}
+Why?
+
+- Portable
+- Easy to back up
+- Easy to share
+:::
+
+## Project management
+### Use relative paths and start new sessions
+
+Many do-files start like this:
+
+```stata
+clear all
+cd "C:/my_project/analysis"
+use "mydata.dta"
+```
+
+```stata
+clear all
+use "C:/my_project/analysis/mydata.dta"
+```
+
+::: {.incremental}
+Don't do this!
+
+- use *relative paths*
+- start new sessions for each script
+
+::: {.fragment}
+```stata
+use "mydata.dta"
+```
+:::
+:::
+
+## Project management
+### Data management
+
+- Keep raw data in `data/raw` folder
+- Never edit it, use *write-protection*
+- Save processed data to new files
+- Processed data should be:
+  - Tidy
+  - Deduplicated
+  - Carefully named
+
+::: {.aside}
+To write-protect in Windows you can right-click on the folder, select "Properties", then "Security" then select deny write for your user. On Linux/Mac you can run the shell command:
+
+```bash
+sudo chmod -R ugo-w data/raw
+```
+:::
+
+## Project management
+### Consistent and careful naming
+
+- Name folders, files, variables so anyone can understand
+- Long names are better than abbreviations you will forget
+- Figures: `scatter_income_by_gender.png` not `figure_3.png`
+- Variables: `log_family_income` not `inc4`
+
+
+::: {.aside}
+Stata makes this hard by limiting names to 32 characters unfortunately.
+:::
+
+## Project management
+### Split code into multiple files by feature
+
+- You should be splitting your code into functions by feature,
+- Put these functions into different files
+- Instead of `functions.R`, maybe you have `simulation.R`, `arithmetic.R`, `robustness_checks.R`, etc.
+
+## Project management
+### Document everything, describe project in `README.md` file
+
+- Place a file called `README.md` in your project root
+- Use this file to describe the project, explain how to run your code, etc.
+- For your future self and those you share the project with.
+
+## Project management
+### Have a backup strategy
+
+- Make sure your data is backed up
+- Recommended: use a cloud sync service, like OneDrive
+- Do not use Git for backup
+
+# Short shell intro {background-color="#40666e"}
+
+## Short shell intro
+
+- Mac and Linux are both Unix OS and have Linux shells
+- Git for Windows provides Bash emulation
+- Why?
+  - Almost all servers speak shell
+  - To know what goes on "under the hood"
+  - Automation
+  - Reproducibility (again!)
+  - Useful tricks for e.g., file manipulation:
+
+```bash
+find "raw_data" -name "*.csv" -type f -exec \
+  perl -i -0pe 's/Vet ej\/\nVill ej svara/Vet ej\/Vill ej svara/g' {} \;
+```
+
+::: {.aside}
+If you want to practice shell skills [cmdchallenge.com](https://cmdchallenge.com/) is fun!
+:::
+
+## Short shell intro
+
+:::: {.columns}
+::: {.column width="50%" .center-h}
+![Git Bash on Windows](shell_win.png){height=200}
+:::
+::: {.column width="50%" .center-h}
+![Terminal on Mac](shell_mac.png){height=200}
+:::
+::::
+
+- You can also open a shell from VS Code by going to "Terminal->New Terminal"
+- In VS Code on Windows, the terminal defaults to Powershell. You can change it to Git Bash in the settings, under "Default profile".
+
+## Short shell intro
+### Basic shell commands: navigation
+
+```{bash}
+# pwd prints working directory
+pwd
+```
+
+```{bash}
+# cd changes directory
+# ".." means up one level
+cd ..
+pwd
+```
+
+```{bash}
+# ls lists files in folder
+ls
+```
+
+## Short shell intro
+### Commands and flags
+
+- Shell commands often have options (flags)
+- Flags always start with one or two dashes
+- Example ls:
+  - `-l` = list
+  - `-a` = show all, also hidden
+  - `-h` = human readable file sizes
+
+```{bash}
+#| output-location: default
+ls -lah
+```
+
+## Short shell intro
+### More commands
+
+- `mv <file> <destination>` moves
+- `cp <file> <destination>` copies
+- `rm <file>` removes
+- `mkdir <directory>` creates a directory, `rmdir` removes
+- `find` searches
+
+## Short shell intro
+### `man` for manual
+
+```bash
+man ls
+```
+
+![&nbsp;](man_ls.png){.nostretch width=600px}
+
+Use `space` to browse, press `h` for help and `q` to quit.
+
+## Short shell intro
+
+- This was just a very basic introduction
+- Hopefully the sight of a command line will not scare you from now on
+- Check out the resources at the end of today's talk if you want to learn more!
+
+# Version control {background-color="#40666e"}
+
+## Version control
+### Why?
+
+![&nbsp;](phd_git_comic.gif)
+
+
+## Version control
+### Git + GitHub + VS Code
+
+- Git: (distributed) version control system
+- File history, track changes, cloud sync, collaboration
+- Works best for code (text files)
+- **GitHub** is a platform to host Git repositories.
+   - Extremely popular in software development
+   - Getting popular in academia, great for open science
+- Seamless integration with VS Code
+
+::: {.notes}
+GitHub is not needed to use Git. Great for open science. Stuff like DOI's, licenses, etc. I have a repo for each project, host my website on GitHub, and lots more.
+:::
+
+## Version control
+### How does Git work?
+
+- A project = a Git repository
+- Each user works in *local* copy of project
+- Labelled versioning with **commits**
+- **Branches** enable multi-feature development
+- Changes sent to GitHub on demand (unlike Dropbox)
+- Facilitates collaboration with branching, conflict management, pull requests
+
+::: {.notes}
+Any folder can be made into a repo.
+:::
+
+# Basic Git workflow {background-color="#40666e"}
+
+## Basic Git workflow
+### Creating your first Git repository
+
+Let's go through how to set up and work in a simple Git repository:
+
+1. Initialize a repository on GitHub with a README file
+2. Clone (download) the repository to our computer using VS Code
+3. Make a change to the codebase
+4. *Stage* the change
+5. *Commit* the change
+6. *Push* the change to GitHub
+
+Slides will have screen casts and shell commands.
+
+## Basic Git workflow
+### Initialize a repository
+
+:::: {.columns}
+::: {.column width="60%"}
+![&nbsp;](git_init_repo.gif)
+:::
+::: {.column width="40%"}
+```bash
+git init test-repo
+```
+:::
+::::
+
+::: {.aside}
+Shell command iniates local repo, which can create problems later. Better to start from GitHub.com.
+:::
+
+::: {.notes}
+Creating the repo on GitHub configures upstream correctly. Even if you are moving an existing project to GitHub, better to init on GitHub.com and then move your files into the repo.
+:::
+
+## Basic Git workflow
+### Clone a repo using VS Code
+
+![&nbsp;](git_clone_vscode.gif)
+
+```bash
+git clone https://github.com/adam-test-acc/test-repo.git
+```
+
+## Basic Git workflow
+### Stage, commit, and push changes
+
+:::: {.columns}
+::: {.column width="60%"}
+![&nbsp;](git_stage_commit_push.gif)
+:::
+::: {.column width="40%"}
+```bash
+git stage README.md
+git commit -m "Readme change"
+git push
+```
+:::
+::::
+
+Follow the instructions in Problem set 0 to set up your Git `user.name` and `user.email`. Otherwise you will get an error when pressing "Commit".
+
+
+## Basic Git workflow
+### Stage and commit in two steps, why?
+
+- `git commit` just commits staged files
+- We use `git add <file>` to chose what to commit
+  - Can even `git add --patch <file>` to stage parts
+- This allows to divide up changes into multiple commits based on features/components
+
+## Basic Git workflow
+### What we just did
+
+- Initialized repo on GitHub, **cloned** to local machine
+- Edited the README file in the repo
+- **Staged** the edit: told Git we *want to* record the change we just made
+- **Committed** (= recorded) the edit into the repo history with a helpful message
+- **Pushed** the edited repo to the *upstream remote* (=GitHub).
+
+## Basic Git workflow
+### Credentials
+
+- Locally, Git uses information stored in `user.name` and `user.email` to tell others who you are.
+- When Pulling/pushing changes to/from GitHub, VS Code needs your login. Anyone can clone a *public* repository, but only you (and those you invite) can push changes to your repo.
+
+::: {.aside}
+An alternative to connecting to GitHub via HTTPS is using SSH. While not recommended for beginners it usually works smoother once set up. [This guide is helpful](https://happygitwithr.com/ssh-keys).
+:::
+
+## Basic Git workflow
+### README=GitHub landing page
+
+:::: {.columns}
+::: {.column width="60%"}
+- Should explain purpose
+- Requirements to run code
+- Can also be in subdirectories
+- Should be written in `Markdown` syntax
+:::
+::: {.column width="40%" .center-h}
+![[Repo for my paper](https://github.com/adamaltmejd/COVID-19-Inequality)](readme.png)
+:::
+::::
+
+## Basic Git workflow
+### .gitignore file
+
+:::: {.columns}
+::: {.column width="50%"}
+- What file patterns to ignore
+- You should ignore:
+  - Data (especially sensitive!)
+  - Very large files
+  - Binary files (e.g. `pdf`)
+  - Output files (maybe)
+:::
+::: {.column width="50%"}
+![&nbsp;](gitignore.png){.nostretch width=300px}
+:::
+::::
+
+- Remember: Git is not backup. You should have a backup solution too.
+
+# Merge conflicts {background-color="#40666e"}
+
+## Merge conflicts
+### Code change by multiple sources
+
+![&nbsp;](git_merge.gif)
+
+Two contributors have made changes to the same file. Git stops merge to not overwrite changes. Requires manual conflict resolution.
+
+::: {.notes}
+Maybe let students try. Pair up and edit neighbors repo (after invite).
+<!-- Turn to the person next to you. You are now partners. (Congratulations.)
+
+- P1: Invite P2 to join you as a collaborator on the "test" GitHub repo that you created earlier. (See the *Settings* tab of your repo.)
+
+- P2: Clone P1's repo to your local machine.<sup>1</sup> Make some edits to the README (e.g. delete lines of text and add your own). Stage, commit and push these changes.
+
+- P1: Make your own changes to the README on your local machine. Stage, commit and then try to push them (*after* pulling from the GitHub repo first).
+
+.footnote[<sup>1</sup> Change into a new directory first or give it a different name to avoid conflicts with your own "test" repo. Don't worry, Git tracking will still work if you change the repo name locally.] -->
+
+<!-- Did P1 encounter a `merge conflict` error?
+- Good, that's what we were trying to trigger.
+- Now, let's learn how to fix them. -->
+:::
+
+## Merge conflicts
+
+![&nbsp;](git_merge_conflict.png)
+
+<!-- Git is protecting P1 by refusing the merge. It wants to make sure that you don't accidentally overwrite all of your changes by pulling P2's version of the README.
+- In this case, the source of the problem was obvious. Once we start working on bigger projects, however, `git status` can provide a helpful summary to see which files are in conflict. -->
+
+## Merge conflicts
+### Resolving conflicts using the merge editor
+
+![&nbsp;](git_merge_conflict_editor.png)
+
+## Merge conflicts
+### Resolving conflicts using the merge editor
+
+![&nbsp;](git_merge_conflict_combination.png)
+
+::: {.notes}
+The person who resolves the conflict gets to decide. Unfair? Working in branches with pull requests might be more clear and fair.
+:::
+
+## Merge conflicts
+### Manual edits
+
+VS Code provides a great UI for resolving merge conflicts, but you can also do it manually by editing the conflicting files. If you open the file you will see something like this. The strange characters are Git's way of highlighting the merge conflict.
+
+```bash
+# test-repo
+<<<<<<< HEAD
+A repo for testing and having fun.
+=======
+A repo for playing around.
+>>>>>>> 814e09178910383c128045ce67a58c9c1df3f558.
+A not so cool change to the README file.
+```
+
+You fix the conflict manually by simply removing the characters and chosing the text you prefer.
+
+::: {.notes}
+HEAD is the start of the merge conflict (current change). Then the === is a marking for where the two parts divide, and below that is the incoming change (from GitHub).
+:::
+
+# Branches {background-color="#40666e"}
+
+## Branches
+
+- Want to test a large change, but unsure it will work?
+- Create a new branch to try it out, then just revert to main if it fails.
+- Keep track of your changes (with commits) without disturbing your collaborators with unfinished code.
+- If you are happy with your changes, merge them to the main branch.
+- Branching is awesome, use it!
+
+::: {.notes}
+This is how modern software is developed. A new feature is built in a branch, then merged to main with a pull request after testing. In research, we can use it to test new data processing strategies, or to try out new analyses.
+:::
+
+## Branches
+### Creating a new branch in VS Code
+
+:::: {.columns}
+::: {.column width="60%"}
+![&nbsp;](git_branch_create.gif)
+:::
+::: {.column width="40%"}
+```bash
+git switch --create test-branch
+```
+:::
+::::
+
+## Branches
+### Merging branches locally
+
+:::: {.columns}
+::: {.column width="60%"}
+![&nbsp;](git_branch_local_merge.gif)
+:::
+::: {.column width="40%"}
+```bash
+git switch master
+git merge test-branch
+```
+:::
+::::
+
+::: {.notes}
+If no review is needed.
+:::
+
+## Branches
+### Merging branches with pull requests
+
+![&nbsp;](git_branch_pull_request.gif)
+
+::: {.notes}
+If you want your collaborators to review/discuss the changes before they are merged. You write a summary of changes and assign code reviewers.
+:::
+
+## Git advice
+
+- Commit often, work in small features
+  - Don't: "New data processing script"
+  - Do: "Removed duplicates from survey data"
+- Push changes when you want your collaborators to see
+- Git is not backup!
+- Branches are useful even when solo
+
+## When all else fails... :shrug:
+
+![&nbsp;](git.png)
+
+::: {.aside}
+But first, check Stack overflow and [Oh Shit, Git!?](https://ohshitgit.com)
+:::
+
+## Next lecture: R basics {.title-slide background-color="#40666e"}
+
+## Resources
+
+- When Git is not working: <https://ohshitgit.com>
+- Practicing shell commands: <https://cmdchallenge.com>
+- Everything you need about Git+R: <https://happygitwithr.com>
+- Basic shell <https://swcarpentry.github.io/shell-novice>
+- Intermediate shell <https://seankross.com/the-unix-workbench>
+- Advanced shell <https://jeroenjanssens.com/dsatcl>
+
+## Extras: SSH {.title-slide background-color="#40666e"}
+
+## SSH
+### SSH=Secure shell
+
+- Logs in to server over remote channel
+- Really useful but setup requires some work
+- Uses *public key cryptography*
+  - Private key - stored on your computer
+  - Public key - stored on the server
+  - When connecting the private key encrypts a message that can only be validated by the corresponding public key
+
+## SSH
+### Generating a key pair
+
+To generate an SSH key pair and register the public key with GitHub, follow these steps. For detailed instructions, see [GitHub Docs](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
+
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+Press Enter to accept the default file location. When prompted, enter a secure passphrase (your terminal will not show characters as you type).
+
+## SSH
+### Storing the passphrase using ssh-agent
+
+You should secure your keys with a passphrase. But it might become annoying having to type the passphrase each time you use the SSH key. Instead, you can use a `ssh-agent` to store the passphrase for you. On Mac/Linux this is easy:
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+On Windows, it's more complicated. I've included the instructions in Problem Set 0 but let's go through them together now.
+
+## SSH
+### Connecting to Github over SSH
+
+To use SSH with Github you first need to add your public key to your [GitHub profile](https://github.com/settings/keys). Go to settings and "SSH and GPG keys" to add it.
+
+Afterwards, run:
+
+```{bash}
+#| error: TRUE
+ssh -T git@github.com
+```
+
+Now you can clone repositories using SSH rather than https.
+
+We will get back to how to use SSH to connect to servers later in the course.

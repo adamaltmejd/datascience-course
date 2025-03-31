@@ -1,0 +1,17 @@
+/*-- scss:defaults --*/
+
+/*-- scss:rules --*/
+
+// figcaption {
+//     margin: auto;
+//     text-align: center;
+//   }
+
+.reveal ul {
+	margin-bottom: 0 !important;
+}
+
+td > img {
+	// Fixed datasummary_skim() tinytable image margin
+	margin: 0 !important;
+}

@@ -1,0 +1,977 @@
+---
+title: "Lecture 4: Visualization"
+subtitle: "EC7412 Part II: Data Science for Economists"
+date: 2025-04-23
+---
+
+```{r}
+#| echo: false
+#| output-location: default
+# load packages here for cached chunks
+library(data.table)
+library(modelsummary)
+library(tinytable)
+library(ggplot2)
+library(cannonball)
+library(gapminder)
+library(ggrepel)
+library(gganimate)
+library(hrbrthemes)
+# settings
+options(tinytable_tt_theme = \(x) theme_tt(x, "revealjs", fontsize = .8))
+options("modelsummary_factory_default" = "tinytable")
+```
+
+# Introduction {background-color="#40666e"}
+
+## Introduction
+### Why look at data?
+
+> The greatest value of a picture is when it forces us to notice what we never expected to see.
+
+John Tukey
+
+::: {.attribution}
+@Tufte1983_visual_display
+:::
+
+## Introduction
+### Why look at data?
+
+- In 1855, a horrible cholera epidemic was ravaging London
+- Doctors believed "miasma" (bad air) had caused the disease
+- John Snow ("father of epidemiology") argued it was transmitted through water
+- But it wasn't the study's identification strategy that convinced people, it was its visualization
+
+::: {.aside}
+- Crazy as it sounds, people were still generally not believing in the germ theory of disease.
+- John Snow had many children, he is also sometimes called the father of causal inference. This study was probably the first DiD!
+:::
+
+::: {.attribution}
+@Snow1855_mode_communication
+:::
+
+## Introduction
+### Why look at data?
+
+![&nbsp;](Snow-cholera-map.jpg)
+
+::: {.attribution}
+@Snow1855_mode_communication
+:::
+
+## Introduction
+### Anscombe's quartet
+
+```{r}
+#| output-location: default
+#| cache: true
+library(data.table)
+library(modelsummary)
+dt = as.data.table(datasets::anscombe)
+datasummary(All(dt) ~ N + mean + SD, data = dt)
+```
+
+::: {.attribution}
+@Anscombe1973_graphs_statistical
+:::
+
+## Introduction
+### Anscombe's quartet
+
+```{r}
+#| echo: false
+#| cache: true
+ggplot(data = melt(dt,
+                   measure.vars = patterns("^x", "^y"),
+                   value.name = c("x", "y")),
+       mapping = aes(x, y)) +
+  facet_wrap(vars(variable), scales = "free") +
+  geom_point() +
+  geom_smooth(method = "lm",
+              formula = y~x,
+              se = FALSE)
+```
+
+::: {.attribution}
+@Anscombe1973_graphs_statistical
+:::
+
+## Introduction
+### Why look at data?
+
+- Summary statistics are not enough! They can hide critical patterns and differences in data.
+- Visualization helps us:
+  - **Explore** for patterns, trends, outliers, and relationships
+  - **Understand** complex datasets more intuitively
+  - **Analyze** insights missed by numerical methods
+  - **Evaluate** models (e.g., residual plots)
+  - **Communicate** findings clearly and effectively
+
+## Introduction
+### Summary statistics hide patterns
+
+```{r}
+#| echo: false
+#| cache: true
+library(cannonball)
+cannonball::plot_r(r = 0.5, n = 50)
+```
+
+::: {.attribution}
+<https://janhove.github.io/posts/2016-11-21-what-correlations-look-like/>
+:::
+
+::: {.notes}
+Examples:
+- 3-4 skewed X - too difficult task
+- 5-6 have skewed Y
+- 7-8 are heteroskedastic - r=0.5 under/oversells relationship in different parts of data
+- 14 is Simpson's paradox
+- 15 extreme value sampling inflates r
+:::
+
+## Introduction
+### Summary statistics hide patterns (cont.)
+
+![&nbsp;](DinoSequential.gif)
+
+::: {.attribution}
+@Matejka2017_same_stats
+:::
+
+## Introduction
+### Wrangling ↔ Visualization
+
+![&nbsp;](r4ds_visualize.png){width=500px}
+
+- Exploring data visually is often the best way to understand it and to discover issues
+
+::: {.aside}
+Test your correlation-guessing skills on <https://www.guessthecorrelation.com/>
+:::
+
+::: {.attribution}
+@Wickham2023_data_science
+:::
+
+## Introduction
+### Data verification
+
+- Some of your data will be wrong
+- Finding out which and how early saves lots of time and energy
+  - You don't want to realize halfway through a project that an important category has been coded as missing.
+
+Verification tasks:
+
+::: {.incremental}
+- Browse data (using `View()` or just print it)
+- Check descriptives: missing, unique values, mean/median/min/max
+- Plot data: scatters, histograms, densities
+:::
+
+## Introduction
+### Internal consistency: Is the data represented correctly?
+
+- Potential sources of problems:
+  - Incomplete or duplicated data
+  - Missing or incorrectly coded values
+  - Encoding problems
+
+Verifying the variable `wage`, we might ask:
+
+::: {.incremental}
+- Do the values make sense?
+- Is there bunching at high-frequency values?
+- Are zeros and missing coded separately?
+- Does everyone classified as not working have 0 wage?
+:::
+
+## Introduction
+### External consistency: does the data represent what it is supposed to
+
+- Potential sources of problems:
+  - Bad survey questions
+  - Measurement error
+  - Sampling bias
+
+Verifying the variable `wage`, we might ask:
+
+::: {.incremental}
+- Are any government transfers included?
+- How do population means compare to official statistics?
+- Do correlations with related variables make sense?
+:::
+
+## Introduction
+### Visualization is also communication
+
+- Figures are often the most effective way to communicate results
+- Much of what you learn will be just as useful for communication
+
+## Introduction
+### Tufte: Graphical excellence
+
+> [Graphical excellence] is that which gives to the viewer the greatest number of ideas in the shortest time with the least ink in the smallest space
+
+Edward Tufte
+
+## Introduction
+### Tufte: Graphical excellence
+
+![&nbsp;](ch-01-minard.png)
+
+::: {.notes}
+- "Tells a rich, coherent story with multivariate data"
+- Six plotted variables: size of army, two-dimensional location, direction, temperature.
+:::
+
+::: {.attribution}
+@Tufte1983_visual_display
+:::
+
+## Introduction
+### Bad graphs: Pandemic TV edition
+
+![&nbsp;](covid-fohm-april-13.png)
+
+## Introduction
+### Let's plot the FOHM data ourselves
+
+```{r}
+fohm_dt <- fread("fohm_c19_death_data.csv")[!is.na(date)]
+ggplot(data = fohm_dt[publication_date == "2020-04-13"],
+       aes(x = date, y = N)) +
+  geom_bar(stat = "identity") +
+  scale_x_date(limits = as.Date(c("2020-03-01", "2020-04-30"))) +
+  geom_vline(xintercept = as.Date("2020-04-08")) +
+  geom_hline(yintercept = 70) +
+  ylim(0, 120) +
+  theme_ipsum()
+```
+
+## Introduction
+### What happened then?
+
+```{r}
+ggplot(data = fohm_dt[publication_date %between% list("2020-04-13", "2020-05-15")],
+       aes(x = date, y = N, group = publication_date)) +
+  geom_bar(stat = "identity") +
+  scale_x_date(limits = as.Date(c("2020-03-01", "2020-04-30"))) +
+  transition_time(publication_date) +
+  ease_aes('linear') +
+  geom_vline(xintercept = as.Date("2020-04-08")) +
+  geom_hline(yintercept = 70) +
+  ylim(0, 120) +
+  theme_ipsum()
+```
+
+## Introduction
+### Bad graphs 2: New York Times (2016)
+
+![&nbsp;](ch-01-democracy-nyt-version.png)
+
+::: {.attribution}
+@Healy2018_data_visualization
+:::
+
+## Introduction
+### Good visualization leverages human perception
+
+- We are good at comparing:
+  - Position along a common scale
+  - Length
+- We are less accurate at judging:
+  - Angle
+  - Area/volume
+  - Color intensity/shade (relative comparisons dominate)
+
+## Introduction
+### Perception: examples
+
+![&nbsp;](ch-01-perception-curves-1.png)
+
+::: {.attribution}
+@Healy2018_data_visualization
+:::
+
+## Introduction
+### Perception: examples
+
+![&nbsp;](ch-01-mach-bands-horizontal.png)
+
+::: {.attribution}
+@Healy2018_data_visualization
+:::
+
+# ggplot intro {background-color="#40666e"}
+
+## ggplot intro
+### Grammar of graphics
+
+- We will learn how to make plots in R using the popular `ggplot2` package
+- ggplot2 implements the "grammar of graphics" graph-building paradigm
+- Builds plots layer by layer, adding geometries ("geoms")
+
+## ggplot intro
+### A basic ggplot template
+
+```r
+ggplot(data = <DATA_FRAME>,
+       mapping = aes(<MAPPINGS>)) +
+  <GEOM_FUNCTION>() +
+  # Add more layers (optional)
+  <SCALE_FUNCTION>() +
+  <THEME_FUNCTION>() +
+  <LABS_FUNCTION>()
+```
+
+## ggplot intro
+### Using the gapminder data
+
+```{r}
+#| output-location: default
+#| cache: true
+library(gapminder)
+tt(dplyr::sample_n(gapminder, 10))
+```
+
+## ggplot intro
+### Creating the ggplot object (cont.)
+
+```{r}
+#| cache: true
+ggplot(data = gapminder)
+```
+
+## ggplot intro
+### Creating the ggplot object (cont.)
+
+```{r}
+#| cache: true
+p <- ggplot(data = gapminder,
+            mapping = aes(x = continent,
+                          y = lifeExp))
+p
+```
+
+We set the **aesthetic mapping** of the ggplot object to columns of the `gapminder` data frame.
+
+::: {.aside}
+- Notice how `continent` and `lifeExp` are not in quotes. ggplot looks inside the object given by the `data` argument.
+- Try running `str(p)` to look at the structure of the ggplot object.
+:::
+
+## ggplot intro
+### Adding a layer
+
+```{r}
+#| cache: true
+p + geom_point()
+```
+
+To draw something on the canvas we need to add a geometry layer. For example a scatter with `geom_point()`.
+
+## ggplot intro
+### Adding a layer (cont.)
+
+```{r}
+#| cache: true
+p + layer(
+  mapping = NULL,
+  data = NULL,
+  geom = "point",
+  stat = "identity",
+  position = "identity"
+)
+```
+
+`geom_point()` is a shortcut for `layer(...)`. Setting `mapping` and `data` to `NULL` means they are inherited from `p`.
+
+## ggplot intro
+### Adding a boxplot
+
+```{r}
+#| cache: true
+p + geom_boxplot()
+```
+
+Let's add a boxplot instead to study the distribution of continuous variables across multiple groups.
+
+::: {.aside}
+Boxplots show: median (center line), interquartile range (IQR, the box), whiskers (typically 1.5 * IQR), outliers (points beyond whiskers).
+:::
+
+## ggplot intro
+### Adding another geom
+
+```{r}
+#| cache: true
+p +
+  geom_boxplot() +
+  geom_jitter()
+```
+
+To get a more visual sense of where the data is located we can re-add the actual data points.
+
+::: {.aside}
+`geom_jitter` is short for `geom_point(position = "jitter")`. It adds a tiny bit of noise to each point so they do not overlap.
+:::
+
+## ggplot intro
+### Styling geoms
+
+```{r}
+#| cache: true
+p +
+  geom_boxplot(outlier.color = "red") +
+  geom_jitter(position = position_jitter(width = 0.1, height = 0),
+              alpha = 0.25)
+```
+
+Highlighting outliers and making the points less prominent. Alpha means transparency.
+
+::: {.aside}
+Remember you can read about available function arguments by running `?geom_jitter`.
+:::
+
+## ggplot intro
+### Styling scales and labels
+
+```{r}
+#| cache: true
+p +
+  geom_boxplot(outlier.color = "red") +
+  geom_jitter(position = position_jitter(width = 0.1, height = 0),
+              alpha = 0.25) +
+  scale_y_continuous(n.breaks = 5,
+                     limits = c(0, 100),
+                     expand = expansion(c(0,0.05))) +
+  labs(y = "Life expectancy (years)",
+       x = "Continent") +
+  theme_bw()
+```
+
+Starting the y-axis at zero usually good. Here, I also added a simple theme and formatted the axis labels.
+
+## ggplot intro
+### Adding data labels to outliers
+
+```{r}
+#| cache: false
+library(ggrepel)
+is_outlier = function(x) {
+  return(x < quantile(x, 0.25) - 1.5 * IQR(x) | x > quantile(x, 0.75) + 1.5 * IQR(x))
+}
+
+plotdata = as.data.table(gapminder) |>
+    _[, outlier := is_outlier(lifeExp), by = "continent"]
+
+p +
+  geom_boxplot(outlier.color = "red") +
+  geom_jitter(data = plotdata[outlier == FALSE],
+              position = position_jitter(width = 0.1, height = 0),
+              alpha = 0.25) +
+  scale_y_continuous(n.breaks = 5,
+                     limits = c(0, 100),
+                     expand = expansion(c(0,0.05))) +
+  labs(y = "Life expectancy",
+       x = "Continent") +
+  theme_bw() +
+  geom_text_repel(data = unique(plotdata[outlier == TRUE], by = "country"),
+                  aes(label = country))
+```
+
+## ggplot intro
+### A truly powerful plotting package
+
+- What if we want
+  - To plot the relationship between GDP and life expectancy
+  - Divided by countries and continents
+  - To see how countries have developed over time
+  - Take population size into account
+- 6 dimensions 🤯
+- Hans Rosling managed!
+
+## ggplot intro
+### Rosling's famous animated plot
+
+```r
+library(gganimate)
+library(hrbrthemes)
+ggplot(plotdata[continent != "Oceania"],
+       aes(x = gdpPercap, y = lifeExp, size = pop, color = country)) +
+  geom_point(alpha = 0.6, show.legend = FALSE) +
+  scale_color_manual(values = country_colors) +
+  scale_size(range = c(1, 10)) +
+  scale_x_log10(limits = c(150, 115000),
+                labels = scales::comma) +
+  facet_wrap(vars(continent)) +
+  theme_ipsum() +
+  coord_fixed(ratio = 1 / 43) +
+  labs(title = 'Year: {frame_time}',
+       x = 'GDP per capita', y = 'Life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
+```
+
+## ggplot intro
+### Rosling's famous animated plot
+
+```{r}
+#| cache: true
+#| echo: false
+#| output-location: default
+library(gganimate)
+library(hrbrthemes)
+ggplot(plotdata[continent != "Oceania"],
+       aes(x = gdpPercap, y = lifeExp, size = pop, color = country)) +
+  geom_point(alpha = 0.6, show.legend = FALSE) +
+  scale_color_manual(values = country_colors) +
+  scale_size(range = c(1, 10)) +
+  scale_x_log10(limits = c(150, 115000),
+                labels = scales::comma) +
+  facet_wrap(vars(continent)) +
+  theme_ipsum() +
+  coord_fixed(ratio = 1 / 43) +
+  labs(title = 'Year: {frame_time}',
+       x = 'GDP per capita', y = 'Life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
+```
+
+# Plot types {background-color="#40666e"}
+## Plot types
+### Common plots
+
+- Scatter Plots (`geom_point`): relationships
+- Line Charts (`geom_line`): time series
+- Bar Charts (`geom_col`): comparisons
+- Histograms & Density Plots (`geom_histogram`, `geom_density`): distributions
+- Box Plots (`geom_boxplot`): grouped distributions
+- Statistical summaries (`geom_smooth`, `geom_errorbar`): presenting results
+
+## Plot types
+### An example dataset
+
+Lets start by working with a really simple dataset with two groups:
+
+```{r}
+#| output-location: default
+df <- data.frame(
+  x = c(1, 3, 4, 10, 8, 9, 3, 1, 5, 2),
+  y = c(2, 6, 1, -4, 5, 1, 2, 3, 0, 4),
+  gr = c(rep("a", 5), rep("b", 5))
+)
+df
+p <- ggplot(data = df,
+            mapping = aes(x=x, y=y))
+```
+
+## Plot types
+### Individual geoms: `geom_point()`
+
+```{r}
+p + geom_point()
+```
+
+## Plot types
+### Individual geoms: `geom_col()`
+
+```{r}
+p + geom_col()
+```
+
+This does not look right...
+
+::: {.aside}
+You might have tried `geom_bar()` and gotten an error. `geom_bar()` counts the number of cases for each `x` in the data set and should not be supplied a `y` aesthetic mapping.
+:::
+
+## Plot types
+### Individual geoms: `geom_col()`
+
+```{r}
+p + geom_col(
+  position =
+    position_dodge2(preserve = "single")
+)
+```
+
+Default is `position = "stack"`, this puts same `x` values on top of each other. Setting it to dodge separates overlapping values.
+
+## Plot types
+### Collective geoms
+
+:::: {.columns}
+::: {.column width="50%"}
+```{r}
+#| output-location: default
+p + geom_line(aes(group = gr))
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| output-location: default
+p + geom_line(aes(linetype = gr))
+```
+:::
+::::
+
+Collective geoms are plots with connected observations. `group` tells ggplot how to connect the data.
+
+::: {.aside}
+When assigning an aesthetic (`color`, `fill`, `linetype`, `shape`, `size`) to the group ggplot adds a legend.
+:::
+
+## Plot types
+### Statistical summaries: `geom_histogram()`
+
+```{r}
+#| output-location: default
+ggplot(data=df, aes(x=x)) +
+  geom_histogram()
+```
+
+::: {.aside}
+`geom_histogram()`, like `geom_bar()` and `geom_density()` counts `x` values. It would error if we supplied a `y`.
+:::
+
+## Plot types
+### Statistical summaries: `geom_smooth()`
+
+```{r}
+#| output-location: default
+p + geom_point() + geom_smooth(method = "lm")
+```
+
+`geom_smooth()` fits a line through the data, defaults to loess
+
+## Plot types
+### Statistical summaries: `geom_errorbar()`
+
+```{r}
+#| output-location: default
+p + geom_errorbar(aes(ymin = y - 1, ymax = y + 1))
+```
+
+Useful for reporting e.g., coefficient plots, but requires `ymin` and `ymax` aesthetics.
+
+# Grouping and summarizing  {background-color="#40666e"}
+## Grouping and summarizing
+
+What if we wanted to plot how GDP per capita has developed for each country over time. A line plot should do this well.
+
+```{r}
+ggplot(
+  gapminder,
+  aes(x = year,
+      y = gdpPercap)
+) +
+  geom_line()
+```
+
+Any idea what's wrong?
+
+## Grouping and summarizing
+### The `group` aesthetic
+
+We need to tell ggplot to group the data by country.
+
+```{r}
+#| code-line-numbers: "5"
+ggplot(
+  gapminder,
+  aes(x = year,
+      y = gdpPercap,
+      group = country)
+) +
+  geom_line()
+```
+
+Still quite hard to see what's going on!
+
+## Grouping and summarizing
+### Making things clearer
+
+Let's color lines by continent.
+
+```{r}
+#| code-line-numbers: "6,9"
+ggplot(
+  gapminder,
+  aes(x = year,
+      y = gdpPercap,
+      group = country,
+      color = continent)
+) +
+  geom_line()
+```
+
+Still looks cluttered.
+
+::: {.aside}
+`color` sets the color of lines and points, `fill` configures color of areas, e.g. bar plots. And for you brits out there, `colour` is also allowed.
+:::
+
+## Grouping and summarizing
+### Faceting
+
+Instead we could split the plot into subplots by continent.
+
+```{r}
+#| code-line-numbers: "9"
+ggplot(
+  gapminder,
+  aes(x = year,
+      y = gdpPercap,
+      group = country)
+) +
+  geom_line() +
+  facet_wrap(vars(continent))
+```
+
+
+By default `facet_wrap()` keeps y axes the same. See `?facet_wrap` for how to change this.
+
+# Styling {background-color="#40666e"}
+
+## Styling
+### A plot to work on
+
+```{r}
+p <- ggplot(
+  gapminder,
+  aes(x = gdpPercap,
+      y = lifeExp)
+)
+p + geom_point()
+```
+
+How can we increase readability?
+
+## Styling
+### Configuring scales: color
+
+```{r}
+#| code-line-numbers: "7"
+ggplot(gapminder,
+       aes(x = gdpPercap,
+           y = lifeExp)) +
+  geom_point(aes(color = continent))
+```
+
+## Styling
+### Configuring scales: size
+
+```{r}
+#| code-line-numbers: "5-8"
+ggplot(gapminder,
+       aes(x = gdpPercap,
+           y = lifeExp)) +
+  geom_point(aes(color = continent,
+                 size = pop),
+             shape = 1, alpha = 0.75) +
+  scale_size(labels = scales::comma)
+```
+
+- Makes point size vary with population size,
+- with semi-transparent hollow circles
+- Change size scale to non-scientific
+
+## Styling
+### Configuring scales: logarithmic x-scale
+
+```{r}
+#| code-line-numbers: "8"
+ggplot(gapminder,
+       aes(x = gdpPercap,
+           y = lifeExp)) +
+  geom_point(aes(color = continent,
+                 size = pop),
+             shape = 1, alpha = 0.75) +
+  scale_size(labels = scales::comma) +
+  scale_x_log10(labels = scales::dollar)
+```
+
+::: {.aside}
+`scale_y_log10()` is short for `scale_y_continuous(transform = transform_log10())`.
+:::
+
+## Styling
+### Adding (population weighted) regression lines
+
+```{r}
+#| code-line-numbers: "9-11"
+p <- ggplot(gapminder,
+       aes(x = gdpPercap,
+           y = lifeExp,
+           color = continent)) +
+  geom_point(aes(size = pop),
+             shape = 1, alpha = 0.75) +
+  scale_size(labels = scales::comma) +
+  scale_x_log10(labels = scales::dollar) +
+  geom_smooth(aes(weight = pop),
+              linewidth = 0.8,
+              method = "lm", se = FALSE)
+p
+```
+
+::: {.aside}
+Note how I moved the color aesthetic to the main `ggplot()` call so it applies to both geoms.
+:::
+
+## Styling
+### Adding plot labels
+
+```{r}
+p <- p +
+  labs(
+    x = "Log GDP per capita",
+    y = "Life expectancy",
+    color = "Continent",
+    size = "Population size",
+    title = "Prosperity brings health, or is it the other way around?",
+    subtitle = "1952-2007",
+    caption = "Data from Gapminder"
+  )
+p
+```
+
+## Styling
+### `theme()` sets look and feel
+
+:::: {.columns}
+::: {.column width="50%"}
+```{r}
+#| output-location: default
+p + theme_bw() +
+  theme(plot.title = element_text(size=16))
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| output-location: default
+p + hrbrthemes::theme_ipsum() +
+  theme(legend.position = "bottom",
+        legend.box = "vertical")
+```
+:::
+::::
+
+::: {.aside}
+See `?theme` for all the things you can edit!
+:::
+
+## Styling
+### Aside on colors
+
+- We do not percieve all colors the same.
+- When plotting, try to use palettes designed for perceptual uniformity.
+- Three types of palettes, depending on data structure:
+  - **Sequential**: for ordered data (e.g., income)
+  - **Diverging**: ordered with midpoint (correlation, temperature)
+  - **Qualitative**: unordered, categorical, data (countries, species)
+
+## Styling
+### Aside on colors: color blindness
+
+8% of men and 0.5% of women have some form of color blindness. Let's create a function to evaluate how different palettes look for people who are color blind.
+
+```{r}
+#| output-location: default
+library(dichromat)
+library(paletteer)
+colorblind_palette = function(palette) {
+  melt(as.data.table(
+    append(
+      list(x = 1:length(palette),
+           "Trichromacy (Original)" = palette),
+      lapply(c("Protanopia"="protan", "Deutanopia"="deutan", "Tritanopia"="tritan"),
+             dichromat, colours = palette)
+    )
+  ), id.vars = "x") |>
+    ggplot(aes(x=x, y = 0, fill = value)) +
+    geom_raster() + facet_wrap(vars(variable), nrow=4) +
+    scale_fill_identity() + theme_void() + theme(legend.position = "none")
+}
+```
+
+
+## Styling
+### Aside on colors: color blindness (ggplot2 defaults)
+
+```{r}
+#| output-location: default
+colorblind_palette(scales::hue_pal()(5))
+```
+
+## Styling
+### Aside on colors: color blindness
+
+```{r}
+#| output-location: default
+colorblind_palette(paletteer_d("RColorBrewer::RdYlGn", 10))
+```
+
+## Styling
+### Aside on colors: color blindness
+
+```{r}
+#| output-location: default
+colorblind_palette(paletteer_d("wesanderson::Darjeeling2", 5))
+```
+
+Let's go with this one for our plot!
+
+## Styling
+### Final result
+
+```{r}
+#| echo: false
+p <- p +
+  theme_ipsum() +
+  scale_color_paletteer_d("wesanderson::Darjeeling2")
+p
+```
+
+## Styling
+### Saving figures with `ggsave()`
+
+- It sounds easy, but saving figures can quite messy, even if it looked really good in the viewer.
+- `ggsave(<filename>, p)` saves the `p` plot object to a file
+- The file ending determines the graphics device:
+  - Vector formats (.pdf, .svg) look much nicer
+  - Raster formats (.png, .jpg) are easier to work with
+- Use arguments `width`, `height`, and `scale` to get the size right
+
+::: {.aside}
+It can be quite hard to get custom fonts looking the way you want with vector formats. With rasterized formats the [ragg package](https://ragg.r-lib.org/) makes it super easy.
+:::
+
+## Styling
+### Best practices
+
+- Chose the right plot for you data and question
+- Use labels to explain your plot
+- Keep it clean, don't plot too much on the same chart
+- Use colors sparingly, effectively, accounting for colorblindness
+
+## Styling
+### Common pitfalls to avoid
+
+- Misleading axes (bar charts not starting at zero 🫢)
+- Overplotting (too much data)
+- Chartjunk (prominent grindlines, backgrounds)
+- 3D plots, pie charts (hard to read)
+
+## Next lecture: Data wrangling {.title-slide background-color="#40666e"}
+
+## Resources
+
+- [Data Visualization: A practical introduction by Kieran Healy](https://socviz.co/index.html#preface)
+- Chapters 1,9,10 of [R4DS](https://r4ds.hadley.nz/data-visualize.html)
+- The 3rd edition [ggplot book](https://ggplot2-book.org/) (advanced, WIP)
+
+## References

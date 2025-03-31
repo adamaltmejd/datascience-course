@@ -1,0 +1,16 @@
+format:
+  clean-revealjs:
+  #revealjs:
+    self-contained: true
+    slide-level: 2
+    theme:
+      - ../custom.scss
+    mermaid:
+      theme: forest
+    slide-number: c/t
+    auto-stretch: true
+output-location: column
+filters:
+  - reveal-auto-agenda
+revealjs-plugins:
+  - attribution

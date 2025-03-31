@@ -1,0 +1,928 @@
+---
+title: "Lecture 3: Data wrangling basics in R"
+subtitle: "EC7412 Part II: Data Science for Economists"
+date: 2025-04-16
+---
+
+# Introduction {background-color="#40666e"}
+
+## Introduction
+### *Why* manipulate data with code?
+
+<!--
+
+TODO:
+ - Code style
+ - MAYBE ADD SOME ON CONTROL FLOW, ITERATION AND VECTORIZATION, see https://grantmcdermott.com/ds4e/funcs-intro.html#functional-programming
+ - TODO: MAYBE ADD SOME MORE SLIDES ON DATA.FRAMES/TIBBLES/DATA.TABLES?
+
+
+-->
+
+
+
+![&nbsp;](genetics_excel.png)
+
+## Introduction
+### Today
+
+- R programming from fundamentals
+- Much of what you will learn applies to any programming language
+- Follow along on your computers!
+
+::: notes
+By teaching fundamentals I hope you can learn to apply the knowledge also to other programming languages.
+:::
+
+## Introduction
+### R fundamentals
+
+- "Everything is and object and everything has a name"
+  - You can access and modify everything you interact with
+- You call functions to operate on objects
+
+## Introduction
+### Useful to know when coming from Stata
+
+- Not limited to one dataset in memory
+- Stata commands = R functions
+- Less "hand-holding" when it comes to statistical analyses, need to be more mindful about what you do
+- Much more dependent on external packages, you will need to learn to install and load them
+
+## Introduction
+### Coding environment recap
+
+- Make sure you have `R` and `VS Code` installed
+- Also useful to have the VS Code `R extension`
+- You can follow along in the VS Code terminal
+
+# Basic R syntax {background-color="#40666e"}
+
+## Basic R syntax
+### Operations
+
+We can use R for arithmetic by executing operations in an R terminal:
+
+```{r}
+12 + 3
+```
+```{r}
+8 - 33
+```
+```{r}
+20 / 3
+```
+```{r}
+10 ^(2 + 1) - 1
+```
+
+Each row calls arithmetic *functions* on scalar *objects* (numbers).
+
+## Basic R syntax
+### Running code
+
+Options:
+
+- Manually enter code into terminal
+- `Ctrl/cmd+enter` to send row to terminal in VS Code
+- Run whole R-script file (`.R`) with `Ctrl/cmd+shift+S`
+
+## Basic R syntax
+### Assignment
+
+We create new objects by assigning values to names:
+
+```{r}
+#| output-location: default
+a <- 3
+b = 5
+```
+
+Creates two scalars and assign them the names `"a"` and `"b"`.
+
+::: {.fragment}
+- You can use both `<-` and `=` for assignment in R.
+- Almost everyone uses `<-`, but it has some issues. For example:
+```r
+a < -5
+a <- 5
+```
+:::
+
+## Basic R syntax
+### Objects
+
+- `typeof()` tells us how objects are stored in memory
+- Data will usually be stored in one of 4 types:
+
+```{r}
+typeof(1.0)
+```
+```{r}
+typeof(1L)
+```
+```{r}
+typeof(TRUE)
+```
+```{r}
+typeof("text")
+```
+
+- But sometimes, object `class()` is more informative:
+
+```{r}
+typeof(mean)
+```
+```{r}
+class(mean)
+```
+
+## Basic R syntax
+### Naming
+
+- A name must start with a **letter** and can contain letters, numbers, underscores, and periods.
+
+```{r}
+#| error: TRUE
+1a = 1
+```
+
+- Some names are [reserved](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Reserved.html):
+
+```{r}
+#| error: TRUE
+function = 1
+```
+
+- Names are case sensitive!
+- No length limit: `household_income_after_tax` is much better than `hhinc2`.
+
+## Basic R syntax
+### Vectors and lists
+
+```{r}
+c(1,2,3)
+```
+
+::: {.fragment}
+Elements of `vectors` need to be of same type, or they will be coerced:
+```{r}
+c(1,2,"3")
+```
+:::
+
+::: {.fragment}
+`Lists` are collections of arbitrary types:
+```{r}
+list(2,"3")
+```
+:::
+
+::: notes
+Scalars are just `atomic vectors` of length 1.
+:::
+
+
+## Basic R syntax
+### Missing values
+
+- Each type has a "missing value" indicator `NA` (not available)
+
+```{r}
+c(1,NA,-1) > 0
+```
+
+- For numbers, there is also `Inf`, `-Inf` and `NaN` (not a number)
+
+```{r}
+1/0
+```
+
+```{r}
+0/0
+```
+
+```{r}
+is.na(c(NA, NaN))
+```
+
+```{r}
+is.nan(c(NA, NaN))
+```
+
+::: {.aside}
+This is different from Stata where missing values are treated as infinitely large.
+:::
+
+## Basic R syntax
+### Data frames
+
+Data frames are collections (lists really) of vectors of the same length, organized in a table:
+
+```{r}
+df = data.frame(x = c(1,2,3),
+                y = c(4,5,6))
+df
+```
+
+Processing data in R, you will run most of your operations on `data.frames` (or similar objects like `tibbles` or `data.tables`).
+
+```{r}
+df^2
+```
+
+## Basic R syntax
+### Functions
+
+- Like programs in STATA, functions are reusable code "blocks"
+- Can take arguments that become variables inside the function
+- You should strive to write as much code as possible in functions
+
+```{r}
+myfunc = function(v1, v2) max(v1, v2)
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: TRUE
+myfunc(1,2)
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: TRUE
+myfunc(1,2,3)
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: TRUE
+myfunc(c(1,2))
+```
+
+## Baisc R syntax
+### Pipes
+
+Pipes (`|>`) make your code more readable:
+
+```{r}
+sqrt(max(append(c(1,2,3), 4)))
+```
+
+```{r}
+c(1,2,3) |>
+  append(4) |>
+  max() |>
+  sqrt()
+```
+
+## Baisc R syntax
+### Comments
+
+Lines starting with `#` are not executed. Use comments to explain what you do, and to get code-completion suggestions from Copilot.
+
+```r
+# myfunc(x, y) returns largest number of v1 and v2
+myfunc = function(v1, v2) max(v1, v2)
+```
+
+::: {.fragment}
+**But**: "Good code explains itself"
+```r
+return_largest_number = function(v1, v2) max(v1, v2)
+```
+:::
+
+# When things don't work {background-color="#40666e"}
+
+## When things don't work
+### Get help
+
+- Run `?named_object`
+- For packages you can also often run `?package.name`.
+
+```r
+?data.frame
+```
+
+![&nbsp;](help_data_frame.png)
+
+## When things don't work
+### Understanding error messages
+
+```{r}
+#| error: TRUE
+#| output-location: column-fragment
+dat = data.frame(a = c(1,2),
+                 b = c(3,4))
+data[1]
+```
+
+::: {.fragment}
+!?!?
+:::
+
+::: {.fragment}
+```{r}
+typeof(data)
+```
+
+```{r}
+typeof(dat)
+```
+
+Learning to read error messages will help you find coding errors.
+:::
+
+::: {.aside}
+Talk on this famous error: <https://posit.co/resources/videos/object-of-type-closure-is-not-subsettable/>
+:::
+
+## When things don't work
+### Understand the objects you are working with
+
+Print the object in the terminal:
+
+```{r}
+dat
+```
+
+- `View()` is useful for larger objects, try `View(mtcars)`
+
+- `str()` gives you the structure of the object
+
+- `pillar::glimpse()` is a nice alternative to `str()`
+
+- For functions, printing can^[R functions can include compiled C++ code which will not be visible this way. Their dispatch can also vary depending on the supplied object class, we will get back to this later.] give you the code. Try printing `data`.
+
+## When things don't work
+### Debugging basics
+
+- Debugging is really useful for finding and fixing errors
+- Use `browser()` to enter the debugger at a certain place
+
+```r
+return_largest_number = function(v1, v2) {
+  browser()
+  max(v1, -v2)
+}
+```
+
+- VS Code has an `R debugger` extension that makes this easier
+
+# Logic {background-color="#40666e"}
+
+## Logic
+
+We often want to run operations *conditional* or certain criteria. For this we need *logical operators*.
+
+```{r}
+#| output-location: column-fragment
+1 == 2
+```
+```{r}
+#| output-location: column-fragment
+1 < 2
+```
+```{r}
+#| output-location: column-fragment
+1 == 2 & 1 < 2
+```
+```{r}
+#| output-location: column-fragment
+1 == 2 | 1 < 2
+```
+
+Note the difference between assignment (`=`) and comparison (`==`).
+
+## Logic
+### Precedence
+
+Let's say we want to check if a variable is larger than two other variables:
+
+```{r}
+#| output-location: column-fragment
+x = 3; y = 1; z = 4
+x > y & z
+```
+
+::: {.fragment}
+Logical operators (`>`, `==`, etc) are evaluated before Boolean (`&` and `|`).
+
+```{r}
+#| output-location: column
+3 > 1
+```
+
+```{r}
+#| output-location: column
+TRUE & 4
+```
+
+Boolean operators require logical arguments. R runs `as.logical(4)` before the comparison. All non-zero numbers are coerced to `TRUE`, only `0` is `FALSE`.
+:::
+
+::: {.fragment}
+To get it right we need to be explicit:
+```{r}
+x > 1 & x > 4
+```
+:::
+
+## Logic
+### Logic on vectors
+
+```{r}
+c(1,2,3) > 2
+```
+
+```{r}
+c(1,2,3) > c(0,1,2)
+```
+
+::: {.fragment}
+But! When the vectors are of different lenght, R "recycles" the shorter vector.
+
+```{r}
+#| warning: true
+c(1,2,3) > c(1,3)
+```
+
+When one object is a multiple of the other, there is not even a warning.
+
+```{r}
+c(1,2,3) > c(0,1,2,3,4,5)
+```
+
+Be careful!
+:::
+
+## Logic
+### Boolean operators on vectors
+
+The same is true for Boolean operators:
+
+```{r}
+#| warning: true
+c(TRUE, FALSE) | c(FALSE, TRUE)
+```
+
+```{r}
+#| warning: true
+c(TRUE, FALSE) & c(TRUE, FALSE, FALSE)
+```
+
+To require scalars for our comparison, we can use `&&` and `||` instead:
+
+```{r}
+#| error: true
+c(TRUE, FALSE) && c(FALSE, TRUE)
+```
+
+## Logic
+### Missing values
+
+In R, `NA` are properly treated as "missing", the value could be anything.
+
+```{r}
+#| output-location: column-fragment
+NA > 0
+```
+
+```{r}
+#| output-location: column-fragment
+NA & TRUE
+```
+
+But:
+
+```{r}
+#| output-location: column-fragment
+NA | TRUE
+```
+
+```{r}
+#| output-location: column-fragment
+NA & FALSE
+```
+
+::: {.fragment}
+Here, it does not matter what `NA` could be, since both `TRUE | TRUE` and `FALSE | TRUE` evalute to `TRUE`.
+:::
+
+## Logic
+### Missing values (cont.)
+
+What if we want to check what values of a vector are missing:
+
+```{r}
+#| output-location: column-fragment
+x = c(1, NA, 3)
+x == NA
+```
+
+::: {.fragment}
+Actually, even `NA` is not equal to `NA`.
+
+```{r}
+NA == NA
+```
+:::
+
+::: {.fragment}
+Instead we need to use `is.na()`
+
+```{r}
+is.na(x)
+```
+:::
+
+## Logic
+### Negation
+
+`!` negates a logical statement:
+```{r}
+#| output-location: column-fragment
+!TRUE
+```
+```{r}
+#| output-location: column-fragment
+1 != 2
+```
+```{r}
+#| output-location: column-fragment
+!(1 < 3)
+```
+
+For example we might want to filter for non-missing by running `!is.na()`:
+
+```{r}
+#| output-location: column-fragment
+!is.na(x)
+```
+
+## Logic
+### %in%
+
+To check if a scalar is an element of a vector:
+
+```{r}
+#| output-location: column-fragment
+1 %in% c(1,2,3)
+```
+
+Works just as well on character vectors
+```{r}
+#| output-location: column-fragment
+c("a", "c") %in% c("a", "b", "c")
+```
+
+::: {.aside}
+For more on logical operators see the [R manual](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Logic.html) and [Advanced R](https://adv-r.hadley.nz/control-flow.html).
+:::
+
+## Logic
+### Caution: floating-point numbers
+
+Arithmetic operations on floating points are **not exact**:
+
+```{r}
+#| output-location: column-fragment
+0.3 == 0.3
+```
+```{r}
+#| error: TRUE
+#| output-location: column-fragment
+0.1 + 0.2 == 0.3
+```
+
+::: {.fragment}
+Instead do:
+
+```{r}
+all.equal(0.3, 0.1 + 0.2)
+```
+```{r}
+abs(0.3 - (0.1 + 0.2)) < 1e-15
+```
+
+::: {.aside}
+This is a general problem with floating points, not only in R. [Read more here](https://floating-point-gui.de/basic/). Make it a habit to never test floating points for equality (`==`, `<=`, `<=`), or you will run into nasty bugs sooner or later.
+:::
+:::
+
+## Logic
+### Control flow: if/else
+
+```{r}
+if (1 == 3) "foo" else "bar"
+```
+
+Can be used directly in assignment (not recommended)
+
+```{r}
+x = 0 + if (1 == 3) 2 else 0
+x
+```
+
+If statements should normally be written on multiple rows with brackets:
+
+```{r}
+if (TRUE) {
+  "foo"
+} else {
+  "bar"
+}
+```
+
+## Logic
+### Control flow: vectors
+
+`if` can only evaluate logical scalars, for vectors, use `ifelse()`
+
+```{r}
+#| error: true
+if (c(3,1) == c(1,4)) "foo" else "bar"
+```
+
+```{r}
+ifelse(c(3,1) == 1, "foo", "bar")
+```
+
+We can nest multiple `ifelse()`:
+
+```{r}
+x <- c(1,2,3)
+ifelse(x==1, "a", ifelse(x==2, "b", NA))
+```
+
+Or use `data.table::fcase()` (or `dplyr::case_when()`)
+
+```{r}
+data.table::fcase(
+  x == 1, "a",
+  x == 2, "b"
+)
+```
+
+
+# Subsetting {background-color="#40666e"}
+
+## Subsetting
+### Subsetting with `[]`
+
+```{r}
+a = c(4,5,8,1)
+```
+
+`a[n]` selects the n:th element of the vector `a`
+
+```{r}
+#| output-location: column-fragment
+a[2]
+```
+
+We can supply integers:
+```{r}
+#| output-location: column-fragment
+a[c(1,3,1)]
+```
+```{r}
+#| output-location: column-fragment
+a[-3]
+```
+
+Or logicals:
+```{r}
+#| output-location: column-fragment
+a[a > 4]
+```
+
+::: {.aside}
+NB: In Python, indexing begins at 0 rather than 1!
+:::
+
+## Subsetting
+### Selecting with `[[]]` or `$`
+
+```{r}
+a_list = list(named_elem = c(1,2,3),
+               c("a", "b", "c"))
+a_list
+```
+
+Let's pick the first element of the list:
+
+```{r}
+#| output-location: column-fragment
+a_list[1]
+```
+
+```{r}
+#| output-location: column-fragment
+a_list[[1]]
+```
+
+::: {.fragment}
+Do you see the difference? `[]` returns a list of length 1 while `[[]]` returns the vector stored as the first element of `a_list` (try `typeof()` to see).
+:::
+
+## Subsetting
+### Selecting with `[[]]` or `$` (cont.)
+
+`a$x` is a shorthand for `a[["x"]]`
+
+```{r}
+a_list$named_elem
+```
+
+::: {.fragment}
+When `[[]]` returns a vector we can simply follow with `[]` to select specific vector element(s):
+
+```{r}
+#| output-location: column-fragment
+a_list[[2]][1]
+```
+```{r}
+#| output-location: column-fragment
+a_list$named_elem[3]
+```
+:::
+
+# Scoping {background-color="#40666e"}
+
+## Scoping
+### Function scope
+
+```{r}
+#| echo: false
+rm(x,y,z)
+```
+
+Variables defined in functions are not "global"
+
+```{r}
+x = 10
+set_xy = function() {
+  x = 20
+  y = 30
+  c(x,y)
+}
+```
+
+```{r}
+#| output-location: column-fragment
+set_xy()
+```
+
+```{r}
+#| output-location: column-fragment
+x
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: true
+y
+```
+
+## Scoping
+### Lexical scoping
+
+But what if the object does not exist in the function scope?
+
+```{r}
+#| output-location: column-fragment
+
+x = 10
+y = 20
+set_xy = function() {
+  x = 20
+  c(x, y)
+}
+set_xy()
+```
+
+::: {.fragment}
+R looks "one level up"
+:::
+
+## Scoping
+### Accessing data.frame columns
+
+Let's say we want to run a regression on the data in the `df` data.frame we created
+
+```{r}
+#| echo: FALSE
+#| output-location: default
+rm(x, y)
+```
+
+```{r}
+df
+```
+
+```{r}
+#| error: TRUE
+#| output-location: column-fragment
+lm(y ~ x)
+```
+
+::: {.fragment}
+R cannot find the `y` variable. We need to look "inside" the `df` object.
+:::
+
+## Scoping
+### Accessing data.frame columns (cont.)
+
+We can supply each vector separately
+
+```{r}
+#| output: FALSE
+#| output-location: default
+lm(df$y ~ df$x)
+```
+
+...or we can use `with()` to call `lm()` "inside" `df`:
+
+```{r}
+#| output: FALSE
+#| output-location: default
+with(df, lm(y ~ x))
+```
+
+...or we can use the `data` argument of `lm()`
+
+```{r}
+#| output: FALSE
+#| output-location: default
+lm(y ~ x, data = df) # check ?lm for all arguments
+```
+
+::: notes
+This is very different from STATA where we can only have one "data.frame" in memory at a time, meaning that all columns are always in the "global environment".
+:::
+
+## Scoping
+### Packages
+
+- Packages are R extensions that can be really useful
+- Installed with `install.packages()` and loaded with `library()`
+
+::: {.fragment}
+```{r}
+#| fig.cap: "&nbsp;"
+#| out.width: 300px
+library(memer)
+meme_get("OprahGiveaway") |>
+  meme_text_bottom("EVERYONE GETS AN A",
+                   size = 36)
+```
+:::
+
+## Scoping
+### Packages (cont.)
+
+- `library()` loads package functions into global environment
+- Call package functions that are not loaded with `::`
+
+```{r}
+#| error: TRUE
+plt()
+```
+```{r}
+#| fig.cap: "&nbsp;"
+#| out.width: 300px
+tinyplot::plt(
+  Sepal.Length ~ Petal.Length | Species,
+  data = iris
+)
+```
+
+## Scoping
+### Methods
+
+Lets try to look at the source code for the `mean()` function
+
+```{r}
+#| output-location: column-fragment
+mean
+```
+
+::: {.fragment}
+`mean()` calls different *methods* depending on object *class*
+```{r}
+methods(mean)
+```
+```{r}
+#| output-location: column-fragment
+mean(c(1,2,3,4))
+```
+```{r}
+#| output-location: column-fragment
+mean(as.Date(c("2024-01-01",
+               "2025-01-01")))
+```
+:::
+
+## Next lecture: Visualization {.title-slide background-color="#40666e"}

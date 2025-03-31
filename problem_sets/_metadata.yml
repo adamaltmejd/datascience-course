@@ -1,0 +1,10 @@
+format:
+  html:
+    theme: ["journal", "custom.scss"]
+    page-layout: article
+    code-fold: false
+    toc: false
+    embed-resources: true
+    anchor-sections: true
+    html-math-method: "katex"
+    smooth-scroll: true

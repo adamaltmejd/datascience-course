@@ -1,0 +1,16 @@
+---
+title: "Lecture 6: Servers, VMs, APIs, LLMs"
+subtitle: "EC7412 Part II: Data Science for Economists"
+date: 2025-04-28
+---
+
+
+
+<!-- ## Lecture 6 - Servers, VMs, APIs, LLMs
+
+- Github Actions as cron jobs to process and serve data/figures
+- LLM API calls to process data
+- Outsourcing heavy tasks to GCP VMs -->
+
+
+# Introduction {background-color="#40666e"}

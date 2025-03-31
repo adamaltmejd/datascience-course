@@ -1,0 +1,341 @@
+---
+title: "Problem set 0 --- Setting Up Your Data Science Computer Environment"
+date: last-modified
+toc: true
+---
+
+# Introduction
+
+This is a guide for you to prepare your data science environment. The idea is that you go through these instructions between Lectures 1 and 2. That way, you will be able to follow along on your own computer in the classroom. And if there are any issues, we can sort them out before the real first problem set.
+
+This guide provides step-by-step instructions on how to install R (with RStudio), Python, Julia, and Stata. We will primarily use R in class, but I encourage you to explore any language or statistical software you prefer. This document also covers setting up the version control system Git and creating an account on GitHub.com, installing my favorite code editor (Visual Studio Code), configuring SSH keys for GitHub, and creating your first GitHub repository. Required tools are marked as such, others are complementary.
+
+---
+
+The instructions are organized by operating system.
+
+**Windows users** have two options: (1) Use the instructions under the "Windows" labels (recommended), or (2) install a Debian-based (e.g., Ubuntu) Linux distribution using Windows Subsystem for Linux (WSL) and follow the "Linux" instructions (advanced).
+
+For **Mac users**, I highly recommend installing the **Homebrew package manager** by following the instructions on [brew.sh](https://brew.sh/). This will make everything really easy. If you prefer not to, I have provided alternative instructions as well.
+
+If you use **Linux**, you likely already have many of these tools installed. Note that the instructions here are for Debian-based systems like Ubuntu. If you are on a different system and have any questions, let me know.
+
+---
+
+Whenever there are code blocks in the instructions:
+
+```bash
+echo "hej"
+```
+
+it means you need to type the command in your terminal. NB: The Windows command prompt and Powershell often have a different syntax than the Mac/Linux terminal. By using the "Git Bash" application that comes with Git on Windows (instructions below), also Windows users can use the same syntax.
+
+A terminal window should look something like this (on Mac, if you haven't changed anything):
+
+![&nbsp;](Screenshot 2025-02-28 at 14.08.08.png)
+
+## Error!? But I did exactly as you said!
+
+There are lots of reasons why these instructions might not work for you. If you have problems with R or Git specifically, <https://happygitwithr.com> is a great resource. Many problems have been answered on Stack Overflow, and can be found by googling (try googling the error message). You can also ask your favorite LLM Chatbot for help (try pasting the error message), discuss in class, or send me an email.
+
+# Installing Programming Languages (and Stata)
+
+This section covers installing R, Python, and Julia. Throughout the course, we will focus on R because it currently has the best (in my humble opinion) data science toolkit, though Python and Julia are close behind.
+
+One goal of this course is to help you view programming languages (and statistical software like Stata) as tools, each with different strengths. By the end, you should feel comfortable switching between languages—or even learning new ones—when the situation calls for it. You will be able to do everything we do in class in R, but I have provided instructions for Python and Julia too if you would like to experiment with those languages on your own.
+
+## R (required)
+
+::: {.panel-tabset}
+
+### Windows
+
+Go to the [CRAN website](https://cran.r-project.org) and click **Download R for Windows**. On the Windows download page, click the **base** download link to get the latest R installer. Run the installer and follow the prompts (you can accept the default settings) to install R.
+
+The installer will install a basic R GUI app (and place a shortcut on your desktop). We will not be using this app to run R later, but you can start it now to verify the installation worked. It should look something like this:
+
+![&nbsp;](win-R-app.png){width=600px}
+
+### macOS
+
+**Option 1 (recommended):**
+
+Using the package manager Homebrew ([install Homebrew first](https://brew.sh/)), run the following command in your Terminal:
+```bash
+brew install --cask r
+```
+
+**Option 2 (manual install):**
+
+Go to the [CRAN website](https://cran.r-project.org) and click **Download R for macOS**. Download the latest `.pkg` installer for R. Once downloaded, double-click the `.pkg` file and follow the installer prompts.
+
+### Linux
+
+```bash
+sudo apt update
+sudo apt install r-base
+```
+
+:::
+
+## Python (supplementary)
+
+::: {.panel-tabset}
+
+### Windows
+
+Python can be installed from the [Microsoft Store](https://apps.microsoft.com/detail/9nrwmjp3717k?hl=en-US&gl=US). After installation, verify it by opening Powershell and running `python`. It should look like this:
+
+![&nbsp;](win-python.png){width=600px}
+
+
+### macOS
+
+**Homebrew (recommended)**
+
+```bash
+brew install python
+```
+
+**Manual install**
+
+Download the latest Python 3.x installer from [Python's official site](https://www.python.org/downloads/macos/). Run the `.pkg` installer and follow the prompts.
+
+### Linux
+
+```bash
+sudo apt update
+sudo apt install python3 python3-pip
+```
+
+:::
+
+## Julia (supplementary)
+
+::: {.panel-tabset}
+
+### Windows
+
+Julia can be installed from the [Microsoft Store](https://www.microsoft.com/store/apps/9NJNWW8PVKMN). You can launch a Julia interpreter by running `julia` in Powershell or by starting the app. It should look like this when running:
+
+![&nbsp;](win-julia.png){width=600px}
+
+### macOS
+
+**Homebrew (recommended)**
+
+```bash
+brew install julia
+```
+
+**Manual install**
+
+As described on [julialang.org](https://julialang.org/downloads/), run:
+```bash
+curl -fsSL https://install.julialang.org | sh
+```
+
+### Linux
+
+As described on [julialang.org](https://julialang.org/downloads/), run:
+```bash
+curl -fsSL https://install.julialang.org | sh
+```
+
+:::
+
+## Stata (supplementary)
+
+Stata is the only proprietary software used in this class, and it is completely volontary to use. If you have primarily worked in Stata before, you may be more comfortable continuing to use it for tasks it does well (such as estimation). In that case you probably already have Stata installed. If you have never used Stata, I would not recommend starting now, but if you wish to do so, you can find the install instructions on the [Stockholm University website](https://www.su.se/utbildning/it-f%C3%B6r-studenter/licenser-och-program/stata-se-1.445814?open-collapse-boxes=collapseCollapsible1730983659344_861617).
+
+
+# Integrated Development Environment
+
+Next, we need software for writing code. IDEs (Integrated Development Environments) are enhanced text editors with many extra features. You may have tried the Stata do-file editor or RStudio before. I prefer VS Code and encourage you to try it. In class, we'll see how to use VS Code to connect to servers, access the terminal, create plots, browse data, and more. You can do powerful things like find and replace across multiple files or edit several rows of text at once. Best of all, once you're registered with GitHub Education, you can access the GitHub Copilot AI assistant for free, right inside VS Code.
+
+Below are also instructions for installing RStudio if you prefer it.
+
+## VS Code (required)
+
+::: {.panel-tabset}
+
+### Windows
+
+Download and install VS Code from [VS Code's download page](https://code.visualstudio.com/download). Defaults are good, but I suggest selecting "Open with Code" context menus too.
+
+### macOS
+
+**Homebrew (recommended)**
+
+```bash
+brew install --cask visual-studio-code
+```
+
+**Manual install**
+
+Download [VS Code](https://code.visualstudio.com/download), extract the archive, and move the app into the Applications folder.
+
+### Linux
+
+Follow the [official instructions](https://code.visualstudio.com/docs/setup/linux#_install-vs-code-on-linux) to download the `.deb` file and install by running:
+```bash
+sudo apt install ./<file>.deb
+```
+
+:::
+
+## RStudio (supplementary)
+
+RStudio is the most commonly used editor for working in R. It is great for R in particular and also data science in general, but it lacks many features and extendability when compared to VS Code. However, you might still prefer it for its easy of use with R especially.
+
+::: {.panel-tabset}
+
+### Windows
+
+**RStudio:** Download and install RStudio from the [official download page](https://posit.co/download/rstudio-desktop/). Accept the default settings during install.
+
+### macOS
+
+**Homebrew (recommended)**
+
+```bash
+brew install --cask rstudio
+```
+
+**Manual install**
+
+Download [RStudio Desktop for macOS](https://posit.co/download/rstudio-desktop/) and install by opening the `.dmg` file and dragging **RStudio** into your Applications folder.
+
+### Linux
+
+Download the `.deb` package from [RStudio's download page](https://posit.co/download/rstudio-desktop/) and run:
+```bash
+sudo apt install ./rstudio-*.deb
+```
+
+:::
+
+## Positron (in beta, supplementary)
+
+Positron might be the perfect combination of VS Code and R. It is actually built upon the open-source parts of VS Code but tailored specifically to R users. If you want to try it you need to download and install it from [Posit's website](https://positron.posit.co/).
+
+# Git and GitHub
+
+Git is a **version control system** for tracking changes in your code, especially useful when collaborating with others. We will spend much of lecture 2 talking about it. [GitHub](https://github.com/) is a platform for hosting Git repositories.
+
+::: {.panel-tabset}
+
+### Windows
+
+1. **Download Git:** Go to [Git for Windows](https://git-scm.com/download/win) and download the installer.
+2. **Install Git:** Run the installer. Accept defaults, and select Visual Studio Code as the default editor. Important: chose the recommended PATH adjustment, "Git from the command line and also from 3rd-party software". The installer will install the Git Bash application, which functions as a Linux-style command prompt on Windows.
+3. **Verify the installation:** Open **Git Bash** and run:
+   ```bash
+   git --version
+   ```
+   It should look like this:
+
+   ![&nbsp;](win-git-bash.png){width=600px}
+
+
+### macOS
+
+- **Option 1:** Use Homebrew:
+  ```bash
+  brew install git
+  ```
+- **Option 2:** Use the version of Git bundled with Apple developer tools (Xcode) by installing the Xcode command line tools:
+  ```bash
+  xcode-select --install
+  ```
+
+### Linux
+
+```bash
+sudo apt update
+sudo apt install git
+```
+
+:::
+
+No matter what platform you are on, after installing Git, open your terminal (Git Bash on Windows) and set up your Git profile. If you typed the command correctly, you will not get any confirmation after you pressed Enter.
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "youremail@example.com"
+```
+
+Next, go to [GitHub.com](https://github.com/) to register an account (if you don't already have one). Use the same email you set in your Git config. After registering and verifying your account, visit [https://github.com/education/students](https://github.com/education/students) to sign up for GitHub Education. You will need to enter an SU email adress (and link it to your account). This should be enough to get verified. Once you are registered, you can try out the Copilot Chat in VS Code. You should have access to paid models like Claude 3.7.
+
+# SSH
+
+SSH is short for "secure shell". It is a program used to connect to servers in a secure (encrypted) manner. SSH uses *public key cryptography* where a pair of keys is needed to communicate securely. One key in the pair is called the **private key**. This key should be kept secure and never shared with anyone. The second part is the **public key**. You share this part with the servers and services you want to communicate with. When connecting, SSH then uses the private key (stored on your computer only) to encrypt a message that can be verified with the public key. Even though the server does not have access to the private key, it knows that only the holder of that key can have sent the message.
+
+## Generating a key pair
+
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+Press Enter to accept the default file location. When prompted, enter a passphrase/password (your terminal will not show characters as you type). SSH will place the keypair in two files, the public key gets the file ending `.pub`. That's it. You now have everything you need to connect to servers and use GitHub over SSH. Below are some optional suggestions to make SSH work more smoothly.
+
+## Optional but recommended: Add the SSH key to the agent
+The passphrase gives the key additional security and will be required each time you use the key, this might become a bit annoying after a while. You achieve both security and convenience by storing the passphrase in your computer's `ssh agent`. This way, you will just need your computer's admin password instead. I recommend you pick a 5-6 words long passphrase (for example from here <https://strongphrase.net/>) and to store it in a password manager (or write it down on paper). With the help of the agent, you will only have to enter it when you use a different computer. On Mac and Linux this is simple, but the Windows instructions are a bit more complicated.
+
+::: {.panel-tabset}
+
+### Windows
+
+Each time you start a new Git Bash session you need to make sure that the ssh-agent is running, or else it will not be available. One way to autorun ssh-agent when Git Bash starts is to use a startup script. This is what [GitHub recommends](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/working-with-ssh-key-passphrases#auto-launching-ssh-agent-on-git-for-windows). You need to edit a file called `.profile` that is located in your home directory. Each time you start a new Bash shell, bash will run this file. The easiest way to create the file is to open it in VS Code from the terminal. Open a new Git Bash window and type `code .profile` to open the file `.profile` in VS Code (and create it if it did not already exist). You will most likely see an empty file. Add the following code to the file and save:
+
+```bash
+env=~/.ssh/agent.env
+
+agent_load_env () { test -f "$env" && . "$env" >| /dev/null ; }
+
+agent_start () {
+    (umask 077; ssh-agent >| "$env")
+    . "$env" >| /dev/null ; }
+
+agent_load_env
+
+# agent_run_state: 0=agent running w/ key; 1=agent w/o key; 2=agent not running
+agent_run_state=$(ssh-add -l >| /dev/null 2>&1; echo $?)
+
+if [ ! "$SSH_AUTH_SOCK" ] || [ $agent_run_state = 2 ]; then
+    agent_start
+    ssh-add
+elif [ "$SSH_AUTH_SOCK" ] && [ $agent_run_state = 1 ]; then
+    ssh-add
+fi
+
+unset env
+```
+
+Now, open a new Git Bash terminal and if everything works you should not get any errors or warning messages. Then, run `ssh-add -l` to check if your keys are loaded. If the agent had not started, you will get an error.
+
+### MacOS / Linux
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+:::
+
+You can verify that the agent has access to your key by running `ssh-add -l` (`-l` for list). If you need more help, GitHub has a nice guide for how to [generate an SSH keypair](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+
+## Connecting to Github over SSH (optional)
+
+To use SSH with Github you first need to add your public key to your [GitHub profile](https://github.com/settings/keys). Go to settings and "SSH and GPG keys" to add it. See [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) for detailed instructions.
+
+Afterwards, run:
+
+```bash
+ssh -T git@github.com
+> Hi adamaltmejd! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+Now you can clone repositories using SSH rather than https. Try it out on the course repository.
+
+We will get back to how to use SSH to connect to servers later in the course.

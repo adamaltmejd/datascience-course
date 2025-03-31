@@ -1,0 +1,347 @@
+---
+title: "Lecture 1: Introduction"
+subtitle: "EC7412 Part II: Data Science for Economists"
+date: 2025-04-09
+---
+
+## Introduction
+
+Welcome to a half-course in *Data Science for Economists!*
+
+::: fragment
+*Who am I?*
+
+- [Adam Altmejd Selder](https://adamaltmejd.se) --- [adam.altmejd@sofi.su.se](mailto:adam.altmejd@sofi.su.se)
+- I study inequality, education, health at SOFI
+- But really... I spend 90% of my time matching, merging, filtering, sorting, cleaning, and visualizing data
+:::
+
+::: fragment
+*Who are you?*
+
+Tell me your name, interests, coding background, what you hope to get out of this (half-)course.
+:::
+
+## Introduction
+
+:::: {.columns}
+::: {.column width="40%"}
+![&nbsp;](Data_science_VD.png){fig-align="left"}
+:::
+::: {.column width="60%"}
+- This course: adding "hacking skills" to your skill set
+- Learn *efficient* data collection, wrangling, visualization
+- Tools to make your work as economists more productive!
+:::
+::::
+::: {.aside}
+HT: Drew Conway
+:::
+::: {.notes}
+Hacking skills (efficient file manipulation, shell, algorithmic/programming mindset), Statistics (to extract insights), Substantive expertise (building knowledge, theory). Danger zone? "lies, damn lies, and statistics" - being able to ask questions and process data, but not interpreting analyses.
+:::
+
+
+## Introduction
+### ... in my daily work
+
+:::: {.columns}
+::: {.column width="30%"}
+```{mermaid}
+%%| mermaid-format: png
+graph TB;
+    A["(1) Obtain Data"] --> B["(2) Cleaning"];
+    B --> C["(3) Exploration &
+             Visualization"];
+    C --> B;
+    C --> D["(4) Analysis"];
+    D --> F["(5) Communication"];
+```
+:::
+::: {.column width="70%" .fragment}
+- Most Economics education focuses on step 1 and 4 (and maybe 5).
+
+- This course will be about step 2 and 3.
+:::
+::::
+
+## Introduction
+### Why should you learn data science?
+
+- Economists now crunch more data than ever!
+  - Financial data, sales/marketing data, insurance data, health data,
+  - Public sector data (especially in Sweden!)
+- An econ master already gives you domain and stats knowledge.
+- I use these tools daily ... but I have not run a DSGE model since 2013.
+
+## Introduction
+### Why this course?
+
+- Traditional econ classes: theory, research methods, statistics
+- Nothing on how to actually do 90% of the work efficiently
+- The data science toolkit gives you *complementary* skills
+- Will make you more productive, and *employable
+
+## Introduction
+### R for data science
+
+- We will mostly be working in `R`
+- Free, open source
+- Second most popular data science language [after Python](https://pypl.github.io/PYPL.html)
+- Good metrics support, integrates well with Stata
+- It's the language I use most days
+- Actually quite similar to Python and Julia (which I also recommend!)
+
+## Introduction
+### Why not Stata?
+
+- Not a programming language
+- Does not support the functionality or "mindset" I want you to learn
+
+::: {.fragment}
+- ... but Stata is great for the "analysis" step of the pipeline!
+- Purpose of this course is to teach you to use the **right tool for the job**, can be Stata for some things
+:::
+
+## Introduction
+### Stata vs. R
+
+- For data wrangling and visualization, R is superior:
+  - Way larger feature set
+  - Much faster (often 5-10 times as fast!)
+  - Parallelized processing for free
+- No private sector data scientist uses Stata
+- Easier to get help: both on Stack Overflow and from LLMs
+
+::: aside
+See this benchmark for speed differences: <https://github.com/matthieugomez/benchmark-stata-r>
+:::
+
+## Introduction
+### Why coding?
+
+- You can get quite far clicking through menus in Stata and using Spreadsheets
+- But code is reusable and replicable
+- Still, some things are better done in excel
+
+# Data wrangling intro {background-color="#40666e"}
+
+## Data wrangling intro
+### Common data problems
+
+- Invalid/inconsistent values
+- Improperly formatted missing values
+- Messy naming
+- Duplicates
+- Mixed-up date formats
+- Missing or non-unique keys
+- Encoding 😮‍💨
+
+::: {.aside}
+More here: <https://vdsbook.com/04-data_cleaning#sec-examine-clean>
+:::
+
+## Data wrangling intro
+### Same data, different structure
+
+```{r}
+library(tidyverse)
+table2
+```
+
+```{r}
+table3
+```
+
+## Data wrangling intro
+### "Tidy" data
+
+- Each **variable** is a column; each column is a variable.
+- Each **observation** is a row; each row is an observation.
+- Each **value** is a cell; each cell is a single value.
+
+![&nbsp;](tidy-data.png)
+
+## Data wrangling intro
+### Making data tidy
+
+Tidying data makes it easier to work with. We will be doing this a lot.
+
+```{r}
+#| output-location: column-fragment
+library(data.table)
+dcast(as.data.table(table2),
+      country + year ~ type)
+```
+
+::: {.aside}
+The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy.html).
+:::
+
+# Programming principles {background-color="#40666e"}
+
+## Programming principles
+
+- Write **modular** code, in generalized functions
+- Don't write the same code twice
+- Use a **consistent** coding style and naming scheme
+- **Document** everything,
+- but write **verbose** code that can be understood in itself
+- Test your code
+
+## Programming principles
+### Modular code
+
+- Functional programming: aim to divide code by feature into functions
+- Example: collapsing education achievement data
+
+::: {.incremental}
+- Why?
+  - Reusability
+  - Easier to understand
+  - Easier to debug and test
+:::
+
+## Programming principles
+### No repetition
+
+- Don't repeat the same code
+- Instead, use loops or vectorized calls
+- Shorter codebase is easier to understand and debug
+
+## Programming principles
+### Be consistent
+
+- Use the same coding style and naming convention
+- For example: don't mix `snakeCase` variable names with `underscore_based` names, use the same indentation
+
+## Programming principles
+### Document everything
+
+- Always include a README-file that explains your project
+- Use comments to document what your code is doing
+- Start functions with a doc string, explaining the function and its arguments
+
+## Programming principles
+### Be verbose
+
+- By writing verbose code, you will not need as many comments:
+- Call a variable `high_scool_gpa`, not `hsgpa`, (or worse `question12` 😱)
+- Same applies to data points:
+  - `edu_level = primary, secondary, high school` is better than `1,2,3`
+  - `female = TRUE,FALSE` is better than `Sex = 1,2`^[SCB actually does this still!]
+
+## Programming principles
+### Test your code
+
+- By running tests you can make sure your code does what it is supposed to, even after you change things
+- If we have time (and you want to), we can spend some time talking about unit tests and automation towards the end of the course
+- We will get back to these principles many times!
+
+# Our working environment = VS Code {background-color="#40666e"}
+
+## Our working environment = VS Code
+### VS Code IDE
+
+- IDE = integrated development environment
+- A **text editor** with tons of extra features:
+  - Git and terminal integration
+  - AI programming help
+  - Integrated remote development system
+  - Huge library of extensions
+
+::: {.aside}
+Other great alternatives are [RStudio](https://posit.co/download/rstudio-desktop/), the newer data science-focused editor [Positron](https://positron.posit.co/), the AI-focused editor [Cursor](https://www.cursor.com/), or the new (and promising) IDE [Zed](https://zed.dev). Out of these, Positron and Cursor build directly on VS Code.
+:::
+
+## Our working environment = VS Code
+### VS Code intro
+
+Let's switch over to VS code and I'll show you some useful things:
+
+- Browsing folders
+- Multi-line editing
+- Advanced (multi-file) find (and replace)
+- Ctrl/Commannd+Shift+P for accessing all commands
+- Ctrl/Commannd+Shift+P for navigation
+
+## Our working environment = VS Code
+### AI assistants in VS Code
+
+- GitHub Copilot is integrated into VS Code
+- Available for free for students with GitHub education
+- Chat, "edits", inline suggestions
+
+## Our working environment = VS Code
+### VS Code and R
+
+- To get the most out of coding in R in VS Code we need to install the R extensions:
+  - [vscode-R](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r)
+  - [R debugger](https://marketplace.visualstudio.com/items?itemName=RDebugger.r-debugger) (extra)
+  - And the R packages they require
+
+```r
+install.packages(c("languageserver", "httpgd", "vscDebugger"))
+```
+
+# Let's do some data science! {background-color="#40666e"}
+
+## Let's do some data science!
+### Example 1:
+
+- We will get back to this dataset many times in the course...?
+
+## Let's do some data science!
+### Example 2: LLM data processing
+
+- Let's build a script that calls the OpenAI API to process survey feedback.
+
+## Course Preview
+### Lectures
+
+1. Introduction
+2. Project organization, version control & the shell
+3. Basic R coding
+4. Visualization
+5. Data wrangling in R
+6. Servers, VMs, APIs, & LLMs
+
+## Course Preview
+### Problem sets
+
+*Problem set 0*
+- Due before next lecture (if you haven't done it already)
+
+<!--
+*Problem set 1*
+- ...
+
+*Problem set 2*
+- ...
+ -->
+
+## Problem Set 0: Getting Set Up
+
+- **Install** R, Git, an VS Code
+- **Create** a GitHub account, register for student benefits, and configure Copilot
+- **Install** VS Code extensions and R packages
+- **Test-run** a script to double-check that everything is working
+<!-- - Office hours? -->
+
+# Concluding remarks {background-color="#40666e"}
+
+## Concluding remarks
+### Pep talk
+
+- Frustration is normal
+- Coding is hard, even pros get stuck
+- Take breaks, breathe, and get help (more on how next time!)
+- Debugging errors is how we learn
+
+## Concluding remarks
+
+- Learning data science will give you a really useful new toolkit,
+- and demystify popular software development techniques
+- Please let me know when I'm going too fast or if you want to know more about some subject
+
+## Next lecture: Project management, version control, and the shell {.title-slide background-color="#40666e"}
