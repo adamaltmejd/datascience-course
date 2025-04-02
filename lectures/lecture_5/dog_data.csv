@@ -1,0 +1,178 @@
+Dog Shelter Intake Data - Q1 2025 Records with Pricing and Owner Info
+Last updated 2025-03-31
+---
+
+name,breed,age,color,price,insured,intake_date,sale_date,new owner
+Buddy,Labrador Retriever,5,Yellow,450.50,1,2023-01-15,03/20-2023,John Smith
+Lucy,German Shepherd,3,Black and Tan,600.00,1,2023-02-10,04/01-2023,Maria Garcia
+Max,Golden Retriever,7,Golden,550.75,0,2023-03-05,06/15-2023,James Johnson
+Daisy,Bulldog,4,White,700.00,1,2023-04-20,07/11-2023,Renée Dubois
+Charlie,Beagle,6,White,300.25,0,2023-05-11,08/02-2023,Kenji Tanaka
+Lúna,Poodle,2,Tan,800.00,1,2023-06-01,09/10-2023,Sofía Müller
+Cooper,Dachshund,5,Black and Mahogany,650.50,1,2023-07-15,10/05-2023,Fatima Al-Sayed
+Sadie,Dachshund,8,Red,400.00,0,2023-08-22,11/19-2023,Seán Kelly
+Milo,Boxer,4,Fawn,580.90,1,2023-09-03,12/28-2023,Olga Petrova
+Bella,Siberian Husky,3,Black and White,750.00,1,2023-10-18,01/15-2024,João Silva
+Rocky,Boxer,9,Gold and White,500.00,0,2023-11-09,02/20-2024,Hélène Tremblay
+Zoé,German Shepherd,2,Tan,620.25,1,2023-12-01,03/11-2024,Álvaro Núñez
+Bear,Boxer,6,Rust,900.00,1,2024-01-25,,
+Ruby,Pug,4,Rust,720.50,0,2024-02-14,,
+Duke,Bernese Mountain Dog,5,White,850.00,1,2024-03-10,,
+Penny,Pomeranian,7,Orange,680.75,0,2024-04-05,,
+Léo,Bull Terrier,10,Blue and Tan,530.00,1,2023-05-20,07/01-2023,Agnès Dubois
+Coco,French Bulldog,-1,Brindle,950.00,1,2023-06-12,08/15-2023,Emil Jørgensen
+Jack,Border Collie,3,Black and White,580.50,0,2023-07-07,09/18-2023,Mei Lin
+Stella,Cavalier King Charles Spaniel,5,Blenheim,820.00,1,2023-08-19,10/29-2023,Frédéric Moreau
+Toby,Shetland Sheepdog,6,Sable,480.25,0,2023-09-28,12/03-2023,Siobhán Murphy
+Lily,Bichon Frise,4,White,600.00,1,2023-10-13,01/08-2024,François Lavoie
+Oliver,Pug,8,Fawn,750.00,1,2023-11-24,02/14-2024,Tatiana Volkova
+Nala,Weimaraner,3,Silver,710.50,0,2023-12-08,03/25-2024,Bjørnar Solheim
+Winston,English Springer Spaniel,5,Liver and White,550.00,1,2024-01-02,,
+Mia,Chihuahua,7,Chocolate,420.75,0,2024-02-19,,
+Mürphy,Chihuahua,9,White,590.00,1,2024-03-28,,
+Rosie,Whippet,2,Rust,690.25,1,2023-04-11,06/22-2023,László Nagy
+Louie,Basset Hound,6,White,460.00,0,2023-05-09,07/14-2023,Astrid Nielsen
+Abby,Pointer,4,White and Liver,540.50,1,2023-06-25,08/30-2023,Renáta Horváth
+Finn,Dalmatian,5,White,630.00,0,2023-07-16,10/10-2023,Jürgen Schmidt
+Chloé,Newfoundland,3,Black,920.25,1,2023-08-01,11/05-2023,Valérie Leclerc
+Gus,Border Collie,7,Sable,510.00,0,2023-09-14,12/19-2023,Andrés Morales
+Maggie,Saint Bernard,4,Red Fawn,780.50,1,2023-10-26,01/28-2024,Sasha Ivanova
+Zeus,Saint Bernard,6,Red and White,980.00,1,2023-11-07,02/09-2024,Étienne Roy
+Söphie,Cocker Spaniel,8,Buff,560.75,0,2023-12-20,03/01-2024,María González
+Axel,Rhodesian Ridgeback,3,Wheaten,730.00,1,2024-01-15,,
+Willow,Whippet,2,Red,770.25,1,2024-02-28,,
+Diesel,Belgian Malinois,5,Fawn,700.00,0,2023-03-03,05/15-2023,Irène Dubois
+Piper,Whippet,4,Tan,640.50,1,2023-04-18,06/28-2023,Päivi Virtanen
+Bentley,Irish Setter,6,Mahogany,660.00,1,2023-05-21,08/04-2023,Fañch Le Gall
+Riley,Whippet,7,White and Black,570.75,0,2023-06-08,09/12-2023,Saoirse O'Malley
+Bandit,Jack Russell Terrier,5,White and Tan,490.00,1,2023-07-27,10/18-2023,Nikolaï Volkov
+Lola,Jack Russel Terrier,3,White,880.25,0,2023-08-12,11/25-2023,Kristine Barzia
+Apollo,Border Collie,4,Gray and White,830.00,1,2023-09-21,12/30-2023,Günther Bauer
+Härley,Dalmatian,-3,White and Black,740.50,1,2023-10-04,01/07-2024,Elbieta Nowak
+Simba,Pug,2,Black Brindle,930.00,0,2023-11-17,02/18-2024,Catilin Popescu
+Bailey,Schnauzer,9,Salt and Pepper,610.75,1,2023-12-29,03/29-2024,Zoë Papadopoulos
+Maya,Bull Terrier,5,Tan,670.00,1,2024-01-01,,
+Moose,Great Pyrenees,4,White,960.25,0,2024-02-06,,
+Athena,Boston Terrier,6,Fawn,890.00,1,2024-03-17,,
+Boomer,Australian Cattle Dog,3,Blue Heeler,590.50,1,2023-04-23,07/03-2023,Sigríður Jónsdóttir
+Millie,Boston Terrier,7,Black,520.00,0,2023-05-14,08/11-2023,Katarína Nováková
+Chance,English Mastiff,5,Tan,1000.75,1,2023-06-30,09/09-2023,Yasuke Sato
+Ellie,Boston Terrier,8,Black and White,760.00,1,2023-07-05,10/01-2023,Noémie Petit
+Ranger,German Shorthaired Pointer,2,Liver Roan,680.25,0,2023-08-16,11/10-2023,Liam O'Sullivan
+Peanut,Corgi,4,Red and White,790.00,1,2023-09-29,12/15-2023,Inès García
+Koda,Portuguese Water Dog,6,Black,700.50,1,2023-10-08,01/20-2024,Matthieu Lefèvre
+Cleo,Corgi,5,Wheaten,660.00,0,2023-11-22,02/27-2024,Aoife Byrne
+Jasper,Bull Terrier,7,Red,540.75,1,2023-12-04,03/08-2024,Janusz Winiewski
+Izzy,Bull Terrier,3,White,710.00,0,2024-01-19,,
+King,Old English Sheepdog,4,Blue and White,840.25,1,2024-02-23,,
+Princess,Chinese Shar-Pei,6,Cream,780.00,1,2023-03-09,05/25-2023,Maja Vitola
+Shadow,Airedale Terrier,5,Black and Tan,630.50,0,2023-04-24,07/07-2023,René Dubois
+Delilah,Basenji,2,Red and White,690.00,1,2023-05-02,08/13-2023,Oisín McCarthy
+Ace,Brussels Griffon,8,Red,550.75,0,2023-06-17,09/19-2023,Eléa Moreau
+Frankie,Chesapeake Bay Retriever,4,Brown,720.00,1,2023-07-29,10/24-2023,Félix Bernard
+Georgia,Clumber Spaniel,5,White and Lemon,810.25,0,2023-08-05,11/08-2023,Hélène Rousseau
+Hunter,Corgi,3,Black,650.00,1,2023-09-18,12/23-2023,Lukasz Jankowski
+Ivy,Gordon Setter,6,Black and Tan,670.50,1,2023-10-31,01/31-2024,Michèle Lambert
+Juno,Greater Swiss Mountain Dog,4,White,910.00,0,2023-11-11,02/11-2024,Björn Bergström
+Marley,Corgi,2,White and Red,620.75,1,2023-12-26,03/20-2024,Sofía Rodríguez
+Növa,Irish Wolfhound,-2,Gray,1100.00,1,2024-01-06,,
+Oakley,Keeshond,7,Gray and Black,580.00,0,2024-02-10,,
+Pepper,Komondor,5,White,940.25,1,2024-03-21,,
+Queenie,Kuvasz,3,White,970.00,1,2023-04-02,06/05-2023,Émilie Fournier
+Rémy,Leonberger,6,Reddish Brown,990.50,0,2023-05-19,08/01-2023,André Martins
+Sasha,Norwegian Elkhound,4,Gray,600.00,1,2023-06-04,09/07-2023,Siobhán Doyle
+Thor,Pharaoh Hound,2,Tan,730.75,1,2023-07-20,10/13-2023,Javier López
+Uma,Plott Hound,5,Brindle,560.00,0,2023-08-28,11/29-2023,Zoé Simon
+Vader,Redbone Coonhound,3,Red,590.25,1,2023-09-09,12/09-2023,Bjørn Hansen
+Xena,Saluki,4,Cream,760.00,1,2023-10-23,01/25-2024,Stéphanie Laurent
+Yoshi,Scottish Deerhound,6,Blue Gray,860.50,0,2023-11-06,02/08-2024,Félix Gómez
+Zeke,Whippet,8,Cream,640.00,1,2023-12-18,03/17-2024,Renée Moreau
+Aspen,Afghan Hound,5,Black,1050.75,1,2024-01-30,,
+Bruno,Afghan Hound,3,Brown Roan,700.00,0,2024-02-03,,
+Cinnamon,Afghan Hound,4,Black,800.25,1,2024-03-16,,
+Düke II,Afghan Hound,-4,Golden,820.00,1,2023-04-29,07/02-2023,Héloïse Lefebvre
+Echo,American Foxhound,2,White,470.50,0,2023-05-15,08/08-2023,Seán Walsh
+Flora,German Shepherd,5,Fawn,870.00,1,2023-06-28,09/27-2023,Élise Roy
+Gizmo,German Shepherd,3,Black and Tan,750.75,1,2023-07-03,10/06-2023,Müller Schmidt
+Hazel,German Shepherd,6,Black and Tan,530.00,0,2023-08-17,11/21-2023,Björk Ólafsdóttir
+Indie,Whippet,4,White and Black,950.25,1,2023-09-30,12/26-2023,René Andersen
+Kíwi,Whippet,2,Fawn,800.00,0,2023-10-11,01/11-2024,Chloé Dubois
+Chip,Labrador Retriever,1,Chocolate,500.00,1,2023-11-25,02/29-2024,Michael Brown
+Sky,Golden Retriever,0,Golden,600.50,1,2023-12-07,03/05-2024,Jennifer Davis
+Rusty,German Shepherd,8,Sable,580.00,0,2024-01-14,,
+Coco Chanel,Poodle,4,Black,850.75,1,2024-02-27,,
+Oscar,Beagle,7,Lemon & White,320.00,0,2023-03-01,05/03-2023,Robert Wilson
+Ziggy,Boxer,1,Brindle,610.25,1,2023-04-16,06/19-2023,Linda Miller
+Rex,Dachshund,-2,Black and Tan,630.00,1,2023-05-29,08/07-2023,David Anderson
+Honey,Dachshund,10,Cream,410.50,0,2023-06-10,09/01-2023,Sarah Taylor
+Prince,Boxer,6,White,520.00,1,2023-07-22,10/15-2023,Thomas Moore
+Lady,German Shepherd,5,Red,640.75,1,2023-08-03,11/09-2023,Susan Jackson
+Smokey,Boxer,3,Tan,880.00,0,2023-09-15,12/21-2023,Karen White
+Sugar,Pug,1,Red and Rust,760.25,1,2023-10-28,01/29-2024,Nancy Harris
+Teddy,Bernese Mountain Dog,7,White,870.00,1,2023-11-01,02/04-2024,Lisa Martin
+Gigi,Pomeranian,2,Black,690.50,0,2023-12-13,03/14-2024,Betty Thompson
+Benji,Bull Terrier,11,Black and Gold,540.00,1,2024-01-24,,
+Fifi,French Bulldog,5,Cream,970.75,1,2024-02-08,,
+Scout,Border Collie,0,Blue and White,600.00,0,2024-03-23,,
+Goldie,Cavalier King Charles Spaniel,6,Ruby,840.25,1,2023-04-07,06/11-2023,Sandra Clark
+Sparky,Shetland Sheepdog,8,Tan,490.00,0,2023-05-25,08/18-2023,Ashley Lewis
+Snowball,Bichon Frise,1,White,620.50,1,2023-06-14,09/23-2023,Kimberly Walker
+Brutus,Pug,9,Black,770.00,1,2023-07-08,10/27-2023,Donna Hall
+Ash,Weimaraner,4,Gray,730.75,0,2023-08-24,11/30-2023,Carol Allen
+Chase,English Springer Spaniel,6,Black and White,570.00,1,2023-09-05,12/08-2023,Paul Young
+Pepper,Chihuahua,8,Fawn,440.25,0,2023-10-19,01/19-2024,Steven Hernandez
+Casper,Chihuahua,10,White,610.00,1,2023-11-30,02/22-2024,Edward King
+Ginger,Whippet,3,Red Gold,710.50,1,2023-12-12,03/23-2024,Brian Wright
+Hank,Basset Hound,7,Black & Brown,470.00,0,2024-01-29,,
+Sandy,Pointer,5,Orange and White,560.75,1,2024-02-11,,
+Lucky,Dalmatian,6,White,650.00,0,2023-03-04,05/09-2023,George Scott
+Duchess,Newfoundland,2,Brown,940.25,1,2023-04-19,07/17-2023,Kevin Green
+Jake,Border Collie,8,White,530.00,0,2023-05-06,08/21-2023,Jason Adams
+Sasha Fierce,Saint Bernard,5,White,800.50,1,2023-06-21,09/14-2023,Michelle Baker
+Hercules,Saint Bernard,1,Mahogany and White,1000.00,1,2023-07-17,10/22-2023,Ronald Nelson
+Precious,Cocker Spaniel,9,Parti-color,580.75,0,2023-08-29,11/03-2023,Timothy Carter
+Tank,Rhodesian Ridgeback,4,Light Wheaten,750.00,1,2023-09-07,12/13-2023,Amanda Mitchell
+Cherry,Whippet,1,Black and Tan,790.25,1,2023-10-14,01/14-2024,Melissa Perez
+Gunner,Belgian Malinois,6,Mahogany,720.00,0,2023-11-26,02/26-2024,Gary Roberts
+Arrow,Whippet,3,Fawn Brindle,660.50,1,2023-12-09,03/10-2024,Justin Turner
+Clifford,Irish Setter,5,Red,680.00,1,2024-01-22,,
+Patches,Whippet,8,White,590.75,,2024-02-17,,
+Rascal,Jack Russell Terrier,6,Broken Coat,510.00,1,2024-03-29,,
+Ghost,Jack Russel Terrier,2,Biscuit,900.25,0,2023-04-10,07/10-2023,Stephanie Phillips
+Balto,Border Collie,5,Sable and White,850.00,1,2023-05-23,08/16-2023,Nicole Campbell
+Pongo,Dalmatian,4,Liver and White,760.50,1,2023-06-07,09/04-2023,Ryan Parker
+Zephyr,Pug,1,Gray Brindle,950.00,-99,2023-07-11,10/09-2023,Heather Evans
+Fritz,Schnauzer,10,Black and Silver,630.75,1,2023-08-25,11/13-2023,Peter Edwards
+Blue,Bull Terrier,6,Brindle,690.00,1,2023-09-02,12/01-2023,Cheryl Collins
+Yeti,Great Pyrenees,3,Badger Markings,980.25,0,2023-10-18,01/23-2024,Jeremy Stewart
+Hulk,Boston Terrier,5,Red Fawn,910.00,1,2023-11-13,02/16-2024,Megan Sanchez
+Ripley,Australian Cattle Dog,2,Red Heeler,610.50,1,2023-12-27,03/27-2024,Adam Morris
+Angus,Boston Terrier,8,Brindle,540.00,0,2024-01-08,,
+Major,English Mastiff,4,Brindle,1020.75,1,2024-02-21,,
+Star,Boston Terrier,9,Seal and White,780.00,1,2023-03-15,05/30-2023,Melissa Rogers
+Bolt,German Shorthaired Pointer,1,Solid Liver,700.25,0,2023-04-28,07/25-2023,Keith Reed
+Nugget,Corgi,3,Sable,810.00,1,2023-05-04,08/05-2023,Sara Cook
+Captain,Portuguese Water Dog,5,White and Black,720.50,1,2023-06-19,09/17-2023,Terry Morgan
+Willowisp,Corgi,6,Light Wheaten,680.00,0,2023-07-26,10/31-2023,Theresa Bell
+Champ,Bull Terrier,8,Tan,560.75,1,2023-08-09,11/14-2023,Dennis Murphy
+Spud,Bull Terrier,2,Red and White,730.00,0,2023-09-23,12/28-2023,Laura Bailey
+Woolly,Old English Sheepdog,5,Grizzle and White,860.25,1,2023-10-07,01/09-2024,Roger Rivera
+Wrinkles,Chinese Shar-Pei,7,Tan,800.00,1,2023-11-19,02/21-2024,Diana Cooper
+Sherlock,Airedale Terrier,6,Tan and Black,650.50,0,2023-12-02,03/03-2024,Judith Richardson
+Anubis,Basenji,1,Black and White,710.00,-99,2024-01-17,,
+Chewie,Brussels Griffon,9,Beige,570.75,0,2024-02-29,,
+Drake,Chesapeake Bay Retriever,5,Sedge,740.00,1,2023-03-08,05/12-2023,Randy Cox
+Heidi,Greater Swiss Mountain Dog,3,"Black, Red, White",930.00,0,2023-07-21,10/26-2023,Larry Wood
+Dopey,Clumber Spaniel,6,Primarily White,830.25,0,2023-04-12,06/18-2023,Russell Howard
+Slick,Corgi,4,Liver,670.00,1,2023-05-28,08/24-2023,Lori Ward
+Bonnie,Gordon Setter,7,Tan Points,690.50,1,2023-06-06,09/03-2023,Ann Brooks
+Pharaoh,Corgi,1,Red Roan,640.75,1,2023-08-14,11/19-2023,Bonnie James
+Wolfie,Irish Wolfhound,-5,Wheaten,1120.00,1,2023-09-27,12/31-2023,Victor Hughes
+Fluffy,Keeshond,8,Silver,600.00,0,2023-10-10,01/12-2024,Sara Price
+Mop,Whippet,4,White Corded,960.25,1,2023-11-23,02/24-2024,Gerald Bennett
+Snowy,Corgi,2,White Fluffy,990.00,-99,2023-12-05,03/06-2024,Lois Barnes
+Leo King,Whippet,5,Lion Yellow,1010.50,0,2024-01-20,,
+Tut,Whippet,0,Reddish Tan,750.75,1,2024-03-27,,Sven Österberg
+
+
+The data is computer-generated for educational purposes.
