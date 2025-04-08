@@ -43,7 +43,7 @@ Hacking skills (efficient file manipulation, shell, algorithmic/programming mind
 
 
 ## Introduction
-### ... in my daily work
+### The empirical research process
 
 :::: {.columns}
 ::: {.column width="30%"}
@@ -71,16 +71,15 @@ graph TB;
 - Economists now crunch more data than ever!
   - Financial data, sales/marketing data, insurance data, health data,
   - Public sector data (especially in Sweden!)
-- An econ master already gives you domain and stats knowledge.
-- I use these tools daily ... but I have not run a DSGE model since 2013.
 
 ## Introduction
 ### Why this course?
 
-- Traditional econ classes: theory, research methods, statistics
+- An econ master already gives you domain and stats knowledge.
 - Nothing on how to actually do 90% of the work efficiently
+- I use these tools daily ... but I have not run a DSGE model since 2013.
 - The data science toolkit gives you *complementary* skills
-- Will make you more productive, and *employable
+- Will make you more productive, and more *employable*
 
 ## Introduction
 ### R for data science
@@ -121,8 +120,11 @@ See this benchmark for speed differences: <https://github.com/matthieugomez/benc
 ### Why coding?
 
 - You can get quite far clicking through menus in Stata and using Spreadsheets
-- But code is reusable and replicable
-- Still, some things are better done in excel
+- Code is reusable and replicable
+- "Emulated" by Stata `.do`-files:
+  - Collections of commands
+  - Different from programming: less flexible, lacks many features
+- Still, some things are better done in Excel (or Stata) --- always ask yourself what the best and simplest tool for the job is!
 
 # Data wrangling intro {background-color="#40666e"}
 
@@ -137,8 +139,8 @@ See this benchmark for speed differences: <https://github.com/matthieugomez/benc
 - Missing or non-unique keys
 - Encoding 😮‍💨
 
-::: {.aside}
-More here: <https://vdsbook.com/04-data_cleaning#sec-examine-clean>
+::: {.attribution}
+<https://vdsbook.com/04-data_cleaning#sec-examine-clean>
 :::
 
 ## Data wrangling intro
@@ -193,7 +195,7 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
 ### Modular code
 
 - Functional programming: aim to divide code by feature into functions
-- Example: collapsing education achievement data
+- Example from my work: collapsing education achievement data
 
 ::: {.incremental}
 - Why?
@@ -206,30 +208,31 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
 ### No repetition
 
 - Don't repeat the same code
-- Instead, use loops or vectorized calls
-- Shorter codebase is easier to understand and debug
+- Instead, use functions, loops, or vectorized calls
+- A smaller codebase is easier to understand and debug
 
 ## Programming principles
 ### Be consistent
 
 - Use the same coding style and naming convention
-- For example: don't mix `snakeCase` variable names with `underscore_based` names, use the same indentation
+- For example: don't mix `snakeCase` variable names with `underscore_based` names,
+- Use the same indentation (2 or 4 spaces)
 
 ## Programming principles
 ### Document everything
 
 - Always include a README-file that explains your project
 - Use comments to document what your code is doing
-- Start functions with a doc string, explaining the function and its arguments
+- Start functions with a comment explaining the function and its arguments
 
 ## Programming principles
 ### Be verbose
 
 - By writing verbose code, you will not need as many comments:
 - Call a variable `high_scool_gpa`, not `hsgpa`, (or worse `question12` 😱)
-- Same applies to data points:
-  - `edu_level = primary, secondary, high school` is better than `1,2,3`
-  - `female = TRUE,FALSE` is better than `Sex = 1,2`^[SCB actually does this still!]
+- Same applies to data labels:
+  - `edu_level = primary, secondary, high school` not `1,2,3`
+  - `female = TRUE,FALSE` not `Sex = 1,2`^[SCB actually does this still!]
 
 ## Programming principles
 ### Test your code
@@ -279,22 +282,23 @@ Let's switch over to VS code and I'll show you some useful things:
   - [vscode-R](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r)
   - [R debugger](https://marketplace.visualstudio.com/items?itemName=RDebugger.r-debugger) (extra)
   - And the R packages they require
+  ```r
+  install.packages(c("languageserver", "httpgd", "vscDebugger"))
+  ```
 
-```r
-install.packages(c("languageserver", "httpgd", "vscDebugger"))
-```
+- See Problem set 0 for instructions!
 
 # Let's do some data science! {background-color="#40666e"}
 
 ## Let's do some data science!
-### Example 1:
+### Example 1: Gapminder data
 
-- We will get back to this dataset many times in the course...?
+Let's load and summarize the famous Gapminder data in R, provided by the `gapminder` R package.
 
 ## Let's do some data science!
 ### Example 2: LLM data processing
 
-- Let's build a script that calls the OpenAI API to process survey feedback.
+Let's build a script that calls the OpenAI API to process some survey feedback I just collected.
 
 ## Course Preview
 ### Lectures
@@ -310,15 +314,14 @@ install.packages(c("languageserver", "httpgd", "vscDebugger"))
 ### Problem sets
 
 *Problem set 0*
-- Due before next lecture (if you haven't done it already)
+- Setting up data science computer environment
+- Due before next lecture
 
-<!--
 *Problem set 1*
-- ...
+- Covers lectures 2-4
 
 *Problem set 2*
-- ...
- -->
+- Covers lectures 5-6
 
 ## Problem Set 0: Getting Set Up
 
