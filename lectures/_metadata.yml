@@ -9,8 +9,13 @@ format:
       theme: forest
     slide-number: c/t
     auto-stretch: true
-output-location: column
-filters:
-  - reveal-auto-agenda
-revealjs-plugins:
-  - attribution
+    output-location: column
+    filters:
+      - reveal-auto-agenda
+    revealjs-plugins:
+      - attribution
+  typst:
+    toc: false
+    papersize: a4
+    number-sections: false
+    bibliographystyle: chicago-author-date

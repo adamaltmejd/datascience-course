@@ -26,7 +26,7 @@ Tell me your name, interests, coding background, what you hope to get out of thi
 
 :::: {.columns}
 ::: {.column width="40%"}
-![&nbsp;](Data_science_VD.png){fig-align="left"}
+![&nbsp;](Data_science_VD.png){fig-align="center" width=300}
 :::
 ::: {.column width="60%"}
 - This course: adding "hacking skills" to your skill set
@@ -42,8 +42,7 @@ Hacking skills (efficient file manipulation, shell, algorithmic/programming mind
 :::
 
 
-## Introduction
-### The empirical research process
+## The empirical research process
 
 :::: {.columns}
 ::: {.column width="30%"}
@@ -65,15 +64,13 @@ graph TB;
 :::
 ::::
 
-## Introduction
-### Why should you learn data science?
+## Why should you learn data science?
 
 - Economists now crunch more data than ever!
   - Financial data, sales/marketing data, insurance data, health data,
   - Public sector data (especially in Sweden!)
 
-## Introduction
-### Why this course?
+## Why this course?
 
 - An econ master already gives you domain and stats knowledge.
 - Nothing on how to actually do 90% of the work efficiently
@@ -81,8 +78,7 @@ graph TB;
 - The data science toolkit gives you *complementary* skills
 - Will make you more productive, and more *employable*
 
-## Introduction
-### R for data science
+## R for data science
 
 - We will mostly be working in `R`
 - Free, open source
@@ -91,8 +87,7 @@ graph TB;
 - It's the language I use most days
 - Actually quite similar to Python and Julia (which I also recommend!)
 
-## Introduction
-### Why not Stata?
+## Why not Stata?
 
 - Not a programming language
 - Does not support the functionality or "mindset" I want you to learn
@@ -102,8 +97,7 @@ graph TB;
 - Purpose of this course is to teach you to use the **right tool for the job**, can be Stata for some things
 :::
 
-## Introduction
-### Stata vs. R
+## Stata vs. R
 
 - For data wrangling and visualization, R is superior:
   - Way larger feature set
@@ -116,8 +110,7 @@ graph TB;
 See this benchmark for speed differences: <https://github.com/matthieugomez/benchmark-stata-r>
 :::
 
-## Introduction
-### Why coding?
+## Why coding?
 
 - You can get quite far clicking through menus in Stata and using Spreadsheets
 - Code is reusable and replicable
@@ -128,8 +121,7 @@ See this benchmark for speed differences: <https://github.com/matthieugomez/benc
 
 # Data wrangling intro {background-color="#40666e"}
 
-## Data wrangling intro
-### Common data problems
+## Common data problems
 
 - Invalid/inconsistent values
 - Improperly formatted missing values
@@ -143,8 +135,7 @@ See this benchmark for speed differences: <https://github.com/matthieugomez/benc
 <https://vdsbook.com/04-data_cleaning#sec-examine-clean>
 :::
 
-## Data wrangling intro
-### Same data, different structure
+## Same data, different structure
 
 ```{r}
 library(tidyverse)
@@ -155,17 +146,15 @@ table2
 table3
 ```
 
-## Data wrangling intro
-### "Tidy" data
+## "Tidy" data
 
 - Each **variable** is a column; each column is a variable.
 - Each **observation** is a row; each row is an observation.
 - Each **value** is a cell; each cell is a single value.
 
-![&nbsp;](tidy-data.png)
+![&nbsp;](tidy-data.png){fig-align="center" width=100%}
 
-## Data wrangling intro
-### Making data tidy
+## Making data tidy
 
 Tidying data makes it easier to work with. We will be doing this a lot.
 
@@ -191,8 +180,7 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
 - but write **verbose** code that can be understood in itself
 - Test your code
 
-## Programming principles
-### Modular code
+## Modular code
 
 - Functional programming: aim to divide code by feature into functions
 - Example from my work: collapsing education achievement data
@@ -204,29 +192,25 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
   - Easier to debug and test
 :::
 
-## Programming principles
-### No repetition
+## No repetition
 
 - Don't repeat the same code
 - Instead, use functions, loops, or vectorized calls
 - A smaller codebase is easier to understand and debug
 
-## Programming principles
-### Be consistent
+## Be consistent
 
 - Use the same coding style and naming convention
 - For example: don't mix `snakeCase` variable names with `underscore_based` names,
 - Use the same indentation (2 or 4 spaces)
 
-## Programming principles
-### Document everything
+## Document everything
 
 - Always include a README-file that explains your project
 - Use comments to document what your code is doing
 - Start functions with a comment explaining the function and its arguments
 
-## Programming principles
-### Be verbose
+## Be verbose
 
 - By writing verbose code, you will not need as many comments:
 - Call a variable `high_scool_gpa`, not `hsgpa`, (or worse `question12` 😱)
@@ -234,8 +218,7 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
   - `edu_level = primary, secondary, high school` not `1,2,3`
   - `female = TRUE,FALSE` not `Sex = 1,2`^[SCB actually does this still!]
 
-## Programming principles
-### Test your code
+## Test your code
 
 - By running tests you can make sure your code does what it is supposed to, even after you change things
 - If we have time (and you want to), we can spend some time talking about unit tests and automation towards the end of the course
@@ -243,8 +226,7 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
 
 # Our working environment = VS Code {background-color="#40666e"}
 
-## Our working environment = VS Code
-### VS Code IDE
+## VS Code IDE
 
 - IDE = integrated development environment
 - A **text editor** with tons of extra features:
@@ -257,8 +239,7 @@ The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy
 Other great alternatives are [RStudio](https://posit.co/download/rstudio-desktop/), the newer data science-focused editor [Positron](https://positron.posit.co/), the AI-focused editor [Cursor](https://www.cursor.com/), or the new (and promising) IDE [Zed](https://zed.dev). Out of these, Positron and Cursor build directly on VS Code.
 :::
 
-## Our working environment = VS Code
-### VS Code intro
+## VS Code intro
 
 Let's switch over to VS code and I'll show you some useful things:
 
@@ -268,15 +249,13 @@ Let's switch over to VS code and I'll show you some useful things:
 - Ctrl/Commannd+Shift+P for accessing all commands
 - Ctrl/Commannd+Shift+P for navigation
 
-## Our working environment = VS Code
-### AI assistants in VS Code
+## AI assistants in VS Code
 
 - GitHub Copilot is integrated into VS Code
 - Available for free for students with GitHub education
 - Chat, "edits", inline suggestions
 
-## Our working environment = VS Code
-### VS Code and R
+## VS Code and R
 
 - To get the most out of coding in R in VS Code we need to install the R extensions:
   - [vscode-R](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r)
@@ -290,18 +269,17 @@ Let's switch over to VS code and I'll show you some useful things:
 
 # Let's do some data science! {background-color="#40666e"}
 
-## Let's do some data science!
-### Example 1: Gapminder data
+## Example 1: Gapminder data
 
 Let's load and summarize the famous Gapminder data in R, provided by the `gapminder` R package.
 
-## Let's do some data science!
-### Example 2: LLM data processing
+## Example 2: LLM data processing
 
 Let's build a script that calls the OpenAI API to process some survey feedback I just collected.
 
+# Concluding remarks {background-color="#40666e"}
+
 ## Course Preview
-### Lectures
 
 1. Introduction
 2. Project organization, version control & the shell
@@ -310,8 +288,7 @@ Let's build a script that calls the OpenAI API to process some survey feedback I
 5. Data wrangling in R
 6. Servers, VMs, APIs, & LLMs
 
-## Course Preview
-### Problem sets
+## Problem sets
 
 *Problem set 0*
 - Setting up data science computer environment
@@ -329,12 +306,8 @@ Let's build a script that calls the OpenAI API to process some survey feedback I
 - **Create** a GitHub account, register for student benefits, and configure Copilot
 - **Install** VS Code extensions and R packages
 - **Test-run** a script to double-check that everything is working
-<!-- - Office hours? -->
 
-# Concluding remarks {background-color="#40666e"}
-
-## Concluding remarks
-### Pep talk
+## Pep talk
 
 - Frustration is normal
 - Coding is hard, even pros get stuck
