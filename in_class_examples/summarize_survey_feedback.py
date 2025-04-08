@@ -1,6 +1,3 @@
-# Reference
-# https://platform.openai.com/docs/api-reference/introduction
-
 # Let's ask the AI
 # Python script to read "survey_feedback_generated.txt" and summarize the feedback using a call to the OpenAI API
 import openai

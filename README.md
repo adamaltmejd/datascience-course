@@ -4,12 +4,12 @@ This is a repository for my course "Data science for Economists" to be given for
 
 # Lectures
 
-* Lecture 1: Introduction ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_1/lecture_1.html))
-* Lecture 2: Lecture 2: Project management, version control, and the shell ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_2/lecture_2.html))
-* Lecture 3: Data wrangling basics in R ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_3/lecture_3.html))
-* Lecture 4: Visualization ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_4/lecture_4.html))
-* Lecture 5: Data wrangling([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_5/lecture_5.html))
-* Lecture 6: Servers, VMs, APIs, LLMs ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_6/lecture_6.html))
+* Lecture 1: Introduction ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_1/lecture_1.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_1/lecture_1.html?view=print))
+* Lecture 2: Lecture 2: Project management, version control, and the shell ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_2/lecture_2.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_2/lecture_2.html?view=print))
+* Lecture 3: Data wrangling basics in R ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_3/lecture_3.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_3/lecture_3.html?view=print))
+* Lecture 4: Visualization ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_4/lecture_4.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_4/lecture_4.html?view=print))
+* Lecture 5: Data wrangling([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_5/lecture_5.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_5/lecture_5.html?view=print))
+* Lecture 6: Servers, VMs, APIs, LLMs ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_6/lecture_6.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_6/lecture_6.html?view=print))
 
 # References / resources
 

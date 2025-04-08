@@ -14,8 +14,3 @@ format:
       - reveal-auto-agenda
     revealjs-plugins:
       - attribution
-  typst:
-    toc: false
-    papersize: a4
-    number-sections: false
-    bibliographystyle: chicago-author-date

@@ -1,9 +1,11 @@
-# Summarizing survey feedback
+# Reference
+# https://platform.openai.com/docs/api-reference/introduction
 
-
-```python
 from openai import OpenAI
 client = OpenAI()
+from dotenv import load_dotenv
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 completion = client.chat.completions.create(
     model="gpt-4o",
@@ -16,4 +18,3 @@ completion = client.chat.completions.create(
 )
 
 print(completion.choices[0].message.content)
-```
