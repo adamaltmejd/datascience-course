@@ -1,30 +1,16 @@
 ---
-title: "Lecture 3: Data wrangling basics in R"
+title: "Lecture 3: R basics"
 subtitle: "EC7412 Part II: Data Science for Economists"
 date: 2025-04-16
 ---
 
 # Introduction {background-color="#40666e"}
 
-## Introduction
-### *Why* manipulate data with code?
-
-<!--
-
-TODO:
- - Code style
- - MAYBE ADD SOME ON CONTROL FLOW, ITERATION AND VECTORIZATION, see https://grantmcdermott.com/ds4e/funcs-intro.html#functional-programming
- - TODO: MAYBE ADD SOME MORE SLIDES ON DATA.FRAMES/TIBBLES/DATA.TABLES?
-
-
--->
-
-
+## *Why* manipulate data with code?
 
 ![&nbsp;](genetics_excel.png)
 
-## Introduction
-### Today
+## Today
 
 - R programming from fundamentals
 - Much of what you will learn applies to any programming language
@@ -34,23 +20,20 @@ TODO:
 By teaching fundamentals I hope you can learn to apply the knowledge also to other programming languages.
 :::
 
-## Introduction
-### R fundamentals
+## R fundamentals
 
 - "Everything is and object and everything has a name"
   - You can access and modify everything you interact with
 - You call functions to operate on objects
 
-## Introduction
-### Useful to know when coming from Stata
+## Useful to know when coming from Stata
 
 - Not limited to one dataset in memory
 - Stata commands = R functions
 - Less "hand-holding" when it comes to statistical analyses, need to be more mindful about what you do
 - Much more dependent on external packages, you will need to learn to install and load them
 
-## Introduction
-### Coding environment recap
+## Coding environment recap
 
 - Make sure you have `R` and `VS Code` installed
 - Also useful to have the VS Code `R extension`
@@ -58,8 +41,7 @@ By teaching fundamentals I hope you can learn to apply the knowledge also to oth
 
 # Basic R syntax {background-color="#40666e"}
 
-## Basic R syntax
-### Operations
+## Operations
 
 We can use R for arithmetic by executing operations in an R terminal:
 
@@ -78,8 +60,7 @@ We can use R for arithmetic by executing operations in an R terminal:
 
 Each row calls arithmetic *functions* on scalar *objects* (numbers).
 
-## Basic R syntax
-### Running code
+## Running code
 
 Options:
 
@@ -87,8 +68,7 @@ Options:
 - `Ctrl/cmd+enter` to send row to terminal in VS Code
 - Run whole R-script file (`.R`) with `Ctrl/cmd+shift+S`
 
-## Basic R syntax
-### Assignment
+## Assignment
 
 We create new objects by assigning values to names:
 
@@ -109,8 +89,7 @@ a <- 5
 ```
 :::
 
-## Basic R syntax
-### Objects
+## Objects
 
 - `typeof()` tells us how objects are stored in memory
 - Data will usually be stored in one of 4 types:
@@ -137,8 +116,42 @@ typeof(mean)
 class(mean)
 ```
 
-## Basic R syntax
-### Naming
+## Factors
+
+Factors are a special type that stores character vectors as integers. Each factor level is linked to a label. Good for memory efficiency and readability. Similar to how value labels work in Stata.
+
+```{r}
+a <- c("foo", "bar")
+typeof(a)
+```
+
+```{r}
+str(factor(a))
+```
+
+```{r}
+typeof(factor(a))
+```
+
+```{r}
+class(factor(a))
+```
+
+## Labelling factors
+
+Raw data often comes encoded. For example, SCB delivers the variable `Kon` (sex) which can take values `1` and `2`
+
+```{r}
+kon <- c(1,2)
+```
+
+We can use factors to label the values to make it easier to use:
+
+```{r}
+factor(kon, levels = c(1, 2), labels = c("Man", "Woman"))
+```
+
+## Naming
 
 - A name must start with a **letter** and can contain letters, numbers, underscores, and periods.
 
@@ -157,8 +170,7 @@ function = 1
 - Names are case sensitive!
 - No length limit: `household_income_after_tax` is much better than `hhinc2`.
 
-## Basic R syntax
-### Vectors and lists
+## Vectors and lists
 
 ```{r}
 c(1,2,3)
@@ -183,8 +195,7 @@ Scalars are just `atomic vectors` of length 1.
 :::
 
 
-## Basic R syntax
-### Missing values
+## Missing values
 
 - Each type has a "missing value" indicator `NA` (not available)
 
@@ -214,8 +225,7 @@ is.nan(c(NA, NaN))
 This is different from Stata where missing values are treated as infinitely large.
 :::
 
-## Basic R syntax
-### Data frames
+## Data frames
 
 Data frames are collections (lists really) of vectors of the same length, organized in a table:
 
@@ -231,8 +241,7 @@ Processing data in R, you will run most of your operations on `data.frames` (or 
 df^2
 ```
 
-## Basic R syntax
-### Functions
+## Functions
 
 - Like programs in STATA, functions are reusable code "blocks"
 - Can take arguments that become variables inside the function
@@ -260,8 +269,7 @@ myfunc(1,2,3)
 myfunc(c(1,2))
 ```
 
-## Baisc R syntax
-### Pipes
+## Pipes
 
 Pipes (`|>`) make your code more readable:
 
@@ -276,8 +284,7 @@ c(1,2,3) |>
   sqrt()
 ```
 
-## Baisc R syntax
-### Comments
+## Comments
 
 Lines starting with `#` are not executed. Use comments to explain what you do, and to get code-completion suggestions from Copilot.
 
@@ -295,8 +302,7 @@ return_largest_number = function(v1, v2) max(v1, v2)
 
 # When things don't work {background-color="#40666e"}
 
-## When things don't work
-### Get help
+## Get help
 
 - Run `?named_object`
 - For packages you can also often run `?package.name`.
@@ -307,8 +313,7 @@ return_largest_number = function(v1, v2) max(v1, v2)
 
 ![&nbsp;](help_data_frame.png)
 
-## When things don't work
-### Understanding error messages
+## Understanding error messages
 
 ```{r}
 #| error: TRUE
@@ -338,8 +343,7 @@ Learning to read error messages will help you find coding errors.
 Talk on this famous error: <https://posit.co/resources/videos/object-of-type-closure-is-not-subsettable/>
 :::
 
-## When things don't work
-### Understand the objects you are working with
+## Understand the objects you are working with
 
 Print the object in the terminal:
 
@@ -355,8 +359,7 @@ dat
 
 - For functions, printing can^[R functions can include compiled C++ code which will not be visible this way. Their dispatch can also vary depending on the supplied object class, we will get back to this later.] give you the code. Try printing `data`.
 
-## When things don't work
-### Debugging basics
+## Debugging basics
 
 - Debugging is really useful for finding and fixing errors
 - Use `browser()` to enter the debugger at a certain place
@@ -395,8 +398,7 @@ We often want to run operations *conditional* or certain criteria. For this we n
 
 Note the difference between assignment (`=`) and comparison (`==`).
 
-## Logic
-### Precedence
+## Precedence
 
 Let's say we want to check if a variable is larger than two other variables:
 
@@ -429,8 +431,7 @@ x > 1 & x > 4
 ```
 :::
 
-## Logic
-### Logic on vectors
+## Logic on vectors
 
 ```{r}
 c(1,2,3) > 2
@@ -457,8 +458,7 @@ c(1,2,3) > c(0,1,2,3,4,5)
 Be careful!
 :::
 
-## Logic
-### Boolean operators on vectors
+## Boolean operators on vectors
 
 The same is true for Boolean operators:
 
@@ -479,8 +479,7 @@ To require scalars for our comparison, we can use `&&` and `||` instead:
 c(TRUE, FALSE) && c(FALSE, TRUE)
 ```
 
-## Logic
-### Missing values
+## Missing values
 
 In R, `NA` are properly treated as "missing", the value could be anything.
 
@@ -510,8 +509,7 @@ NA & FALSE
 Here, it does not matter what `NA` could be, since both `TRUE | TRUE` and `FALSE | TRUE` evalute to `TRUE`.
 :::
 
-## Logic
-### Missing values (cont.)
+## Missing values (cont.)
 
 What if we want to check what values of a vector are missing:
 
@@ -537,8 +535,7 @@ is.na(x)
 ```
 :::
 
-## Logic
-### Negation
+## Negation
 
 `!` negates a logical statement:
 ```{r}
@@ -561,8 +558,7 @@ For example we might want to filter for non-missing by running `!is.na()`:
 !is.na(x)
 ```
 
-## Logic
-### %in%
+## %in%
 
 To check if a scalar is an element of a vector:
 
@@ -581,8 +577,7 @@ c("a", "c") %in% c("a", "b", "c")
 For more on logical operators see the [R manual](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Logic.html) and [Advanced R](https://adv-r.hadley.nz/control-flow.html).
 :::
 
-## Logic
-### Caution: floating-point numbers
+## Caution: floating-point numbers
 
 Arithmetic operations on floating points are **not exact**:
 
@@ -611,8 +606,7 @@ This is a general problem with floating points, not only in R. [Read more here](
 :::
 :::
 
-## Logic
-### Control flow: if/else
+## Control flow: if/else
 
 ```{r}
 if (1 == 3) "foo" else "bar"
@@ -635,8 +629,7 @@ if (TRUE) {
 }
 ```
 
-## Logic
-### Control flow: vectors
+## Control flow: vectors
 
 `if` can only evaluate logical scalars, for vectors, use `ifelse()`
 
@@ -665,11 +658,9 @@ data.table::fcase(
 )
 ```
 
-
 # Subsetting {background-color="#40666e"}
 
-## Subsetting
-### Subsetting with `[]`
+## Subsetting with `[]`
 
 ```{r}
 a = c(4,5,8,1)
@@ -702,8 +693,7 @@ a[a > 4]
 NB: In Python, indexing begins at 0 rather than 1!
 :::
 
-## Subsetting
-### Selecting with `[[]]` or `$`
+## Selecting with `[[]]` or `$`
 
 ```{r}
 a_list = list(named_elem = c(1,2,3),
@@ -727,8 +717,7 @@ a_list[[1]]
 Do you see the difference? `[]` returns a list of length 1 while `[[]]` returns the vector stored as the first element of `a_list` (try `typeof()` to see).
 :::
 
-## Subsetting
-### Selecting with `[[]]` or `$` (cont.)
+## Selecting with `[[]]` or `$` (cont.)
 
 `a$x` is a shorthand for `a[["x"]]`
 
@@ -751,8 +740,7 @@ a_list$named_elem[3]
 
 # Scoping {background-color="#40666e"}
 
-## Scoping
-### Function scope
+## Function scope
 
 ```{r}
 #| echo: false
@@ -786,8 +774,7 @@ x
 y
 ```
 
-## Scoping
-### Lexical scoping
+## Lexical scoping
 
 But what if the object does not exist in the function scope?
 
@@ -807,8 +794,7 @@ set_xy()
 R looks "one level up"
 :::
 
-## Scoping
-### Accessing data.frame columns
+## Accessing data.frame columns
 
 Let's say we want to run a regression on the data in the `df` data.frame we created
 
@@ -832,8 +818,7 @@ lm(y ~ x)
 R cannot find the `y` variable. We need to look "inside" the `df` object.
 :::
 
-## Scoping
-### Accessing data.frame columns (cont.)
+## Accessing data.frame columns (cont.)
 
 We can supply each vector separately
 
@@ -863,8 +848,7 @@ lm(y ~ x, data = df) # check ?lm for all arguments
 This is very different from STATA where we can only have one "data.frame" in memory at a time, meaning that all columns are always in the "global environment".
 :::
 
-## Scoping
-### Packages
+## Packages
 
 - Packages are R extensions that can be really useful
 - Installed with `install.packages()` and loaded with `library()`
@@ -880,8 +864,7 @@ meme_get("OprahGiveaway") |>
 ```
 :::
 
-## Scoping
-### Packages (cont.)
+## Packages (cont.)
 
 - `library()` loads package functions into global environment
 - Call package functions that are not loaded with `::`
@@ -899,8 +882,7 @@ tinyplot::plt(
 )
 ```
 
-## Scoping
-### Methods
+## Methods
 
 Lets try to look at the source code for the `mean()` function
 
@@ -923,6 +905,60 @@ mean(c(1,2,3,4))
 mean(as.Date(c("2024-01-01",
                "2025-01-01")))
 ```
+:::
+
+
+# Iteration {background-color="#40666e"}
+
+## Loops
+
+We often want to repeat the same operation many times.
+
+Loops are good when each iteration is somehow dependent on the results of the previous.
+
+```{r}
+v <- c("foo", "bar", "foofoo", "barbar")
+```
+
+```{r}
+#| output-location: column-fragment
+for (i in 1:4) print(v[i])
+```
+
+```{r}
+#| output-location: column-fragment
+for (i in v) print(i)
+```
+
+## Vectorized operations
+
+Before you write a loop, ask: Do I really need to iterate? Vectorized operations are often **much faster**.
+
+You might have noticed we can do things like:
+
+```{r}
+1 + c(3,4)
+```
+
+This command runs `` `+`(1, 3) `` and `` `+`(1, 4) ``, i.e. it operates on both elements of the vector.
+
+## Vectorized operations (cont.)
+
+Similarly, we can *apply* any arbitrary function to each element:
+
+```{r}
+#| output-location: default
+sapply(c(1,2,3), FUN = function(x) paste0(x, "^2=", x^2))
+```
+
+There are three versions:
+
+- `apply` for matrices
+- `lapply` for vectors and lists
+- `sapply` which is just `lapply(..., simplify = TRUE)`
+
+::: {.aside}
+The `parallel` package provides corresponding multi-core operations.
 :::
 
 ## Next lecture: Visualization {.title-slide background-color="#40666e"}
