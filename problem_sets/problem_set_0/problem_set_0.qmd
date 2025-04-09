@@ -8,7 +8,7 @@ toc: true
 
 This is a guide for you to prepare your data science environment. The idea is that you go through these instructions between Lectures 1 and 2. That way, you will be able to follow along on your own computer in the classroom. And if there are any issues, we can sort them out before the real first problem set.
 
-This guide provides step-by-step instructions on how to install R (with RStudio), Python, Julia, and Stata. We will primarily use R in class, but I encourage you to explore any language or statistical software you prefer. This document also covers setting up the version control system Git and creating an account on GitHub.com, installing my favorite code editor (Visual Studio Code), configuring SSH keys for GitHub, and creating your first GitHub repository. Required tools are marked as such, others are complementary.
+This guide provides step-by-step instructions on how to install R (with RStudio), Python, Julia, and Stata. We will primarily use R in class, and you can complete this course without installing any of the other interpteters, but I encourage you to explore different languages throughout the class. This document also covers setting up the version control system Git and creating an account on GitHub.com, installing my favorite code editor (Visual Studio Code), configuring SSH keys for GitHub, and creating your first GitHub repository. Required tools are marked as such, others are complementary.
 
 ---
 
@@ -38,7 +38,7 @@ A terminal window should look something like this (on Mac, if you haven't change
 
 There are lots of reasons why these instructions might not work for you. If you have problems with R or Git specifically, <https://happygitwithr.com> is a great resource. Many problems have been answered on Stack Overflow, and can be found by googling (try googling the error message). You can also ask your favorite LLM Chatbot for help (try pasting the error message), discuss in class, or send me an email.
 
-# Installing Programming Languages (and Stata)
+# Installing Programming Language interpreters (and Stata)
 
 This section covers installing R, Python, and Julia. Throughout the course, we will focus on R because it currently has the best (in my humble opinion) data science toolkit, though Python and Julia are close behind.
 
@@ -151,7 +151,7 @@ Stata is the only proprietary software used in this class, and it is completely 
 
 # Integrated Development Environment
 
-Next, we need software for writing code. IDEs (Integrated Development Environments) are enhanced text editors with many extra features. You may have tried the Stata do-file editor or RStudio before. I prefer VS Code and encourage you to try it. In class, we'll see how to use VS Code to connect to servers, access the terminal, create plots, browse data, and more. You can do powerful things like find and replace across multiple files or edit several rows of text at once. Best of all, once you're registered with GitHub Education, you can access the GitHub Copilot AI assistant for free, right inside VS Code.
+Next, we need software for writing code. IDEs (Integrated Development Environments) are enhanced text editors with many extra features. You may have tried the Stata do-file editor or RStudio before. I prefer VS Code and encourage you to try it. In class, we'll see how to use VS Code to connect to servers, access the terminal, create plots, browse data, and more. You can do powerful things like find and replace across multiple files or edit several rows of text at once. Best of all you can access the GitHub Copilot AI assistant for free, right inside VS Code. And if you register for Github Education you even get access to the pro version free of charge.
 
 Below are also instructions for installing RStudio if you prefer it.
 
@@ -161,7 +161,7 @@ Below are also instructions for installing RStudio if you prefer it.
 
 ### Windows
 
-Download and install VS Code from [VS Code's download page](https://code.visualstudio.com/download). Defaults are good, but I suggest selecting "Open with Code" context menus too.
+Download and install VS Code from [VS Code's download page](https://code.visualstudio.com/download). Keep the default options throughout the install, but I suggest also select to configure the "Open with Code" context menus. That way you can right click on a folder to open it directly in VS Code.
 
 ### macOS
 
@@ -265,7 +265,9 @@ git config --global user.name "Your Name"
 git config --global user.email "youremail@example.com"
 ```
 
-Next, go to [GitHub.com](https://github.com/) to register an account (if you don't already have one). Use the same email you set in your Git config. After registering and verifying your account, visit [https://github.com/education/students](https://github.com/education/students) to sign up for GitHub Education. You will need to enter an SU email adress (and link it to your account). This should be enough to get verified. Once you are registered, you can try out the Copilot Chat in VS Code. You should have access to paid models like Claude 3.7.
+## Registering for GitHub and GitHub Education
+
+Next, go to [GitHub.com](https://github.com/) to register an account (if you don't already have one). Use the same email you set in your Git config. After registering and verifying your account, visit [https://github.com/education/students](https://github.com/education/students) to sign up for GitHub Education. You will need to enter an SU email address (and link it to your account). This should be enough to get verified. Once you are registered and verified, try the Copilot Chat in VS Code again. You should have access to more advanced models like Claude 3.7.
 
 # SSH
 

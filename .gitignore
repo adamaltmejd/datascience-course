@@ -3,4 +3,7 @@ _extensions/
 .env
 **/*.RData
 .Rhistory
-**/*_cache
+lectures/**/*_cache
+lectures/**/*_files
+problem_sets/**/*_cache
+problem_sets/**/*_files

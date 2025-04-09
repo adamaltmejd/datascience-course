@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Adam Altmejd Selder">
-<meta name="dcterms.date" content="2025-03-31">
+<meta name="dcterms.date" content="2025-04-09">
 
 <title>Problem set 0 — Setting Up Your Data Science Computer Environment</title>
 <style>
@@ -3094,7 +3094,7 @@ vertical-align: -.125em;
   <ul class="collapse">
   <li><a href="#error-but-i-did-exactly-as-you-said" id="toc-error-but-i-did-exactly-as-you-said" class="nav-link" data-scroll-target="#error-but-i-did-exactly-as-you-said">Error!? But I did exactly as you said!</a></li>
   </ul></li>
-  <li><a href="#installing-programming-languages-and-stata" id="toc-installing-programming-languages-and-stata" class="nav-link" data-scroll-target="#installing-programming-languages-and-stata">Installing Programming Languages (and Stata)</a>
+  <li><a href="#installing-programming-language-interpreters-and-stata" id="toc-installing-programming-language-interpreters-and-stata" class="nav-link" data-scroll-target="#installing-programming-language-interpreters-and-stata">Installing Programming Language interpreters (and Stata)</a>
   <ul class="collapse">
   <li><a href="#r-required" id="toc-r-required" class="nav-link" data-scroll-target="#r-required">R (required)</a></li>
   <li><a href="#python-supplementary" id="toc-python-supplementary" class="nav-link" data-scroll-target="#python-supplementary">Python (supplementary)</a></li>
@@ -3107,7 +3107,10 @@ vertical-align: -.125em;
   <li><a href="#rstudio-supplementary" id="toc-rstudio-supplementary" class="nav-link" data-scroll-target="#rstudio-supplementary">RStudio (supplementary)</a></li>
   <li><a href="#positron-in-beta-supplementary" id="toc-positron-in-beta-supplementary" class="nav-link" data-scroll-target="#positron-in-beta-supplementary">Positron (in beta, supplementary)</a></li>
   </ul></li>
-  <li><a href="#git-and-github" id="toc-git-and-github" class="nav-link" data-scroll-target="#git-and-github">Git and GitHub</a></li>
+  <li><a href="#git-and-github" id="toc-git-and-github" class="nav-link" data-scroll-target="#git-and-github">Git and GitHub</a>
+  <ul class="collapse">
+  <li><a href="#registering-for-github-and-github-education" id="toc-registering-for-github-and-github-education" class="nav-link" data-scroll-target="#registering-for-github-and-github-education">Registering for GitHub and GitHub Education</a></li>
+  </ul></li>
   <li><a href="#ssh" id="toc-ssh" class="nav-link" data-scroll-target="#ssh">SSH</a>
   <ul class="collapse">
   <li><a href="#generating-a-key-pair" id="toc-generating-a-key-pair" class="nav-link" data-scroll-target="#generating-a-key-pair">Generating a key pair</a></li>
@@ -3145,7 +3148,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 31, 2025</p>
+      <p class="date">April 9, 2025</p>
     </div>
   </div>
   
@@ -3160,7 +3163,7 @@ vertical-align: -.125em;
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>This is a guide for you to prepare your data science environment. The idea is that you go through these instructions between Lectures 1 and 2. That way, you will be able to follow along on your own computer in the classroom. And if there are any issues, we can sort them out before the real first problem set.</p>
-<p>This guide provides step-by-step instructions on how to install R (with RStudio), Python, Julia, and Stata. We will primarily use R in class, but I encourage you to explore any language or statistical software you prefer. This document also covers setting up the version control system Git and creating an account on GitHub.com, installing my favorite code editor (Visual Studio Code), configuring SSH keys for GitHub, and creating your first GitHub repository. Required tools are marked as such, others are complementary.</p>
+<p>This guide provides step-by-step instructions on how to install R (with RStudio), Python, Julia, and Stata. We will primarily use R in class, and you can complete this course without installing any of the other interpteters, but I encourage you to explore different languages throughout the class. This document also covers setting up the version control system Git and creating an account on GitHub.com, installing my favorite code editor (Visual Studio Code), configuring SSH keys for GitHub, and creating your first GitHub repository. Required tools are marked as such, others are complementary.</p>
 <hr>
 <p>The instructions are organized by operating system.</p>
 <p><strong>Windows users</strong> have two options: (1) Use the instructions under the “Windows” labels (recommended), or (2) install a Debian-based (e.g., Ubuntu) Linux distribution using Windows Subsystem for Linux (WSL) and follow the “Linux” instructions (advanced).</p>
@@ -3182,8 +3185,8 @@ vertical-align: -.125em;
 <p>There are lots of reasons why these instructions might not work for you. If you have problems with R or Git specifically, <a href="https://happygitwithr.com" class="uri">https://happygitwithr.com</a> is a great resource. Many problems have been answered on Stack Overflow, and can be found by googling (try googling the error message). You can also ask your favorite LLM Chatbot for help (try pasting the error message), discuss in class, or send me an email.</p>
 </section>
 </section>
-<section id="installing-programming-languages-and-stata" class="level1">
-<h1>Installing Programming Languages (and Stata)</h1>
+<section id="installing-programming-language-interpreters-and-stata" class="level1">
+<h1>Installing Programming Language interpreters (and Stata)</h1>
 <p>This section covers installing R, Python, and Julia. Throughout the course, we will focus on R because it currently has the best (in my humble opinion) data science toolkit, though Python and Julia are close behind.</p>
 <p>One goal of this course is to help you view programming languages (and statistical software like Stata) as tools, each with different strengths. By the end, you should feel comfortable switching between languages—or even learning new ones—when the situation calls for it. You will be able to do everything we do in class in R, but I have provided instructions for Python and Julia too if you would like to experiment with those languages on your own.</p>
 <section id="r-required" class="level2">
@@ -3277,7 +3280,7 @@ vertical-align: -.125em;
 </section>
 <section id="integrated-development-environment" class="level1">
 <h1>Integrated Development Environment</h1>
-<p>Next, we need software for writing code. IDEs (Integrated Development Environments) are enhanced text editors with many extra features. You may have tried the Stata do-file editor or RStudio before. I prefer VS Code and encourage you to try it. In class, we’ll see how to use VS Code to connect to servers, access the terminal, create plots, browse data, and more. You can do powerful things like find and replace across multiple files or edit several rows of text at once. Best of all, once you’re registered with GitHub Education, you can access the GitHub Copilot AI assistant for free, right inside VS Code.</p>
+<p>Next, we need software for writing code. IDEs (Integrated Development Environments) are enhanced text editors with many extra features. You may have tried the Stata do-file editor or RStudio before. I prefer VS Code and encourage you to try it. In class, we’ll see how to use VS Code to connect to servers, access the terminal, create plots, browse data, and more. You can do powerful things like find and replace across multiple files or edit several rows of text at once. Best of all you can access the GitHub Copilot AI assistant for free, right inside VS Code. And if you register for Github Education you even get access to the pro version free of charge.</p>
 <p>Below are also instructions for installing RStudio if you prefer it.</p>
 <section id="vs-code-required" class="level2">
 <h2 class="anchored" data-anchor-id="vs-code-required">VS Code (required)</h2>
@@ -3285,7 +3288,7 @@ vertical-align: -.125em;
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href>Windows</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href>macOS</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false" href>Linux</a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
-<p>Download and install VS Code from <a href="https://code.visualstudio.com/download">VS Code’s download page</a>. Defaults are good, but I suggest selecting “Open with Code” context menus too.</p>
+<p>Download and install VS Code from <a href="https://code.visualstudio.com/download">VS Code’s download page</a>. Keep the default options throughout the install, but I suggest also select to configure the “Open with Code” context menus. That way you can right click on a folder to open it directly in VS Code.</p>
 </div>
 <div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
 <p><strong>Homebrew (recommended)</strong></p>
@@ -3365,7 +3368,10 @@ vertical-align: -.125em;
 <p>No matter what platform you are on, after installing Git, open your terminal (Git Bash on Windows) and set up your Git profile. If you typed the command correctly, you will not get any confirmation after you pressed Enter.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="st">&quot;Your Name&quot;</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="st">&quot;youremail@example.com&quot;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Next, go to <a href="https://github.com/">GitHub.com</a> to register an account (if you don’t already have one). Use the same email you set in your Git config. After registering and verifying your account, visit <a href="https://github.com/education/students">https://github.com/education/students</a> to sign up for GitHub Education. You will need to enter an SU email adress (and link it to your account). This should be enough to get verified. Once you are registered, you can try out the Copilot Chat in VS Code. You should have access to paid models like Claude 3.7.</p>
+<section id="registering-for-github-and-github-education" class="level2">
+<h2 class="anchored" data-anchor-id="registering-for-github-and-github-education">Registering for GitHub and GitHub Education</h2>
+<p>Next, go to <a href="https://github.com/">GitHub.com</a> to register an account (if you don’t already have one). Use the same email you set in your Git config. After registering and verifying your account, visit <a href="https://github.com/education/students">https://github.com/education/students</a> to sign up for GitHub Education. You will need to enter an SU email address (and link it to your account). This should be enough to get verified. Once you are registered and verified, try the Copilot Chat in VS Code again. You should have access to more advanced models like Claude 3.7.</p>
+</section>
 </section>
 <section id="ssh" class="level1">
 <h1>SSH</h1>
