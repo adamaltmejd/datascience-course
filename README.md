@@ -11,6 +11,8 @@ This is the course repository for "Data science for Economists" (EC7412), a cour
 * Lecture 5: Data wrangling in R ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_5/lecture_5.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_5/lecture_5.html?view=print))
 * Lecture 6: Servers, VMs, APIs, LLMs ([slides](https://adamaltmejd.se/datascience-course/lectures/lecture_6/lecture_6.html), [handout](https://adamaltmejd.se/datascience-course/lectures/lecture_6/lecture_6.html?view=print))
 
+The lectures are in html format to support interactive content. The handouts are prepared for printing. If you want the slides as pdfs, the best way is to print the handout, but select "Save as PDF" in the print dialog.
+
 # Problem sets
 
 * [Problem set 0](https://adamaltmejd.se/datascience-course/problem_sets/problem_set_0/problem_set_0.html)
