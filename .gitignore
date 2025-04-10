@@ -1,5 +1,4 @@
 /.quarto/
-_extensions/
 .env
 **/*.RData
 .Rhistory
