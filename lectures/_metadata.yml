@@ -1,7 +1,7 @@
 format:
   clean-revealjs:
   #revealjs:
-    self-contained: true
+    embed-resources: true
     slide-level: 2
     theme:
       - ../custom.scss
