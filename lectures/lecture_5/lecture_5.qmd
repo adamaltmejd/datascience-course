@@ -6,17 +6,1186 @@ date: 2025-04-25
 
 # Introduction {background-color="#40666e"}
 
-## Getting data into R
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+# Basic setup chunk
+
+# Load necessary packages
+library(data.table)
+library(dplyr)      # For comparison
+library(tidyr)      # For comparison
+library(haven)      # For Stata files
+library(readxl)     # For Excel files
+library(lubridate)  # For dates
+library(stringr)    # For string operations if needed
+
+# Set data.table print options for slides
+options(datatable.print.nrows = 5)
+options(datatable.print.topn = 3)
+
+options(width = 300) #default 80
+```
+
+## The data workflow revisited
+
+:::: {.columns}
+::: {.column width="30%"}
+```{mermaid}
+%%| mermaid-format: png
+graph TB;
+    A["(1) Obtain Data"] --> B["(2) Wrangling
+                              Clean, Tidy, Transform"];
+    B --> C["(3) Exploration &
+             Visualization"];
+    C --> B;
+    C --> D["(4) Analysis"];
+    D --> F["(5) Communication"];
+```
+:::
+::: {.column width="70%" .fragment}
+- **Obtain** and import data
+- **Wrangling=** make data usable for analysis
+    - **Clean** data inconsistensies
+    - **Tidy** data format
+    - **Transform** data, create variables
+:::
+::::
+
+## Why is wrangling important?
+
+- Raw data is rarely ready for analysis or visualization
+- Errors, inconsistencies, and structural issues can lead to:
+    - Incorrect results
+    - Wasted time debugging later
+    - Difficulty merging or comparing datasets
+- Good wrangling practices ensure data quality and make analysis smoother
+- *Garbage In, Garbage Out*
+
+## Our r tools: `data.table` and `dplyr`
+
+- Two dominant paradigms for data manipulation in R
+- Both are powerful and widely used, but with different syntax
+- We will focus on `data.table`, because it is much faster
+- Show `dplyr` equivalents for comparison
+
+## `data.table`: Core concept
+
+- An **enhancement** of base R's `data.frame`
+- Designed for **speed** and **memory efficiency**
+- Concise, general syntax:
+
+  ```r
+  DT[i, j, by]
+  ```
+
+  - `DT`: your data.table object
+  - `i`: Row filtering (SQL `WHERE`)
+  - `j`: Column operations (SQL `SELECT`, `UPDATE`)
+  - `by`: Grouping operation (SQL `GROUP BY`)
+
+## `data.table`: Key features
+
+- **Fast:** Operations implemented in C
+- **Memory efficient:** Modifies *by reference* using `:=`^[But this means that when you do not want to edit by reference you have to be explicit and use `copy()`.]
+- **Indexing:** Automatic indexing (with keys) speeds up subsets and joins
+- **Concise syntax:** Combines operations efficiently
+
+## `dplyr`: Core concept
+
+- Part of the **Tidyverse** collection of packages
+- Focuses on **readability** and **consistency**
+- Uses distinct "verbs" for common operations
+
+## `dplyr`: Key verbs
+
+- `filter()`: Subset rows
+- `select()`: Select columns
+- `mutate()`: Create/modify columns
+- `summarise()` / `summarize()`: Aggregate data
+- `group_by()`: Perform operations group-wise
+- `arrange()`: Reorder rows
 
 
-## Next lecture: Accessing servers, automation, LLMs {.title-slide background-color="#40666e"}
+## Example syntax
+
+:::: {.columns}
+::: {.column width="50%"}
+`data.table`
+```r
+data[condition,
+     .(new_var = mean(old_var)),
+     by = "group_var"]
+```
+:::
+::: {.column width="50%"}
+`dplyr`
+```r
+data |>
+  filter(condition) |>
+  group_by(group_var) |>
+  summarise(new_var = mean(old_var))
+```
+:::
+::::
+
+::: {.aside}
+If you really like the `dplyr` syntax but want to take advantage of `data.table` speeds, there is the [dtplyr](https://dtplyr.tidyverse.org/) package which uses data.table as a backend for dplyr-syntax operations.
+:::
+
+## Key differences
+
+**`data.table`**
+
+- **Pros:** Speed, memory efficiency, concise syntax, powerful indexing/joins. Ideal for large data.
+- **Cons:** Steeper learning curve, syntax less "English-like", modify-by-reference needs care.
+
+**`dplyr`**
+
+- **Pros:** Highly readable verbs, Tidyverse integration (ggplot2, etc.).
+- **Cons:** Slower, uses more memory, especially on large data or complex groups.
 
 
+# Reading data {background-color="#40666e"}
 
-<!--
-## Lecture 4 - Data wrangling II
- - Need to decide if I want to do this in R only or in many languages. Might get too complicated since syntax becomes quite different in R (tidyverse or data.table), Python (Polars), Julia (DataFrames.jl), not to speak of Stata…
-- Split-apply-combine strategy
-- Joining
-- Reshaping
-- Regular expressions -->
+## `data.table::fread()` for text files
+
+- `fread()` is fast and flexible for delimited text (CSV, TSV)
+- Automatically solves many possible data issues
+- Let's try to read some AI-generated data:
+
+::: {.fragment}
+```{r}
+#| error: true
+#| warning: true
+#| output-location: default
+dogs = fread("dog_inventory.csv")
+```
+
+::: {.small-output}
+```{r}
+#| output-location: default
+dogs
+```
+:::
+:::
+
+## Fixing issues: character encoding
+
+- Computers need to encode characters to store them
+- Unfortunately there are tons of different encodings
+- A-Z, 0-9 is usually the same, but code for e.g. å can vary
+- Can create a real mess...
+
+::: {.small-output .fragment}
+```{r}
+#| warning: false
+#| output-location: default
+fread("dog_inventory.csv", encoding = "UTF-8", skip = 174, nrows = 1)
+fread("dog_inventory.csv", encoding = "Latin-1", skip = 174, nrows = 1)
+```
+:::
+
+## `fread()`: fixing names
+
+```{r}
+#| output-location: default
+dogs = fread("dog_inventory.csv", encoding = "Latin-1")
+names(dogs)
+```
+
+::: {.fragment}
+To refer to a name with a space we need to enclose it with backticks (\`\`)
+
+```{r}
+#| output-location: default
+dogs$`new owner`[5]
+```
+:::
+
+::: {.fragment}
+`check.names=TRUE` fixes column names automatically
+
+```{r}
+#| output-location: default
+names(fread("dog_inventory.csv", check.names = TRUE))[9]
+```
+:::
+
+## `fread()`: coding missing data
+
+```{r}
+#| output-location: default
+unique(dogs$insured)
+```
+
+`na.strings` argument takes vector of strings that should be coded as `NA`
+
+```{r}
+#| output-location: default
+dogs = fread("dog_inventory.csv",
+             encoding = "Latin-1",
+             check.names = TRUE,
+             colClasses = c(dog_id = "character"),
+             na.strings = c("", "-99"))
+```
+
+## `fread()`: selecting columns
+
+Use `select` to read a subset of columns
+
+
+::: {.small-output}
+```{r}
+#| output-location: default
+fread("dog_inventory.csv",
+      select = c("dog_id", "name", "breed"))
+```
+:::
+
+## `fread()`: specifying types
+
+`fread()` tries to guess the data types, override auto-detection for problematic columns with `colClasses`
+
+::: {.small-output}
+```{r}
+#| output-location: default
+fread("dog_inventory.csv",
+      select = c("dog_id", "name", "breed"),
+      colClasses = c(dog_id = "character"))
+```
+:::
+
+::: {.aside}
+You can also use `select` to both chose columns and specify types by supplying a named vector, see `?fread`.
+:::
+
+## Reading directly from urls
+
+`fread()` handles reading text files directly from the web
+
+::: {.small-output}
+```{r}
+#| output-location: default
+fread("https://github.com/adamaltmejd/datascience-course/raw/refs/heads/main/lectures/lecture_5/dog_data.csv")
+```
+:::
+
+## Importing Stata `.dta` files with `haven`
+
+- Use `haven::read_dta()`. Preserves Stata labels.
+- Convert to `data.table` with `as.data.table()`,
+- Set value labels with `as_factors()`
+
+```r
+library(haven)
+
+stata_dt = read_dta("path/to/stata_file.dta") |>
+  as.data.table()
+
+stata_dt[, factor_variable := as_factor(labelled_variable)]
+```
+
+::: {.aside}
+Similarly, we would use `haven::write_dta()` to save a data frame as a Stata dta file.
+:::
+
+## Reading excel files with `readxl`
+
+```r
+library(readxl)
+excel_dt = read_excel("path/to/spreadsheet.xlsx")
+```
+
+`readxl` supports selecting sheets:
+
+```r
+excel_sheets("path/to/spreadsheet.xlsx")
+read_excel("spreadsheet.xlsx", sheet = "Sheet2")
+```
+
+and even specific ranges:
+
+```r
+read_excel("spreadsheet.xlsx", range = "A1:D10", skip = 2)
+```
+
+# Subsetting / Filtering (i) {background-color="#40666e"}
+
+## Subsetting / Filtering
+
+`DT[condition, ...]` and `dplyr::filter(condition)` subsets rows based on `condition`.
+
+Selecting dogs aged less than 0:
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[age < 0]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+filter(dogs, age < 0)
+```
+:::
+
+## Subsetting / Filtering (cont.)
+
+Selecting insured unsold dogs:
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[insured == 1 & is.na(sale_date)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+filter(dogs, insured == 1 & is.na(sale_date))
+```
+:::
+
+## Selecting using row numbers
+
+Select first and last row (note `.N` and `row_number()`):
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[c(1,.N)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+filter(dogs, row_number() %in% c(1, n()))
+```
+:::
+
+Exclude final 10 rows:
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[1:(.N-11)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+filter(dogs, row_number() < n()-10)
+```
+:::
+
+# Working with columns (j) {background-color="#40666e"}
+
+## Working with columns (j)
+
+- `data.table` syntax `DT[i, j, by]`: operates on columns with `j`.
+- Use `.()` or `list()` to output a new data.table.
+- `dplyr::select()` works similarly
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[, .(name)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+select(dogs, name)
+```
+:::
+
+## Excluding columns
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[, !c("sale_date", "new.owner")]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+select(dogs, !c(sale_date, new.owner))
+```
+:::
+
+## `data.table` assignment by reference (`:=`)
+
+- Normally to edit a column, R copies the whole dataset in memory
+- But `:=` modifies `DT` **in place**
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[, price := price * 10]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+dogs = mutate(dogs, price = price / 10)
+```
+:::
+
+::: {.aside}
+`copy(DT)` first if you *want* to work with a copy of `DT`
+:::
+
+
+## Removing a column by reference
+
+To delete a `data.table` column, assign it to `NULL`.
+
+```{r}
+#| output-location: default
+dogs[, new.owner := NULL]
+```
+
+
+## Conditional modification with `:=`
+
+- Combine row selection (`i`) with assignment (`j`) for conditional modification in `data.table`
+- Here is where data.table is starting to shine
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+#| error: true
+dogs[age < 0, age := NA]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+dogs = mutate(dogs, age = if_else(age < 0, NA, age))
+```
+:::
+
+::: {.aside}
+Changing the content of a column in dplyr is always done on a copy, so we need to reassign it for the change to stay.
+:::
+
+
+# Grouping and summarizing (by) {background-color="#40666e"}
+
+## Grouping and summarizing
+
+- `DT[i, j, by = ...]` performs operation `j` separetely by group
+- Corresponds to `dplyr::group_by() |> ...`
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[, mean(price), by = .(insured)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+dogs |>
+  group_by(insured) |>
+  summarize(mean(price))
+```
+:::
+
+
+## Grouping and summarizing (cont.)
+
+Can group by multiple variables, and by conditions:
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[, mean(price), by = .(insured, color == "White")]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+dogs |>
+  group_by(insured, color == "White") |>
+  summarize(mean(price))
+```
+:::
+
+## `.SD`
+
+Inside a `data.table`, `.SD` refers to the **S**ubset of **D**ata for each group.
+
+We can use this to run more complex operations, like
+
+```r
+dogs[, lapply(.SD, func), by = ...]
+```
+
+applying a custom function `func` to each `.SD` group.
+
+::: {.aside}
+`.SD` is also a data.table
+:::
+
+## `.SDcols`
+
+Specifies the columns included in `.SD`. Can be used to select columns in smart ways.
+
+The `dplyr` solution is simpler though (if you know the verb).
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+```{r}
+#| output-location: default
+dogs[, .SD, .SDcols = patterns("_date")]
+```
+#### `dplyr`
+```{r}
+#| output-location: default
+select(dogs, ends_with("_date"))
+```
+:::
+
+::: {.aside}
+`patterns()` filters by *regular expression*
+:::
+
+## Save grouped summaries to column
+
+Saving the average price by age to a new column, repeating the summary for each row in group:
+
+::: {.panel-tabset .small-output}
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[,
+     avg_price_by_age := mean(price),
+     by = .(age)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+dogs_new = dogs |>
+  group_by(age) |>
+  mutate(avg_price_by_age = mean(price))
+```
+:::
+
+&nbsp;
+
+::: {.small-output}
+```{r}
+dogs[order(age),
+     .(age, avg_price_by_age)]
+```
+:::
+
+```{r}
+#| echo: false
+#| output-location: default
+dogs[, avg_price_by_age := NULL]
+```
+
+## Grouping and summarizing (by)
+
+Find cheapest dog by breed, ordered by how frequent the breed is
+
+::: {.panel-tabset}
+
+#### `data.table`
+
+```{r}
+#| output-location: default
+dogs[, .(.N, min(price)), by = "breed"] |>
+  _[order(-N)]
+```
+
+#### `dplyr`
+
+```{r}
+#| output-location: default
+dogs |>
+  group_by(breed) |>
+  summarize(N=n(), min(price)) |>
+  ungroup() |>
+  arrange(-N)
+```
+
+:::
+
+# Working with strings and dates {background-color="#40666e"}
+
+## Working with strings and dates
+
+- Text data often requires cleaning and manipulation.
+- Common tasks: detecting/replacing patterns, changing case, removing white space
+- LLMs can help with some things, but are **not deterministic**
+
+
+## Working with strings and dates
+
+Convert case, remove whitespace
+
+```{r}
+tolower("Foo Bar")
+```
+
+```{r}
+toupper("Foo Bar")
+```
+
+```{r}
+trimws("  Foo Bar ")
+```
+
+Substring by position
+
+```{r}
+substr("Foo Bar", 4, 8)
+```
+
+Count characters^[Not to be mistaken by `length()` which returns the length of the vector, i.e. `1` for a singleton.]
+
+```{r}
+nchar("Foo Bar")
+```
+
+## Regular expressions
+
+Regular expressions = special characters that match strings
+
+```{r}
+s = c("abc", "abcd", "abcde")
+```
+
+```{r}
+#| output-location: column-fragment
+grepl("abc", s)
+```
+
+```{r}
+#| output-location: column-fragment
+grepl("de", s)
+```
+
+```{r}
+#| output-location: column-fragment
+grepl("d$", s)
+```
+
+```{r}
+#| output-location: column-fragment
+grepl("^a", s)
+```
+
+```{r}
+#| output-location: column-fragment
+grepl("^[a-z]{3}$", s)
+```
+
+## Regular expressions: common tokens
+
+- `.` matches any single character.
+- `*` matches the previous item zero or more times
+- `\\s` matches whitespace
+- `[...]` specify possible characters
+
+::: {.small-output}
+```{r}
+#| output-location: default
+dogs[grepl("[Bb]rindle", color), .(name, breed, color)]
+```
+:::
+
+::: {.aside}
+Check `?regex` for an intro to regular expressions in R, <https://regexone.com> for a site with simple exercises to help you learn. Chatbots are pretty good at writing regexps, but do test their output!
+:::
+
+## Detecting patterns: `grepl`
+
+- `grepl("pattern", text)` checks if `text` contains the `pattern`.
+- Returns `TRUE`/`FALSE`
+
+```{r}
+dogs[grepl("Terrier", breed) &
+     age <= 2, .(name, breed, price)]
+```
+
+```{r}
+dogs[grepl("and", color), .N, color] |>
+  _[order(-N)][1:3]
+```
+
+## Replacing patterns: `gsub`
+
+- `gsub("pattern", "replacement", text)` replaces *all* occurrences of `pattern` with `replacement` in `text`.
+
+Replace "and" with comma in color
+```{r}
+dogs[, color := gsub("and ", ",", color)]
+```
+
+Remove anything after space in dog names
+
+```{r}
+dogs[grepl(" ", name), name]
+```
+```{r}
+dogs[grepl(" ", name),
+     gsub(" .*$", "", name)]
+```
+
+::: {.aside}
+Use `sub()` instead to replace only the *first* occurrence.
+:::
+
+## `stringr`
+
+The `stringr` package provides lots of convenience functions for more powerful string operations.
+
+- `str_replace_all()` allows for multiple patterns
+- `str_to_lower()`, `str_to_upper()`, `str_trim()` are more robust
+- `str_sub` permits negative indices
+
+## Date types
+
+R has built-in **date data types**, enabling e.g., arithmetic operations on dates
+
+```{r}
+#| error: true
+"2024-02-28" + 3
+```
+
+```{r}
+as.Date("2024-02-28") + 3
+```
+```{r}
+as.Date("2024-02-28") - as.Date("2022-02-28")
+```
+
+## Date types
+
+Let's look at the two date-columns in our data
+
+```{r}
+dogs[1:3, .(intake_date, sale_date)]
+```
+
+One is loaded as type `IDate` other as `char`. Only `IDate` is a date type:
+
+```{r}
+#| error: true
+#| output-location: default
+dogs[, mean(sale_date - intake_date, na.rm = TRUE)]
+```
+
+## Coercing dates
+
+We can use `as.Date()` to coerce
+
+```{r}
+#| error: true
+dogs[, sale_date := as.IDate(sale_date)]
+```
+
+::: {.fragment}
+... R cannot read the format, we need to specify it manually:
+```{r}
+#| output-location: default
+dogs[, sale_date := as.IDate(sale_date, format = "%m/%d-%Y")]
+```
+:::
+
+::: {.fragment}
+Then we can calculate average time in the shelter:
+
+```{r}
+#| output-location: default
+dogs[, mean(sale_date - intake_date, na.rm = TRUE)]
+```
+:::
+
+
+::: {.aside}
+We need to use `as.IDate()` and not `as.Date()` because data.table defaults to the IDate format since it uses less memory. We could also have changed `intake_date` to `Date` and used `as.Date(sale_date)`.
+:::
+
+## `lubridate` package
+
+For more advanced date operations.
+
+```{r}
+#| output-location: default
+library(lubridate)
+dogs[, .N, lubridate::quarter(intake_date)]
+```
+
+```{r}
+date("2024-12-13") - weeks(3)
+```
+
+```{r}
+hms("11:15:00") - hms("11:00:00")
+```
+
+And much more!
+
+::: {.aside}
+Lubridate cheat sheet: <https://rawgit.com/rstudio/cheatsheets/main/lubridate.pdf>
+:::
+
+# Merging and reshaping {background-color="#40666e"}
+
+## The data
+
+Let's load some more LLM-generated data on dogs:
+
+::: {.small-output}
+```{r}
+#| output-location: default
+dog_breeds = fread("dog_breeds.csv")
+dog_breeds
+```
+
+```{r}
+#| output-location: default
+dog_sales = fread("dog_sales.csv")
+dog_sales
+```
+:::
+
+## Merging
+
+- Combines two tables based on matching **keys** in shared column(s)
+- Four types:
+    - **Inner Join:** Keep only rows with matching keys in *both* tables
+    - **Left outer join:** Keep left table, add matches from the right
+    - **Right outer join:** Keep right table, add matches from the left
+    - **Full outer join:** Keep all rows from *both* tables
+
+## Merging syntax overview (SQL)
+
+`data.table` has two alternatives
+
+- `merge(x, y, by = "key")`
+- `Y[X, on = "key"]` more efficient, allows calculations during join
+
+`dplyr` is more verbose
+
+- Inner join: `inner_join(x, y, by = "key")`
+- Outer joins:
+  - `left_join(x, y, by = "key")`
+  - `right_join(x, y, by = "key")`
+  - `full_join(x, y, by = "key")`
+
+
+## Inner join
+
+- Keep rows that have matching keys in *both* tables
+- Show inventory data for dogs that appear in breed info table
+
+::: {.panel-tabset .tiny-output}
+
+#### `data.table`
+
+```{r}
+#| output-location: default
+# nomatch = NA is default
+dog_breeds[dogs, on = c("breed"), nomatch = NULL]
+```
+
+#### `merge.data.table`
+
+```{r}
+#| output-location: default
+# all = FALSE is the default
+merge(dogs, dog_breeds, by = "breed", all = FALSE, sort = FALSE)
+```
+
+#### `dplyr::inner_join`
+
+```{r}
+#| output-location: default
+dogs |>
+  inner_join(dog_breeds, by = "breed")
+```
+:::
+
+::: {.aside}
+We need to add `sort = FALSE` to `merge()` or the output will be sorted by the key column.
+:::
+
+## Left outer join
+
+- Keep all rows from the main table and add data from the new table
+- Rows in the main table with no match get `NA`
+- Add information about the breeds in our inventory, keeping track of the whole inventory even if there is no breed info
+
+::: {.panel-tabset .tiny-output}
+#### `data.table`
+```{r}
+#| output-location: default
+# nomatch = NA is default
+dog_breeds[dogs, on = c("breed"), nomatch = NA]
+```
+#### `merge.data.table`
+```{r}
+#| output-location: default
+# all.x = all = FALSE is default
+merge(dogs, dog_breeds, by = "breed", all.x = TRUE, sort = FALSE)
+```
+#### `dplyr::left_join`
+```{r}
+#| output-location: default
+dogs |>
+  left_join(dog_breeds, by = "breed")
+```
+:::
+
+## Right outer join
+
+- Same as left outer join but we keep all *new* data
+- Keep inventory data only for dog breeds that we have info about, also include dog info for breeds not in our kennel
+
+::: {.panel-tabset .tiny-output}
+#### `data.table`
+```{r}
+#| output-location: default
+# nomatch = NA is default
+dogs[dog_breeds, on = c("breed"), nomatch = NA]
+```
+#### `merge.data.table`
+```{r}
+#| output-location: default
+# all.x = all = FALSE is default
+merge(dogs, dog_breeds, by = "breed", all.y = TRUE, sort = FALSE)
+```
+#### `dplyr::left_join`
+```{r}
+#| output-location: default
+dogs |>
+  right_join(dog_breeds, by = "breed")
+```
+:::
+
+## Full outer join
+
+- Keep all rows from *both* tables
+- Fill with `NA` when there is no match
+- Keep whole inventory but add breed info even for dogs not in inventory
+
+::: {.panel-tabset .tiny-output}
+#### `merge.data.table`
+```{r}
+#| output-location: default
+merge(dogs, dog_breeds,
+      by = "breed", all = TRUE, sort = FALSE)
+```
+#### `dplyr::full_join`
+```{r}
+#| output-location: default
+dogs |>
+  full_join(dog_breeds, by = "breed")
+```
+:::
+
+:::aside
+`data.table`'s `X[Y]` syntax doesn't have a direct equivalent for `full_join`. Use `merge()`.
+:::
+
+## Data table specials: merging and manipulating
+
+- The `X[Y]` operation allows concurrent manipulation of vectors
+- Uses only needed columns, meaning we can add columns by reference
+- Use `i.` syntax to refer to a column in `i`
+
+::: {.small-output}
+```{r}
+#| output-location: default
+dogs[dog_breeds, on = c("breed"), avg_years_left := i.avg_life_exp - age]
+dogs
+```
+:::
+
+## Transforming data: wide↔️long
+
+- Often needed to make data *tidy* and easy to work with
+- Remember:
+    1. Each variable forms a column
+    2. Each observation forms a row
+    3. Each cell holds a single value
+
+## Wide to Long
+
+- Combines columns and increases rows
+- Let's create a table of breed stats
+
+::: {.panel-tabset}
+
+#### `data.table::melt`
+```{r}
+#| output-location: default
+melt(dog_breeds,
+     id.vars = c("breed"),
+     measure.vars = c("height_cm_min", "height_cm_max"))
+```
+
+#### `tidyr::pivot_longer`
+```{r}
+#| output-location: default
+dog_breeds |>
+  pivot_longer(cols = c("height_cm_min", "height_cm_max")) |>
+  select(breed, name, value)
+```
+
+:::
+
+## Reshaping: Long to Wide
+
+- Spread values from a column across multiple new columns.
+- Create a table of average sale price per breed at each shelter
+
+::: {.panel-tabset .small-output}
+#### `data.table::dcast`
+```{r}
+#| output-location: default
+dog_sales[, .(avg_price = mean(price_usd, na.rm = TRUE)), by = .(breed, shelter_name)] |>
+  dcast(breed ~ shelter_name,
+        value.var = "avg_price")
+```
+#### `tidyr::pivot_wider`
+```{r}
+#| output-location: default
+dog_sales |>
+  group_by(breed, shelter_name) |>
+  summarise(avg_price = mean(price_usd, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = shelter_name,
+              values_from = avg_price)
+```
+:::
+
+## Final remarks {.title-slide background-color="#40666e"}
+
+## Data table vs Tidyverse
+
+`tidyverse`/`dplyr` and `data.table` are all great.
+
+While `tidyverse` is easy to get started with and understand, `data.table` is much more powerful.
+
+Use whichever you prefer!
+
+## Data table magic
+
+I'm a bit of a `data.table` nerd though, so here is a cool examples of advanced operation.
+
+Let's calculate the average price during two months around each sale:
+
+```{r}
+#| output-location: default
+#| code-line-numbers: "3-6|7-9|1-12"
+dogs[
+  dog_sales[
+    dogs[!is.na(sale_date),
+         .(dog_id, breed,
+           date1 = as.Date(sale_date) %m-% months(2),
+           date2 = as.Date(sale_date) %m+% months(2))],
+    on = c("breed", "date >= date1", "date < date2"),
+    by = .EACHI,
+    .(dog_id, mean_price = mean(price_usd, na.rm = TRUE))
+  ],
+  on = "dog_id", avg_price_2months := i.mean_price
+]
+```
+
+## Data table magic (cont.)
+
+Let's verify it worked
+
+```{r}
+#| output-location: default
+dogs[dog_id == 9367, .(breed, sale_date, avg_price_2months)]
+```
+
+```{r}
+#| output-location: default
+dog_sales[breed == "Border Collie" &
+          date %between% list(as.Date("2024-01-12") - months(2),
+                              as.Date("2024-01-12") + months(2)),
+          mean(price_usd)]
+```
+
+## Data table magic (cont.)
+
+- `data.table` also supports rolling joins, where we find the *closest* match
+- `roll` can go forward, backward or to nearest match
+- Let's find the sale price closest to `sale_date`
+
+```{r}
+#| output-location: default
+dogs[
+  dog_sales[dogs, on = c("breed", "date == sale_date"), roll = "nearest", .(dog_id, price_usd)],
+  on = "dog_id",
+  nearest_price := i.price_usd
+]
+dogs[dog_id == "0013", .(breed, sale_date, nearest_price)]
+dog_sales[breed == "Labrador Retriever" &
+          date %between% list(as.Date("2023-03-01"), as.Date("2023-04-01"))]
+```
+
+## Saving data
+
+You should split your data processing and analysis code.
+
+`src/process_dogs.R` takes the raw dogs data and outputs a file `data/dogs_processed.csv`. Use `data.table::fwrite()` to save the processed data.
+
+Why not `write_rds` or `save`? Like `.dta` these are binary formats, cannot be tracked by version control for example.
+
+`src/analyze_dogs.R` starts by `fread(data/dogs_processed.csv)` and then runs analysis on this processed data.
+
+## Combining operations
+
+Both `data.table` and `dplyr` allow chaining multiple steps using **pipes**.
+
+Great for readability!
+
+`data.table` `DT[...] |> _[...]`, where  `_` represents the data.table from the previous step
+
+## Next lecture: Servers, VMs, APIs, & LLMs {.title-slide background-color="#40666e"}
