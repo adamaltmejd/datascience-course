@@ -7,7 +7,6 @@ date: 2025-04-23
 ```{r}
 #| echo: false
 #| output-location: default
-# load packages here for cached chunks
 library(data.table)
 library(modelsummary)
 library(tinytable)
@@ -62,7 +61,6 @@ John Tukey
 
 ```{r}
 #| output-location: default
-#| cache: true
 library(data.table)
 library(modelsummary)
 dt = as.data.table(datasets::anscombe)
@@ -77,7 +75,7 @@ datasummary(All(dt) ~ N + mean + SD, data = dt)
 
 ```{r}
 #| echo: false
-#| cache: true
+#| output-location: default
 ggplot(data = melt(dt,
                    measure.vars = patterns("^x", "^y"),
                    value.name = c("x", "y")),
@@ -107,7 +105,7 @@ ggplot(data = melt(dt,
 
 ```{r}
 #| echo: false
-#| cache: true
+#| output-location: default
 library(cannonball)
 cannonball::plot_r(r = 0.5, n = 50)
 ```
@@ -307,7 +305,6 @@ ggplot(data = <DATA_FRAME>,
 
 ```{r}
 #| output-location: default
-#| cache: true
 library(gapminder)
 tt(dplyr::sample_n(gapminder, 10))
 ```
@@ -315,14 +312,12 @@ tt(dplyr::sample_n(gapminder, 10))
 ## Creating the ggplot object (cont.)
 
 ```{r}
-#| cache: true
 ggplot(data = gapminder)
 ```
 
 ## Creating the ggplot object (cont.)
 
 ```{r}
-#| cache: true
 p <- ggplot(data = gapminder,
             mapping = aes(x = continent,
                           y = lifeExp))
@@ -339,7 +334,6 @@ We set the **aesthetic mapping** of the ggplot object to columns of the `gapmind
 ## Adding a layer
 
 ```{r}
-#| cache: true
 p + geom_point()
 ```
 
@@ -348,7 +342,6 @@ To draw something on the canvas we need to add a geometry layer. For example a s
 ## Adding a layer (cont.)
 
 ```{r}
-#| cache: true
 p + layer(
   mapping = NULL,
   data = NULL,
@@ -363,7 +356,6 @@ p + layer(
 ## Adding a boxplot
 
 ```{r}
-#| cache: true
 p + geom_boxplot()
 ```
 
@@ -376,7 +368,6 @@ Boxplots show: median (center line), interquartile range (IQR, the box), whisker
 ## Adding another geom
 
 ```{r}
-#| cache: true
 p +
   geom_boxplot() +
   geom_jitter()
@@ -391,7 +382,6 @@ To get a more visual sense of where the data is located we can re-add the actual
 ## Styling geoms
 
 ```{r}
-#| cache: true
 p +
   geom_boxplot(outlier.color = "red") +
   geom_jitter(position = position_jitter(width = 0.1, height = 0),
@@ -407,7 +397,6 @@ Remember you can read about available function arguments by running `?geom_jitte
 ## Styling scales and labels
 
 ```{r}
-#| cache: true
 p +
   geom_boxplot(outlier.color = "red") +
   geom_jitter(position = position_jitter(width = 0.1, height = 0),
@@ -425,7 +414,6 @@ Starting the y-axis at zero usually good. Here, I also added a simple theme and 
 ## Adding data labels to outliers
 
 ```{r}
-#| cache: false
 library(ggrepel)
 is_outlier = function(x) {
   return(x < quantile(x, 0.25) - 1.5 * IQR(x) | x > quantile(x, 0.75) + 1.5 * IQR(x))
@@ -483,7 +471,6 @@ ggplot(plotdata[continent != "Oceania"],
 ## Rosling's famous animated plot
 
 ```{r}
-#| cache: true
 #| echo: false
 #| output-location: default
 library(gganimate)
@@ -869,6 +856,7 @@ Let's go with this one for our plot!
 
 ```{r}
 #| echo: false
+#| output-location: default
 p <- p +
   theme_ipsum() +
   scale_color_paletteer_d("wesanderson::Darjeeling2")

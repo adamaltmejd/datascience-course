@@ -799,7 +799,7 @@ R looks "one level up"
 Let's say we want to run a regression on the data in the `df` data.frame we created
 
 ```{r}
-#| echo: FALSE
+#| echo: false
 #| output-location: default
 rm(x, y)
 ```
