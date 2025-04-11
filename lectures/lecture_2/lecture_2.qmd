@@ -112,6 +112,28 @@ use "mydata.dta"
 :::
 :::
 
+
+## Use relative paths and start new sessions (cont.)
+
+- The **working directory** is the folder your code is running from
+- Commands like `fread("mydata.csv")` look for `mydata.csv` *in the current working directory*
+- This means the code will work no matter where it is run from
+
+
+- It is common to see `clear all` or `rm(list = ls())` at the top of scripts.
+- Presumes script is run in old session
+- Instead, make it a habit to always start new sessions!
+
+## Use relative paths and start new sessions (cont.)
+
+What if the file you are referencing is not in the working directory?
+
+- *Relative paths* use `..` and `/` to navigate *relative* to the wd
+- Set the working directory to the root project folder
+  - This is automatic if you open the folder in VS Code
+- To run script, do `source("src/script.R")``
+- To get data from parent folder do `fread("../../data_outside_project.csv")`, with each `..` navigating one level "up"
+
 ## Data management
 
 - Keep raw data in `data/raw` folder
@@ -148,7 +170,7 @@ Stata makes this hard by limiting names to 32 characters unfortunately.
 - Put these functions into different files
 - Instead of `functions.R`, maybe you have `simulation.R`, `arithmetic.R`, `robustness_checks.R`, etc.
 
-## Document everything, describe project in `README.md` file
+## Document everything, describe project in `README.md`
 
 - Place a file called `README.md` in your project root
 - Use this file to describe the project, explain how to run your code, etc.
@@ -158,9 +180,38 @@ Stata makes this hard by limiting names to 32 characters unfortunately.
 
 - Make sure your data is backed up
 - Recommended: use a cloud sync service, like OneDrive
-- Do not use Git for backup
+- Remember: Git is not backup
 
 # Short shell intro {background-color="#40666e"}
+
+## The Unix shell
+
+![&nbsp;](hacker.png)
+
+## The Unix shell (cont.)
+
+Hackers in movies are often portrayed working in terminals.
+
+In reality, developers use shell commands because they offer efficient ways to interact with computers and files. We will work in a shell originating in the [Unix](https://en.wikipedia.org/wiki/Unix) family of operating systems.
+
+The [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy) is for tools to be "minimalist and modular" to
+
+> **Do One Thing And Do It Well**
+
+## Terminology
+
+- *Terminal, command prompt, tty*: wrapper that runs the shell
+- *Shell, Bash, zsh*: programs that run commands and return output
+- *Console*: your computer
+
+We will use [**Bash**](https://www.gnu.org/software/bash/) which is a *shell variant*
+
+- Included by default on Linux and MacOS^[Recent versions of MacOS actually run `zsh` by default which is a slightly different variant of bash.]
+- Windows users should install [Git Bash](https://git-scm.com/downloads)
+
+::: {.attribution}
+[Stack overflow explains the difference well](https://unix.stackexchange.com/questions/4126/what-is-the-exact-difference-between-a-terminal-a-shell-a-tty-and-a-con)
+:::
 
 ## Short shell intro
 
@@ -171,30 +222,57 @@ Stata makes this hard by limiting names to 32 characters unfortunately.
   - To know what goes on "under the hood"
   - Automation
   - Reproducibility (again!)
-  - Useful tricks for e.g., file manipulation:
+
+::: {.aside}
+If you want to practice shell skills [cmdchallenge.com](https://cmdchallenge.com/) is fun!
+:::
+
+## Things I use the shell for
+
+- Git
+- Renaming and moving files
+- Installing and updating programs
+- Interacting with servers
+- Scheduling tasks
+- Manipulating large sets of files:
 
 ```bash
 find "raw_data" -name "*.csv" -type f -exec \
   perl -i -0pe 's/Vet ej\/\nVill ej svara/Vet ej\/Vill ej svara/g' {} \;
 ```
 
-::: {.aside}
-If you want to practice shell skills [cmdchallenge.com](https://cmdchallenge.com/) is fun!
-:::
-
 ## Short shell intro (cont.)
 
 :::: {.columns}
-::: {.column width="50%" .center-h}
+::: {.column width="50%"}
 ![Git Bash on Windows](shell_win.png){height=200}
 :::
-::: {.column width="50%" .center-h}
+::: {.column width="50%"}
 ![Terminal on Mac](shell_mac.png){height=200}
 :::
 ::::
 
 - You can also open a shell from VS Code by going to "Terminal->New Terminal"
-- In VS Code on Windows, the terminal defaults to Powershell. You can change it to Git Bash in the settings, under "Default profile".
+- In VS Code on Windows, the terminal defaults to Powershell. I recommend you change it to Git Bash
+
+::: {.aside}
+To change the default terminal press Ctrl/Cmd+Shift+P and chose *Change default profile*.
+:::
+
+## Opening a shell
+
+When you open a shell you see:
+
+```bash
+username@hostname:~$
+```
+
+This denotes **who** you are and **where** you are.
+
+- `username` is your username
+- `@hostname` is the name of the computer
+- `:~` is the path (`~` means home)
+- `$` means you can start typing a command
 
 ## Basic shell commands: navigation
 
@@ -209,6 +287,8 @@ pwd
 cd ..
 pwd
 ```
+
+## Basic shell commands: listing files
 
 ```{bash}
 # ls lists files in folder
@@ -231,8 +311,8 @@ ls -lah
 
 ## More commands
 
-- `mv <file> <destination>` moves
-- `cp <file> <destination>` copies
+- `mv <source> <destination>` moves
+- `cp <source> <destination>` copies
 - `rm <file>` removes
 - `mkdir <directory>` creates a directory, `rmdir` removes
 - `find` searches
@@ -250,7 +330,7 @@ Use `space` to browse, press `h` for help and `q` to quit.
 ## Short shell intro
 
 - This was just a very basic introduction
-- Hopefully the sight of a command line will not scare you from now on
+- Hopefully the sight of a command line will be a bit less scary
 - Check out the resources at the end of today's talk if you want to learn more!
 
 # Version control {background-color="#40666e"}
@@ -523,9 +603,7 @@ If you want your collaborators to review/discuss the changes before they are mer
 But first, check Stack overflow and [Oh Shit, Git!?](https://ohshitgit.com)
 :::
 
-## Next lecture: R basics {.title-slide background-color="#40666e"}
-
-## Extras: SSH {.title-slide background-color="#40666e"}
+## SSH {.title-slide background-color="#40666e"}
 
 ## SSH=Secure shell
 
@@ -571,6 +649,8 @@ ssh -T git@github.com
 Now you can clone repositories using SSH rather than https.
 
 We will get back to how to use SSH to connect to servers later in the course.
+
+## Next lecture: R basics {.title-slide background-color="#40666e"}
 
 ## Resources
 
