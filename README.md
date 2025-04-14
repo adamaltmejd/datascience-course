@@ -15,9 +15,12 @@ The lectures are in html format to support interactive content. The handouts are
 
 # Problem sets
 
-* [Problem set 0](https://adamaltmejd.se/datascience-course/problem_sets/problem_set_0/problem_set_0.html)
-* Problem set 1 (will be published after lecture 4)
-* Problem set 2 (will be published after lecture 6)
+* Software install instructions ([Problem set 0](https://adamaltmejd.se/datascience-course/problem_sets/problem_set_0/problem_set_0.html))
+
+* Problem set 1 will be published after lecture 3, due 2025-04-24 at 23:59
+* Problem set 2 will be published after lecture 5, due 2025-05-04 at 23:59
+
+Both problem sets will be accessible through GitHub classroom. Invite links will be posted on Athena.
 
 # References / resources
 

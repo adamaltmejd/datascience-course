@@ -319,5 +319,6 @@ Let's build a script that calls the OpenAI API to process some survey feedback I
 - Learning data science will give you a really useful new toolkit,
 - and demystify popular software development techniques
 - Please let me know when I'm going too fast or if you want to know more about some subject
+- Bring your computer to class so you can follow along!
 
 ## Next lecture: Project management, version control, and the shell {.title-slide background-color="#40666e"}
