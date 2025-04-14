@@ -284,6 +284,8 @@ sudo apt install python3 python3-pip
 
 ### Julia
 
+Julia is an up-and-coming scientific programming language with very promising functionality. It employs several modern programming paradigms and recently passed the 1.0 milestone so it should be more stable to use nowadays. Still not that commonly used in Economics, though I think it's growing in popularity quite fast among macroeconomists, and will for sure replace Matlab sooner or later. This book is a great resource for learning how to do macro in Julia: <https://julia.quantecon.org/intro.html>.
+
 ::: {.panel-tabset}
 
 #### Windows
