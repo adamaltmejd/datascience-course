@@ -13,8 +13,7 @@ date: 2025-04-16
 ## Today
 
 - R programming from fundamentals
-- Much of what you will learn applies to any programming language
-- Follow along on your computers!
+- Much of what you will learn applies to all programming
 
 ::: notes
 By teaching fundamentals I hope you can learn to apply the knowledge also to other programming languages.
@@ -31,13 +30,17 @@ By teaching fundamentals I hope you can learn to apply the knowledge also to oth
 - Not limited to one dataset in memory
 - Stata commands = R functions
 - Less "hand-holding" when it comes to statistical analyses, need to be more mindful about what you do
-- Much more dependent on external packages, you will need to learn to install and load them
+- Much more dependent on external packages
+  - Huge catalogue of user-created packages
+  - The problem with open source: some packages are outdated or abandoned
+  - You will need to learn to search for, install and load packages
 
 ## Coding environment recap
 
 - Make sure you have `R` and `VS Code` installed
-- Also useful to have the VS Code `R extension`
-- You can follow along in the VS Code terminal
+- You will also need the `VS Code R extension`
+- Open a VS Code R terminal now
+- Let's make sure it works for all of you before we continue
 
 # Basic R syntax {background-color="#40666e"}
 
@@ -46,15 +49,19 @@ By teaching fundamentals I hope you can learn to apply the knowledge also to oth
 We can use R for arithmetic by executing operations in an R terminal:
 
 ```{r}
+#| output-location: column-fragment
 12 + 3
 ```
 ```{r}
+#| output-location: column-fragment
 8 - 33
 ```
 ```{r}
+#| output-location: column-fragment
 20 / 3
 ```
 ```{r}
+#| output-location: column-fragment
 10 ^(2 + 1) - 1
 ```
 
