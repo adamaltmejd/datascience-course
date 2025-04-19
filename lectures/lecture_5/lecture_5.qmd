@@ -268,7 +268,7 @@ You can also use `select` to both chose columns and specify types by supplying a
 ::: {.small-output}
 ```{r}
 #| output-location: default
-fread("https://github.com/adamaltmejd/datascience-course/raw/refs/heads/main/lectures/lecture_5/dog_data.csv")
+fread("https://github.com/adamaltmejd/datascience-course/raw/refs/heads/main/lectures/lecture_5/dog_inventory.csv")
 ```
 :::
 
@@ -1075,6 +1075,10 @@ dog_breeds |>
   pivot_longer(cols = c("height_cm_min", "height_cm_max")) |>
   select(breed, name, value)
 ```
+
+::: {.aside}
+The data.table [vignette on reshaping](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html).
+:::
 
 :::
 

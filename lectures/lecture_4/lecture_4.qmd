@@ -16,6 +16,8 @@ library(gapminder)
 library(ggrepel)
 library(gganimate)
 library(hrbrthemes)
+library(svglite)
+library(rsvg)
 # settings
 options(tinytable_tt_theme = \(x) theme_tt(x, "revealjs", fontsize = .8))
 options("modelsummary_factory_default" = "tinytable")
