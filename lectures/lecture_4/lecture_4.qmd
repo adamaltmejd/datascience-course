@@ -192,6 +192,15 @@ Verifying the variable `wage`, we might ask:
 - Do correlations with related variables make sense?
 :::
 
+## External consistency example
+
+- Researchers (including me) use health records to study public health
+- Can you see the external consistency problem?
+
+::: {.fragment}
+I want to study health. Health records are a (reasonbly) accurate measure of health **care**, but a biased measure of health.
+:::
+
 ## Visualization is also communication
 
 - Figures are often the most effective way to communicate results
