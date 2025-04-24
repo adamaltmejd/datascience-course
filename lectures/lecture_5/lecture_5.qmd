@@ -209,7 +209,7 @@ dogs$`new owner`[5]
 
 ```{r}
 #| output-location: default
-names(fread("dog_inventory.csv", check.names = TRUE))[9]
+names(fread("dog_inventory.csv", check.names = TRUE))[10]
 ```
 :::
 
@@ -246,7 +246,9 @@ fread("dog_inventory.csv",
 
 ## `fread()`: specifying types
 
-`fread()` tries to guess the data types, override auto-detection for problematic columns with `colClasses`
+`fread()` tries to guess the data types
+
+- override auto-detection for problematic columns with `colClasses`:
 
 ::: {.small-output}
 ```{r}

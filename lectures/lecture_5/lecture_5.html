@@ -1378,9 +1378,9 @@ Adam Altmejd Selder <a href="https://orcid.org/0000-0002-4248-0677" class="quart
 <div class="fragment">
 <p><code>check.names=TRUE</code> fixes column names automatically</p>
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href></a><span class="fu">names</span>(<span class="fu">fread</span>(<span class="st">&quot;dog_inventory.csv&quot;</span>, <span class="at">check.names =</span> <span class="cn">TRUE</span>))[<span class="dv">9</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href></a><span class="fu">names</span>(<span class="fu">fread</span>(<span class="st">&quot;dog_inventory.csv&quot;</span>, <span class="at">check.names =</span> <span class="cn">TRUE</span>))[<span class="dv">10</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;sale_date&quot;</code></pre>
+<pre><code>[1] &quot;new.owner&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -1425,7 +1425,10 @@ Adam Altmejd Selder <a href="https://orcid.org/0000-0002-4248-0677" class="quart
 </section>
 <section id="fread-specifying-types" class="slide level2">
 <h2><code>fread()</code>: specifying types</h2>
-<p><code>fread()</code> tries to guess the data types, override auto-detection for problematic columns with <code>colClasses</code></p>
+<p><code>fread()</code> tries to guess the data types</p>
+<ul>
+<li>override auto-detection for problematic columns with <code>colClasses</code>:</li>
+</ul>
 <div class="small-output">
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href></a><span class="fu">fread</span>(<span class="st">&quot;dog_inventory.csv&quot;</span>,</span>
