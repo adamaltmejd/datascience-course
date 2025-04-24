@@ -1118,6 +1118,10 @@ While `tidyverse` is easy to get started with and understand, `data.table` is mu
 
 Use whichever you prefer!
 
+::: {.aside}
+And if you really like `dplyr` syntax but want `data.table` speeds, check out the [`dtplyr`](https://dtplyr.tidyverse.org/) package which provides a data.table backend for lots of dplyr commands.
+:::
+
 ## Data table magic
 
 I'm a bit of a `data.table` nerd though, so here is a cool examples of advanced operation.
