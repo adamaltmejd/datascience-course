@@ -1196,6 +1196,28 @@ Both `data.table` and `dplyr` allow chaining multiple steps using **pipes**.
 
 Great for readability!
 
-`data.table` `DT[...] |> _[...]`, where  `_` represents the data.table from the previous step
+::: {.panel-tabset}
+#### `data.table chained`
+```{r}
+#| output-location: default
+dogs[age > 5 & price > 500 & insured == 1][is.na(sale_date), name]
+```
+#### `data.table piped`
+```{r}
+#| output-location: default
+dogs |>
+  _[age > 5 & price > 500 & insured == 1] |>
+  _[is.na(sale_date)] |>
+  _[, name]
+```
+#### `dplyr`
+```{r}
+#| output-location: default
+dogs |>
+  filter(age > 5 & price > 500 & insured == 1) |>
+  filter(is.na(sale_date)) |>
+  select(name)
+```
+:::
 
-## Next lecture: Servers, VMs, APIs, & LLMs {.title-slide background-color="#40666e"}
+## Next lecture: APIs & LLMs {.title-slide background-color="#40666e"}

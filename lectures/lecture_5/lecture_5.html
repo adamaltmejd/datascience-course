@@ -3043,10 +3043,51 @@ Adam Altmejd Selder <a href="https://orcid.org/0000-0002-4248-0677" class="quart
 <h2>Combining operations</h2>
 <p>Both <code>data.table</code> and <code>dplyr</code> allow chaining multiple steps using <strong>pipes</strong>.</p>
 <p>Great for readability!</p>
-<p><code>data.table</code> <code>DT[...] |&gt; _[...]</code>, where <code>_</code> represents the data.table from the previous step</p>
+<div class="panel-tabset">
+<ul id="tabset-20" class="panel-tabset-tabby"><li><a data-tabby-default href="#tabset-20-1"><code>data.table chained</code></a></li><li><a href="#tabset-20-2"><code>data.table piped</code></a></li><li><a href="#tabset-20-3"><code>dplyr</code></a></li></ul>
+<div class="tab-content">
+<div id="tabset-20-1">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb179"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb179-1"><a href></a>dogs[age <span class="sc">&gt;</span> <span class="dv">5</span> <span class="sc">&amp;</span> price <span class="sc">&gt;</span> <span class="dv">500</span> <span class="sc">&amp;</span> insured <span class="sc">==</span> <span class="dv">1</span>][<span class="fu">is.na</span>(sale_date), name]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] &quot;Bear&quot;   &quot;Mürphy&quot; &quot;Athena&quot; &quot;Benji&quot;  &quot;Rascal&quot;</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-20-2">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb181"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb181-1"><a href></a>dogs <span class="sc">|&gt;</span></span>
+<span id="cb181-2"><a href></a>  _[age <span class="sc">&gt;</span> <span class="dv">5</span> <span class="sc">&amp;</span> price <span class="sc">&gt;</span> <span class="dv">500</span> <span class="sc">&amp;</span> insured <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">|&gt;</span></span>
+<span id="cb181-3"><a href></a>  _[<span class="fu">is.na</span>(sale_date)] <span class="sc">|&gt;</span></span>
+<span id="cb181-4"><a href></a>  _[, name]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] &quot;Bear&quot;   &quot;Mürphy&quot; &quot;Athena&quot; &quot;Benji&quot;  &quot;Rascal&quot;</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-20-3">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb183"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb183-1"><a href></a>dogs <span class="sc">|&gt;</span></span>
+<span id="cb183-2"><a href></a>  <span class="fu">filter</span>(age <span class="sc">&gt;</span> <span class="dv">5</span> <span class="sc">&amp;</span> price <span class="sc">&gt;</span> <span class="dv">500</span> <span class="sc">&amp;</span> insured <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb183-3"><a href></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(sale_date)) <span class="sc">|&gt;</span></span>
+<span id="cb183-4"><a href></a>  <span class="fu">select</span>(name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Index: &lt;dog_id&gt;
+     name
+   &lt;char&gt;
+1:   Bear
+2: Mürphy
+3: Athena
+4:  Benji
+5: Rascal</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 </section>
-<section id="next-lecture-servers-vms-apis-llms" class="slide level2 title-slide center" data-background-color="#40666e">
-<h2>Next lecture: Servers, VMs, APIs, &amp; LLMs</h2>
+<section id="next-lecture-apis-llms" class="slide level2 title-slide center" data-background-color="#40666e">
+<h2>Next lecture: APIs &amp; LLMs</h2>
 
 </section></section>
 
