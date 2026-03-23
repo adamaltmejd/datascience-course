@@ -4,20 +4,22 @@ This repository contains course material for EC7422, "Data science for economic 
 
 # 2026 schedule
 
-Times below are Europe/Stockholm local time. Material links will be added as lecture slides and handout PDFs are published.
+Times below are preliminary and may change.
+Students should rely on the official schedule in [TimeEdit](https://cloud.timeedit.net/su/web/stud1/s.html?sid=8&object=cevt_33060_VT2026&type=courseevent&h=t&startdate=20260221&enddate=20260905&l=en), not this table.
+Material links will be added as lecture slides and handout PDFs are published.
 
-| Lecture | Date | Time | Room | Materials |
-| --- | --- | --- | --- | --- |
-| 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | `E319`, Södra huset E | Slides: pending. Handout PDF: pending. |
-| 2. Project Workflows and Version Control | Monday, March 30, 2026 | 10:00-12:00 | `E387`, Södra huset E | Slides: pending. Handout PDF: pending. |
-| 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | `A5137`, Södra huset A | Slides: pending. Handout PDF: pending. |
-| 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | `Auditorium 3`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 5. Shell and Independent Workflows | Thursday, April 23, 2026 | 10:00-12:00 | `D220`, Södra huset D | Slides: pending. Handout PDF: pending. |
-| 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | `D220`, Södra huset D | Slides: pending. Handout PDF: pending. |
-| 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 8. APIs and External Data | Tuesday, May 12, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 9. LLMs for Data Processing | Tuesday, May 19, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 10. Visualization and Communication | Thursday, May 28, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
+| Lecture | Date | Time | Materials |
+| --- | --- | --- | --- |
+| 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 2. Project Workflows and Version Control | Monday, March 30, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 5. Shell and Independent Workflows | Thursday, April 23, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 8. APIs and External Data | Tuesday, May 12, 2026 | 13:00-15:00 | Slides: pending. Handout PDF: pending. |
+| 9. LLMs for Data Processing | Tuesday, May 19, 2026 | 13:00-15:00 | Slides: pending. Handout PDF: pending. |
+| 10. Visualization and Communication | Thursday, May 28, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
 
 ## Office hours and exam
 
