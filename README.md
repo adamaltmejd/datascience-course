@@ -10,7 +10,7 @@ Material links will be added as lecture slides and handout PDFs are published.
 
 | Lecture | Date | Time | Materials |
 | --- | --- | --- | --- |
-| 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
+| 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | Slides: [HTML](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.html). Handout PDF: [PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.pdf). |
 | 2. Project Workflows and Version Control | Monday, March 30, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
 | 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
 | 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | Slides: pending. Handout PDF: pending. |
@@ -35,7 +35,7 @@ The working target is about two weeks of student working time for each regular p
 
 - `PS0` is published after lecture 1.
 - `PS1` is published after lecture 2.
-- `PS2` is published after lecture 6.
+- `PS2` is published after lecture 5.
 - `PS3` is published after lecture 8.
 
 # Repository structure
