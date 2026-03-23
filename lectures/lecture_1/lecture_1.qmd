@@ -46,17 +46,7 @@ The course is not econometrics in disguise. The value added is everything that h
 
 :::: {.columns}
 ::: {.column width="30%"}
-```{mermaid}
-%%| mermaid-format: png
-graph TB;
-    A["(1) Acquire Data"] --> B["(2) Clean &
-             Transform"];
-    B --> C["(3) Explore &
-             Visualize"];
-    C --> B;
-    C --> D["(4) Analysis"];
-    D --> E["(5) Communication"];
-```
+![Empirical research process](workflow_diagram.svg){fig-align="center" width="100%"}
 :::
 ::: {.column width="70%" .fragment}
 - Most economics training focuses on step 4, and sometimes step 5.

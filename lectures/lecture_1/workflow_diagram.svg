@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 560" role="img" aria-labelledby="title desc">
+  <title id="title">Empirical research process</title>
+  <desc id="desc">A five-step workflow from acquiring data to communication, with a feedback loop from exploration back to cleaning and transformation.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#131516"/>
+    </marker>
+    <style>
+      .box { fill: #f8f9fa; stroke: #131516; stroke-width: 2; rx: 12; ry: 12; }
+      .label { fill: #131516; font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; text-anchor: middle; }
+      .arrow { fill: none; stroke: #131516; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="box" x="70" y="24" width="180" height="58"/>
+  <text class="label" x="160" y="48">
+    <tspan x="160" dy="0">(1) Acquire Data</tspan>
+  </text>
+
+  <rect class="box" x="70" y="124" width="180" height="74"/>
+  <text class="label" x="160" y="146">
+    <tspan x="160" dy="0">(2) Clean</tspan>
+    <tspan x="160" dy="22">&amp; Transform</tspan>
+  </text>
+
+  <rect class="box" x="70" y="240" width="180" height="74"/>
+  <text class="label" x="160" y="262">
+    <tspan x="160" dy="0">(3) Explore</tspan>
+    <tspan x="160" dy="22">&amp; Visualize</tspan>
+  </text>
+
+  <rect class="box" x="70" y="356" width="180" height="58"/>
+  <text class="label" x="160" y="380">
+    <tspan x="160" dy="0">(4) Analysis</tspan>
+  </text>
+
+  <rect class="box" x="70" y="456" width="180" height="58"/>
+  <text class="label" x="160" y="480">
+    <tspan x="160" dy="0">(5) Communication</tspan>
+  </text>
+
+  <path class="arrow" d="M160 82 L160 124"/>
+  <path class="arrow" d="M160 198 L160 240"/>
+  <path class="arrow" d="M160 314 L160 356"/>
+  <path class="arrow" d="M160 414 L160 456"/>
+  <path class="arrow" d="M70 277 C 20 277, 20 161, 70 161"/>
+</svg>
