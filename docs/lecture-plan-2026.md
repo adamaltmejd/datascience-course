@@ -42,6 +42,78 @@ Status: working migration map for `main`
 5. Rework visualization examples around the backbone for lecture 8.
 6. Split the old APIs/LLMs lecture into lectures 9 and 10, with remote/cloud content kept conditional.
 
+## First-pass working outlines
+
+### Lecture 1. Introduction to Data Science for Economists
+
+Goal:
+
+- define the course identity,
+- show the full workflow once,
+- motivate the running backbone,
+- launch `PS0`.
+
+Working section order:
+
+1. What this course is and is not.
+2. The empirical workflow from question to extension.
+3. Why coding and why `R`, briefly and pragmatically.
+4. One municipal-backbone demo that shows rows, variables, plots, and the need for wrangling.
+5. Reproducibility mindset and independent work habits.
+6. `PS0` expectations and what "environment works" means.
+
+Keep out:
+
+- detailed R syntax,
+- long R-versus-Stata arguments,
+- any LLM processing demo.
+
+### Lecture 2. R Basics I
+
+Goal:
+
+- make beginners comfortable running code,
+- establish the basic objects they need before touching tables.
+
+Working section order:
+
+1. Running code in VS Code and reading the console.
+2. Objects and assignment.
+3. Atomic types and vectors.
+4. Missing values and logical comparisons.
+5. Basic functions and arguments.
+6. Reading simple error messages.
+7. Short exercises using small slices of the municipal backbone.
+
+Keep out:
+
+- `data.table` syntax overload,
+- project/Git workflow detail,
+- tidy-data theory beyond a quick preview.
+
+### Lecture 3. R Basics II: Tabular Data and Tidy Thinking
+
+Goal:
+
+- move from vectors to tabular thinking,
+- prepare students for importing and wrangling.
+
+Working section order:
+
+1. `data.frame` and `data.table` as table objects.
+2. Rows, columns, variables, and observations.
+3. Logical subsetting on tables.
+4. Factors, categorical data, and value labels.
+5. Tidy versus untidy structure.
+6. Simple inspection and sanity checks.
+7. Small municipal examples that surface keys, missingness, and duplicate-risk.
+
+Keep out:
+
+- joins and reshaping in full detail,
+- shell or Git material,
+- visualization depth beyond quick inspection plots.
+
 ## Content moves that should happen early
 
 - Remove the old lecture-1 LLM example. It belongs in lecture 10.
