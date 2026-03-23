@@ -15,9 +15,9 @@ Times below are Europe/Stockholm local time. Material links will be added as lec
 | 5. Shell and Independent Workflows | Thursday, April 23, 2026 | 10:00-12:00 | `D220`, Södra huset D | Slides: pending. Handout PDF: pending. |
 | 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | `D220`, Södra huset D | Slides: pending. Handout PDF: pending. |
 | 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 8. Visualization | Tuesday, May 12, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 9. APIs and External Data | Tuesday, May 19, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
-| 10. LLMs for Data Processing | Thursday, May 28, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
+| 8. APIs and External Data | Tuesday, May 12, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
+| 9. LLMs for Data Processing | Tuesday, May 19, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
+| 10. Visualization and Communication | Thursday, May 28, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout PDF: pending. |
 
 ## Office hours and exam
 
