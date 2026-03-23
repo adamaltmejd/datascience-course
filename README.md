@@ -1,21 +1,12 @@
 # Data science for Economists (Stockholm university)
 
-This repository now tracks the 2026 refactor of EC7422, "Data science for economic analysis", at Stockholm University.
+This repository contains course material for EC7422, "Data science for economic analysis", at Stockholm University.
 
-# Branches
+# Repository structure
 
-- `main`: active 2026 development branch
-- `2025`: archived 2025 pilot course
-
-The current `lectures/lecture_1` through `lectures/lecture_6` directories are legacy 2025 source material. They are being split and rewritten into the 2026 structure rather than treated as the final lecture layout.
-
-# 2026 plan
-
-- Working lecture plan and migration map: [docs/lecture-plan-2026.md](docs/lecture-plan-2026.md)
-- Running empirical backbone: municipal labour-market opportunity panel built from `SCB` and `Kolada`
-- Target assessment structure: `PS0` plus 3 graded problem sets and a written exam
-
-`main` will contain a transitional state for a while. That is intentional. The old 2025 course now lives on the `2025` branch instead of being implicitly mixed into the active branch.
+- `lectures/`: lecture slides and supporting assets
+- `problem_sets/`: problem set material
+- `in_class_examples/`: short example scripts used in class
 
 # References / resources
 
