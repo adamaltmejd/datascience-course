@@ -2,6 +2,30 @@
 
 This repository contains course material for EC7422, "Data science for economic analysis", at Stockholm University.
 
+# 2026 schedule
+
+Times below are Europe/Stockholm local time. Material links will be added as lecture slides, handouts, and PDFs are published.
+
+| Lecture | Date | Time | Room | Materials |
+| --- | --- | --- | --- | --- |
+| 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | `E319`, Södra huset E | Slides: pending. Handout: pending. PDF: pending. |
+| 2. Project Workflows and Version Control | Monday, March 30, 2026 | 10:00-12:00 | `E387`, Södra huset E | Slides: pending. Handout: pending. PDF: pending. |
+| 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | `A5137`, Södra huset A | Slides: pending. Handout: pending. PDF: pending. |
+| 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | `Auditorium 3`, Södra huset B | Slides: pending. Handout: pending. PDF: pending. |
+| 5. Shell and Independent Workflows | Thursday, April 23, 2026 | 10:00-12:00 | `D220`, Södra huset D | Slides: pending. Handout: pending. PDF: pending. |
+| 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | `D220`, Södra huset D | Slides: pending. Handout: pending. PDF: pending. |
+| 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout: pending. PDF: pending. |
+| 8. Visualization | Tuesday, May 12, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout: pending. PDF: pending. |
+| 9. APIs and External Data | Tuesday, May 19, 2026 | 13:00-15:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout: pending. PDF: pending. |
+| 10. LLMs for Data Processing | Thursday, May 28, 2026 | 10:00-12:00 | `Auditorium 5`, Södra huset B | Slides: pending. Handout: pending. PDF: pending. |
+
+## Office hours and exam
+
+- Office hours: Thursday, March 26, 2026, `14:00-15:00` (location not set in calendar)
+- Office hours: Thursday, April 16, 2026, `14:00-15:00` (location not set in calendar)
+- Written exam: Thursday, June 4, 2026, `08:00-11:00` (location to be announced)
+- Re-exam: Friday, August 28, 2026, `08:00-11:00` (location to be announced)
+
 # Repository structure
 
 - `lectures/`: lecture slides and supporting assets
