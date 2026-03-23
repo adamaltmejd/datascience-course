@@ -26,6 +26,15 @@ Times below are Europe/Stockholm local time. Material links will be added as lec
 - Written exam: Thursday, June 4, 2026, `08:00-11:00` (location to be announced)
 - Re-exam: Friday, August 28, 2026, `08:00-11:00` (location to be announced)
 
+# Problem sets
+
+Problem sets are released through GitHub Classroom.
+
+- `PS0` is published in lecture 1.
+- `PS1` is published after lecture 2.
+- `PS2` is published after lecture 7.
+- `PS3` is published after lecture 9.
+
 # Repository structure
 
 - `lectures/`: lecture slides and supporting assets
