@@ -118,6 +118,7 @@ jobs:
           path: _site
 
   deploy:
+    if: always() && needs.build.result == 'success'
     needs: build
     runs-on: ubuntu-latest
     permissions:
