@@ -29,10 +29,11 @@ Times below are Europe/Stockholm local time. Material links will be added as lec
 # Problem sets
 
 Problem sets are released through GitHub Classroom.
+The working target is about two weeks of student working time for each regular problem set. Exact due dates will be announced later.
 
 - `PS0` is published in lecture 1.
 - `PS1` is published after lecture 2.
-- `PS2` is published after lecture 7.
+- `PS2` is published after lecture 6.
 - `PS3` is published after lecture 9.
 
 # Repository structure
