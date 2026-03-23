@@ -4,12 +4,13 @@ project:
     port: 4000
     browser: true
   render:
-    - "*.qmd"
+    - lectures/**/*.qmd
+    - problem_sets/**/*.qmd
 author:
   - name: Adam Altmejd Selder
     orcid: 0000-0002-4248-0677
-    email: adam.altmejd@sofi.su.se
-    affiliations: Swedish Institute for Social Research (SOFI)
+    email: adam.altmejd@su.se
+    affiliations: The Institute for Evaluation of Labour Market and Education Policy (IFAU)
 from: markdown+emoji
 engine: knitr
 fig-format: svg

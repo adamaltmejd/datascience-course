@@ -1,46 +1,46 @@
 ---
 title: "Lecture 1: Introduction"
-subtitle: "EC7412 Part II: Data Science for Economists"
-date: 2025-04-09
+subtitle: "EC7422: Data Science for Economic Analysis"
+date: 2026-03-24
 ---
 
 ## Introduction
 
-Welcome to a half-course in *Data Science for Economists!*
+Welcome to *Data Science for Economic Analysis*.
 
 ::: fragment
 *Who am I?*
 
-- [Adam Altmejd Selder](https://adamaltmejd.se) --- [adam.altmejd@sofi.su.se](mailto:adam.altmejd@sofi.su.se)
-- I study inequality, education, health at SOFI
-- But really... I spend 90% of my time matching, merging, filtering, sorting, cleaning, and visualizing data
+- [Adam Altmejd Selder](https://adamaltmejd.se) --- [adam.altmejd@su.se](mailto:adam.altmejd@su.se)
+- I study inequality, education, and health at IFAU
+- But in practice I spend a large share of my time matching, merging, cleaning, checking, and visualizing data
 :::
 
 ::: fragment
 *Who are you?*
 
-Let's use Menti to collect some data!
+Let's use Menti to collect a little course data.
 :::
 
 ## Introduction
 
 :::: {.columns}
 ::: {.column width="40%"}
-![&nbsp;](Data_science_VD.png){fig-align="center" width=300}
+![&nbsp;](Data_Science_VD.png){fig-align="center" width=300}
 :::
 ::: {.column width="60%"}
-- This course: adding "hacking skills" to your skill set
-- Learn *efficient* data collection, wrangling, visualization
-- Tools to make your work as economists more productive!
+- This course adds practical data-work skills to your economist toolkit
+- The focus is workflow, not just syntax
+- I will focus on data collection, cleaning, checking, transformation, and communication
+- The point is to make you more independent, more productive, and slightly less dependent on spreadsheet surgery
 :::
 ::::
 ::: {.aside}
 HT: Drew Conway
 :::
 ::: {.notes}
-Hacking skills (efficient file manipulation, shell, algorithmic/programming mindset), Statistics (to extract insights), Substantive expertise (building knowledge, theory). Danger zone? "lies, damn lies, and statistics" - being able to ask questions and process data, but not interpreting analyses.
+The course is not econometrics in disguise. The value added is everything that happens before and around formal analysis.
 :::
-
 
 ## The empirical research process
 
@@ -49,276 +49,299 @@ Hacking skills (efficient file manipulation, shell, algorithmic/programming mind
 ```{mermaid}
 %%| mermaid-format: png
 graph TB;
-    A["(1) Obtain Data"] --> B["(2) Cleaning"];
-    B --> C["(3) Exploration &
-             Visualization"];
+    A["(1) Acquire Data"] --> B["(2) Clean &
+             Transform"];
+    B --> C["(3) Explore &
+             Visualize"];
     C --> B;
     C --> D["(4) Analysis"];
-    D --> F["(5) Communication"];
+    D --> E["(5) Communication"];
 ```
 :::
 ::: {.column width="70%" .fragment}
-- Most Economics education focuses on step 1 and 4 (and maybe 5).
-
-- This course will be about step 2 and 3.
+- Most economics training focuses on step 4, and sometimes step 5.
+- This course focuses on getting steps 1 to 3 right enough that step 4 is not built on garbage.
+- The loop matters: exploration often sends you back to cleaning, checking, and rethinking the data.
 :::
 ::::
 
 ## Why should you learn data science?
 
-- Economists now crunch more data than ever!
-  - Financial data, sales/marketing data, insurance data, health data,
-  - Public sector data (especially in Sweden!)
+- Economists now work with more data, from more sources, than even a few years ago
+- Sweden is unusually data-rich: registers, administrative data, municipality data, and public APIs
+- That is a real comparative advantage, but only if you can actually get the data, clean it, join it, and check it
+- Good econometrics on bad or badly handled data is still bad research
 
 ## Why this course?
 
-- An econ master already gives you domain and stats knowledge.
-- Nothing on how to actually do 90% of the work efficiently
-- I use these tools daily ... but I have not run a DSGE model since 2013.
-- The data science toolkit gives you *complementary* skills
-- Will make you more productive, and more *employable*
+- A strong economics degree already gives you substantive knowledge and econometrics
+- What it often does **not** give you is a practical workflow for turning raw data into something usable
+- These skills complement econometrics rather than replacing it
+- They matter in research, policy work, and private-sector data jobs
+- I use these tools all the time; I have not estimated a DSGE model since 2013
 
-## R for data science
+## Why code at all?
 
-- We will mostly be working in `R`
-- Free, open source
-- Second most popular data science language [after Python](https://pypl.github.io/PYPL.html)
-- Good metrics support, integrates well with Stata
-- It's the language I use most days
-- Actually quite similar to Python and Julia (which I also recommend!)
+- Menus and spreadsheets can get you surprisingly far
+- But code is reusable, reproducible, reviewable, and easier to debug
+- If you need to do the same thing twice, you probably want code
+- A script is also a record of what you actually did
+- Sometimes Excel or Stata is still the right tool; the point is to pick the simplest tool that does the job well
 
-## Why not Stata?
+## Why `R` for this course?
 
-- Not a programming language
-- Does not support the functionality or "mindset" I want you to learn
+- I will assess work in `R`
+- `R` is strong for data acquisition, wrangling, and visualization
+- It is much better suited than `Stata` for the kind of programming workflow this course teaches
+- The skills transfer well to other languages, especially `Python`
 
-::: {.fragment}
-- ... but Stata is great for the "analysis" step of the pipeline!
-- Purpose of this course is to teach you to use the **right tool for the job**, can be Stata for some things
+## And what about `Stata`?
+
+- `Stata` is still useful for a lot of econometric analysis
+- This is not a religious war
+- But `Stata` is not the right core language for learning modern data-work habits, packages, and APIs
+- I want you to learn the right tool for the job, not swear loyalty to one tool forever
+
+::: {.aside}
+For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark-stata-r>.
 :::
 
-## Stata vs. R
-
-- For data wrangling and visualization, R is superior:
-  - Way larger feature set
-  - Much faster (often 5-10 times as fast!)
-  - Parallelized processing for free
-- No private sector data scientist uses Stata
-- Easier to get help: both on Stack Overflow and from LLMs
-
-::: aside
-See this benchmark for speed differences: <https://github.com/matthieugomez/benchmark-stata-r>
-:::
-
-## Why coding?
-
-- You can get quite far clicking through menus in Stata and using Spreadsheets
-- Code is reusable and replicable
-- "Emulated" by Stata `.do`-files:
-  - Collections of commands
-  - Different from programming: less flexible, lacks many features
-- Still, some things are better done in Excel (or Stata) --- always ask yourself what the best and simplest tool for the job is!
-
-# Data wrangling intro {background-color="#40666e"}
+# Reproducibility and Work Habits {background-color="#40666e"}
 
 ## Common data problems
 
-- Invalid/inconsistent values
-- Improperly formatted missing values
-- Messy naming
+- Invalid or inconsistent values
+- Missing values coded in strange ways
+- Messy or ambiguous names
 - Duplicates
-- Mixed-up date formats
+- Mixed date formats
 - Missing or non-unique keys
-- Encoding 😮‍💨
+- Encoding problems 😮‍💨
 
 ::: {.attribution}
 <https://vdsbook.com/04-data_cleaning#sec-examine-clean>
 :::
 
-## Same data, different structure
+## Programming habits that pay off
 
-```{r}
-library(tidyverse)
-table2
-```
+- Write code you can rerun from scratch
+- Do not repeat yourself when one function or one script will do
+- Name things so another human can read them
+- Keep a sensible project structure and a short `README`
+- Check your data early and often
 
-```{r}
-table3
-```
+## Readable beats clever
 
-## "Tidy" data
+- Future-you is also a collaborator, and future-you is usually annoyed
+- Prefer `unemployment_rate` to `u_rate2`
+- Same for values: `sex = woman/man` is clearer than `Kon = 1/2`, even if that is how `SCB` codes it
+- Prefer one clear transformation at a time
+- A little verbosity is cheaper than silent confusion
 
-- Each **variable** is a column; each column is a variable.
-- Each **observation** is a row; each row is an observation.
-- Each **value** is a cell; each cell is a single value.
+## Check, do not just trust
 
-![&nbsp;](tidy-data.png){fig-align="center" width=100%}
+- Print summaries
+- Check keys and duplicates
+- Look for missingness and weird categories
+- Make quick plots before you estimate anything
+- Most bad results look "reasonable" until you inspect the data properly
 
-## Making data tidy
+## Frustration is normal
 
-Tidying data makes it easier to work with. We will be doing this a lot.
+- Coding is hard even for experienced people
+- Getting stuck is not a sign that you are bad at this
+- The right response is usually to slow down, inspect the objects, and change one thing at a time
+- I will spend a lot of time on debugging and workflow discipline in this course
 
-```{r}
-#| output-location: column-fragment
-library(data.table)
-dcast(as.data.table(table2),
-      country + year ~ type)
-```
+# Our Working Environment = VS Code {background-color="#40666e"}
 
-::: {.aside}
-The R4DS book has a good chapter on [tidy data](https://r4ds.hadley.nz/data-tidy.html).
-:::
+## VS Code for this course
 
-# Programming principles {background-color="#40666e"}
-
-## Programming principles
-
-- Write **modular** code, in generalized functions
-- Don't write the same code twice
-- Use a **consistent** coding style and naming scheme
-- **Document** everything,
-- but write **verbose** code that can be understood in itself
-- Test your code
-
-## Modular code
-
-- Functional programming: aim to divide code by feature into functions
-- Example from my work: collapsing education achievement data
-
-::: {.incremental}
-- Why?
-  - Reusability
-  - Easier to understand
-  - Easier to debug and test
-:::
-
-## No repetition
-
-- Don't repeat the same code
-- Instead, use functions, loops, or vectorized calls
-- A smaller codebase is easier to understand and debug
-
-## Be consistent
-
-- Use the same coding style and naming convention
-- For example: don't mix `snakeCase` variable names with `underscore_based` names,
-- Use the same indentation (2 or 4 spaces)
-
-## Document everything
-
-- Always include a README-file that explains your project
-- Use comments to document what your code is doing
-- Start functions with a comment explaining the function and its arguments
-
-## Be verbose
-
-- By writing verbose code, you will not need as many comments:
-- Call a variable `high_scool_gpa`, not `hsgpa`, (or worse `question12` 😱)
-- Same applies to data labels:
-  - `edu_level = primary, secondary, high school` not `1,2,3`
-  - `female = TRUE,FALSE` not `Sex = 1,2`^[SCB actually does this still!]
-
-## Test your code
-
-- By running tests you can make sure your code does what it is supposed to, even after you change things
-- If we have time (and you want to), we can spend some time talking about unit tests and automation towards the end of the course
-- We will get back to these principles many times!
-
-# Our working environment = VS Code {background-color="#40666e"}
-
-## VS Code IDE
-
-- IDE = integrated development environment
-- A **text editor** with tons of extra features:
-  - Git and terminal integration
-  - AI programming help
-  - Integrated remote development system
-  - Huge library of extensions
+- A text editor with useful extras:
+  - file navigation
+  - terminal integration
+  - Git integration
+  - extensions for `R`
+  - AI support tools
+- I use it because it is flexible and works well with the workflow I want to teach
 
 ::: {.aside}
-Other great alternatives are [RStudio](https://posit.co/download/rstudio-desktop/), the newer data science-focused editor [Positron](https://positron.posit.co/), the AI-focused editor [Cursor](https://www.cursor.com/), or the new (and promising) IDE [Zed](https://zed.dev). Out of these, Positron and Cursor build directly on VS Code.
+Good alternatives exist: [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co/), [Cursor](https://www.cursor.com/), and [Zed](https://zed.dev). For this course I am standardizing on `VS Code`.
 :::
-
-## VS Code intro
-
-Let's switch over to VS code and I'll show you some useful things:
-
-- Browsing folders
-- Multi-line editing
-- Advanced (multi-file) find (and replace)
-- Ctrl/Commannd+Shift+P for accessing all commands
-- Ctrl/Commannd+Shift+P for navigation
 
 ## AI assistants in VS Code
 
-- GitHub Copilot is integrated into VS Code
-- Available for free for students with GitHub education
-- Chat, "edits", inline suggestions
+- GitHub Copilot is available for free for many students through GitHub Education
+- Useful for:
+  - explaining errors
+  - suggesting code
+  - helping you search documentation faster
+- Treat it like a fast assistant, not an autopilot
+- If you cannot explain what the tool produced, you should not submit it
 
-## VS Code and R
+## VS Code and `R`
 
-- To get the most out of coding in R in VS Code we need to install the R extensions:
-  - [vscode-R](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r)
-  - [R debugger](https://marketplace.visualstudio.com/items?itemName=RDebugger.r-debugger) (extra)
-  - And the R packages they require
-  ```r
-  install.packages(c("languageserver", "httpgd", "vscDebugger"))
-  ```
+- To work comfortably in `R`, you will need the `vscode-R` extension
+- `PS0` will walk you through the required setup
+- The point of `PS0` is not "read some instructions"
+- The point is to prove that your environment actually works
 
-- See Problem set 0 for instructions!
+# Let's Do Some Data Science {background-color="#40666e"}
 
-# Let's do some data science! {background-color="#40666e"}
+## A tiny live demo
 
-## Example 1: Gapminder data
+- In class I will run a short script that talks to the `SCB` API
+- The script only pulls what it needs: municipality code, year, and unemployment rate
+- Then it downloads a municipality-name key from a second API, merges it in, and makes two quick plots
+- The script saves the resulting dataset in this lecture folder, and these slides load that saved file
 
-Let's load and summarize the famous Gapminder data in R, provided by the `gapminder` R package.
+## What the demo produces
 
-## Example 2: LLM data processing
+```{r}
+#| echo: false
+library(data.table)
+library(tinytable)
 
-Let's build a script that calls the OpenAI API to process some survey feedback I just collected.
+options(tinytable_tt_theme = \(x) theme_tt(x, "revealjs", fontsize = 0.8))
 
-# Concluding remarks {background-color="#40666e"}
+panel <- fread(
+  "lecture_1_demo_panel.csv",
+  colClasses = list(character = "municipality_code")
+)
+
+preview <- panel[1:8, .(
+  municipality_code,
+  municipality_name,
+  year,
+  unemployment_rate
+)]
+
+tt(preview)
+```
+
+## And one quick plot
+
+```{r}
+#| echo: false
+library(data.table)
+library(ggplot2)
+
+panel <- fread(
+  "lecture_1_demo_panel.csv",
+  colClasses = list(character = "municipality_code")
+)
+
+unemployment_summary <- panel[
+  ,
+  .(unemployment_rate = mean(unemployment_rate, na.rm = TRUE)),
+  by = year
+]
+
+ggplot(unemployment_summary, aes(x = year, y = unemployment_rate)) +
+  geom_line(linewidth = 1.1, color = "#0d3b66") +
+  geom_point(size = 2.4, color = "#0d3b66") +
+  scale_x_continuous(breaks = sort(unique(unemployment_summary$year))) +
+  labs(
+    title = "Average municipal unemployment rate",
+    subtitle = "Simple national mean from the saved lecture demo dataset",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 20) +
+  theme(panel.grid.minor = element_blank())
+```
+
+## Same data, one line per municipality
+
+```{r}
+#| echo: false
+library(data.table)
+library(ggplot2)
+
+panel <- fread(
+  "lecture_1_demo_panel.csv",
+  colClasses = list(character = "municipality_code")
+)
+
+ggplot(
+  panel,
+  aes(
+    x = year,
+    y = unemployment_rate,
+    group = municipality_code,
+    color = municipality_name
+  )
+) +
+  geom_line(alpha = 0.35, linewidth = 0.5, show.legend = FALSE) +
+  scale_color_grey(start = 0.25, end = 0.75) +
+  scale_x_continuous(breaks = sort(unique(panel$year))) +
+  labs(
+    title = "Municipal unemployment rates",
+    subtitle = "Each grey line is one municipality",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal(base_size = 20) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank()
+  )
+```
+
+## What this tiny demo already teaches
+
+- The interesting part is not the plot itself. It is the path from source to plot.
+- Names often come from a separate lookup table rather than the main measurement data
+- The key is `municipality_code` plus `year`
+- `municipality_name` is useful for humans, but `municipality_code` is still the actual identifier
+- `municipality_code` should be read as text, or leading zeroes can disappear
+- Even a simple series may need multiple source tables because official data definitions change
+- Later lectures will show how to inspect, clean, validate, and extend this into the full course backbone
+
+# Concluding Remarks {background-color="#40666e"}
 
 ## Course Preview
 
-1. Introduction
-2. Project organization, version control & the shell
-3. Basic R coding
-4. Visualization
-5. Data wrangling in R
-6. Servers, VMs, APIs, & LLMs
+:::: {.columns}
+::: {.column width="50%"}
+1. Introduction to Data Science for Economists
+2. Project Workflows and Version Control
+3. `R` Basics I
+4. `R` Basics II: Tabular Data and Tidy Thinking
+5. Shell and Independent Workflows
+:::
+::: {.column width="50%"}
+6. Data Wrangling I
+7. Data Wrangling II
+8. APIs and External Data
+9. `LLMs` for Data Processing
+10. Visualization and Communication
+:::
+::::
 
 ## Problem sets
 
-*Problem set 0*
-- Setting up data science computer environment
-- Due before next lecture
-
-*Problem set 1*
-- Covers lectures 2-4
-
-*Problem set 2*
-- Covers lectures 5-6
+- `PS0`: readiness checkpoint, due before lecture 2
+- `PS1`: released after lecture 2
+- `PS2`: released after lecture 5
+- `PS3`: released after lecture 8
+- The regular problem sets are pass/fail
 
 ## Problem Set 0: Getting Set Up
 
-- **Install** R, Git, an VS Code
-- **Create** a GitHub account, register for student benefits, and configure Copilot
-- **Install** VS Code extensions and R packages
-- **Test-run** a script to double-check that everything is working
-
-## Pep talk
-
-- Frustration is normal
-- Coding is hard, even pros get stuck
-- Take breaks, breathe, and get help (more on how next time!)
-- Debugging errors is how we learn
+- Install `R`, Git, and VS Code
+- Create or fix your GitHub setup
+- Get the required extensions and packages in place
+- Open the course project correctly
+- Run one script successfully
+- Make one Git commit
+- Submit proof that your environment actually works
 
 ## Concluding remarks
 
-- Learning data science will give you a really useful new toolkit,
-- and demystify popular software development techniques
-- Please let me know when I'm going too fast or if you want to know more about some subject
-- Bring your computer to class so you can follow along!
+- Learning data science gives you a very useful practical toolkit
+- The course will be most useful if you bring your computer and actually try things yourself
+- Please tell me when I am going too fast or when something is too implicit
+- Next time I will make the assignment workflow concrete
 
-## Next lecture: Project management, version control, and the shell {.title-slide background-color="#40666e"}
+## Next lecture: Project Workflows and Version Control {.title-slide background-color="#40666e"}
