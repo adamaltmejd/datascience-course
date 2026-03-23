@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - lectures/**
+      - problem_sets/**
+      - _quarto.yml
+      - _extensions/**
+      - .github/workflows/publish-course-material.yml
+      - .github/scripts/render_revealjs_handouts.py
   workflow_dispatch:
 
 permissions:
@@ -16,7 +23,57 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      html: ${{ steps.filter.outputs.html }}
+      publishable: ${{ steps.filter.outputs.publishable }}
+      source: ${{ steps.filter.outputs.source }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect publish inputs
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            html:
+              - 'lectures/**/*.html'
+              - 'problem_sets/**/*.html'
+            publishable:
+              - 'lectures/**'
+              - 'problem_sets/**'
+            source:
+              - '_quarto.yml'
+              - '_extensions/**'
+              - 'lectures/**/*.qmd'
+              - 'lectures/_metadata.yml'
+              - 'lectures/custom.scss'
+              - 'problem_sets/**/*.qmd'
+              - 'problem_sets/_metadata.yml'
+              - 'problem_sets/custom.scss'
+
+  validate-rendered-html:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.source == 'true' && needs.detect-changes.outputs.html != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fail when rendered HTML was not committed
+        run: |
+          echo "Source files changed without updated rendered HTML."
+          echo "Run Quarto locally, commit the resulting HTML, then push again."
+          exit 1
+
   build:
+    needs:
+      - detect-changes
+      - validate-rendered-html
+    if: always() && needs.validate-rendered-html.result != 'failure'
     runs-on: ubuntu-latest
 
     steps:
@@ -26,17 +83,6 @@ jobs:
       - name: Set up GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: release
-
-      - name: Restore renv
-        uses: r-lib/actions/setup-renv@v2
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -45,8 +91,11 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
 
-      - name: Render Quarto site
-        run: quarto render --output-dir _site
+      - name: Assemble publishable site
+        run: |
+          mkdir -p _site
+          rsync -a lectures/ _site/lectures/
+          rsync -a problem_sets/ _site/problem_sets/
 
       - name: Install Chromium for Playwright
         run: uv run --with playwright python -m playwright install --with-deps chromium
