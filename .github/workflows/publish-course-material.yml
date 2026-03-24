@@ -67,6 +67,7 @@ jobs:
             libfribidi-dev \
             libmagick++-dev \
             libpng-dev \
+            librsvg2-dev \
             libudunits2-dev \
             libx11-dev \
             pandoc
