@@ -1,0 +1,31 @@
+---
+title: "Data Science for Economists"
+subtitle: "EC7422, Stockholm University"
+toc: false
+---
+
+This site hosts course material for EC7422, "Data science for economic analysis", at Stockholm University.
+
+Students should rely on the official schedule in [TimeEdit](https://cloud.timeedit.net/su/web/stud1/s.html?sid=8&object=cevt_33060_VT2026&type=courseevent&h=t&startdate=20260221&enddate=20260905&l=en). Material links below are updated as slides and handouts are published.
+
+## Course schedule
+
+| Lecture | Date | Time | Material |
+| --- | --- | --- | --- |
+| 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | [Slides](lectures/lecture_1/lecture_1.html), [PDF](lectures/lecture_1/lecture_1.pdf) |
+| 2. Project Workflows and Version Control | Monday, March 30, 2026 | 10:00-12:00 | Pending |
+| 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | Pending |
+| 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | Pending |
+| 5. Shell and Independent Workflows | Thursday, April 23, 2026 | 10:00-12:00 | Pending |
+| 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | Pending |
+| 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | Pending |
+| 8. APIs and External Data | Tuesday, May 12, 2026 | 13:00-15:00 | Pending |
+| 9. LLMs for Data Processing | Tuesday, May 19, 2026 | 13:00-15:00 | Pending |
+| 10. Visualization and Communication | Thursday, May 28, 2026 | 10:00-12:00 | Pending |
+
+## Problem sets
+
+- PS0: [HTML](problem_sets/problem_set_0/problem_set_0.html)
+- PS1: pending
+- PS2: pending
+- PS3: pending

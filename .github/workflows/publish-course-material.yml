@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - index.qmd
       - lectures/**
       - problem_sets/**
       - _quarto.yml

@@ -4,6 +4,7 @@ project:
     port: 4000
     browser: true
   render:
+    - index.qmd
     - lectures/**/*.qmd
     - problem_sets/**/*.qmd
 author:
