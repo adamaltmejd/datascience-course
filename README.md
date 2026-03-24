@@ -33,7 +33,7 @@ Material links will be added as lecture slides and handout PDFs are published.
 Problem sets are released through GitHub Classroom.
 The working target is about two weeks of student working time for each regular problem set. Exact due dates will be announced later.
 
-- `PS0` is published after lecture 1.
+- `PS0`: [HTML](https://adamaltmejd.github.io/datascience-course/problem_sets/problem_set_0/problem_set_0.html)
 - `PS1` is published after lecture 2.
 - `PS2` is published after lecture 5.
 - `PS3` is published after lecture 8.
