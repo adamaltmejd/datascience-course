@@ -6,11 +6,9 @@ toc: false
 
 This site hosts course material for EC7422, "Data science for economic analysis", at Stockholm University.
 
-Source files for the course live in the [GitHub repository](https://github.com/adamaltmejd/datascience-course).
+Material links below are updated as slides and handouts are published.
 
-Students should rely on the official schedule in [TimeEdit](https://cloud.timeedit.net/su/web/stud1/s.html?sid=8&object=cevt_33060_VT2026&type=courseevent&h=t&startdate=20260221&enddate=20260905&l=en). Material links below are updated as slides and handouts are published.
-
-## Course schedule
+## Course schedule (official schedule on [TimeEdit](https://cloud.timeedit.net/su/web/stud1/s.html?sid=8&object=cevt_33060_VT2026&type=courseevent&h=t&startdate=20260221&enddate=20260905&l=en))
 
 | Lecture | Date | Time | Material |
 | --- | --- | --- | --- |
@@ -27,7 +25,13 @@ Students should rely on the official schedule in [TimeEdit](https://cloud.timeed
 
 ## Problem sets
 
-- PS0: [HTML](problem_sets/problem_set_0/problem_set_0.html)
-- PS1: pending
-- PS2: pending
-- PS3: pending
+- [PS0 instructions](problem_sets/problem_set_0/problem_set_0.html)
+- PS1 after lecture 2
+- PS2 after lecture 5
+- PS3 after lecture 8
+
+Invite links to GitHub Classroom Problem Set repos will be posted to Athena. You will have approximately two weeks to complete each problem set.
+
+---
+
+Source files for the course live in the [GitHub repository](https://github.com/adamaltmejd/datascience-course).

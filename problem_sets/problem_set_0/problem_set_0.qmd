@@ -16,9 +16,9 @@ The point is simple:
 
 If your setup already works, `PS0` should be quick. If it does not, that is exactly what this exercise is meant to reveal.
 
-This document lives in the public course repository. Note that your hand-in of PS0 happens in a separate GitHub Classroom repository that you will be invited to.
+This document lives in the public course repository. Note that your hand-in of PS0 happens in a separate GitHub Classroom repository. The invite link is on Athena.
 
-If you need help getting your setup working, there will be `PS0` office hours on **26/3, 14:00-15:00 on Zoom**.
+Need help getting your setup working? There will be `PS0` office hours on **26/3, 14:00-15:00 on Zoom**.
 
 ## What you need to hand in
 
@@ -81,6 +81,10 @@ If you do not already have [Homebrew](https://brew.sh/), install it first. At th
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
+
+If the installer says `Password:` or asks for your password, type your normal computer login password and press Enter.
+
+You will **not** see any characters appear while you type the password. That is normal.
 
 ```bash
 brew install --cask r
@@ -207,6 +211,10 @@ Open an `R` terminal in `VS Code` and run:
 install.packages(c("languageserver", "httpgd"))
 ```
 
+If `R` asks you to **select a CRAN mirror**, type `1` and press Enter to choose `0-Cloud [https]`, or choose another number for a nearby mirror.
+
+On some computers the mirror-selection window opens **behind** `VS Code`, so if nothing seems to happen after you run `install.packages(...)`, check whether a small popup window is waiting for you in the background.
+
 These two packages matter immediately:
 
 - `languageserver` helps `R` talk to `VS Code`,
@@ -226,18 +234,41 @@ If you do not already have a GitHub account, create one at <https://github.com/>
 
 Use the GitHub Classroom link provided in class or on the course page.
 
-That will create your own copy of the separate `PS0` repository.
+Then:
+
+1. sign in to GitHub if you are not already signed in,
+2. if GitHub Classroom asks for permission to access your account, approve it,
+3. click **Accept assignment**,
+4. wait a few seconds while GitHub Classroom creates your personal `PS0` repository,
+5. click the link to open that repository on GitHub.
+
+That repository is your `PS0` hand-in repo.
 
 ## Open the assignment repo in VS Code
 
 The simplest route is:
 
-1. copy the repository URL from GitHub Classroom,
+1. on the GitHub repository page, click the green **Code** button,
+2. make sure **HTTPS** is selected,
+3. copy the repository URL,
 2. in `VS Code`, open the command palette with `Ctrl/Cmd+Shift+P`,
 3. run `Git: Clone`,
 4. paste the repository URL,
 5. choose a local folder,
 6. open the cloned repo in a new `VS Code` window.
+
+If `VS Code` or Git asks you to sign in to GitHub during cloning, complete that login flow in your browser and then return to `VS Code`.
+
+After cloning, the repository should contain at least:
+
+- `answers.md`
+- `check_setup.R`
+
+If you are on Windows and want to see what the cloning flow looks like, here is a short screen recording:
+
+<video controls playsinline width="800">
+  <source src="win-cloning-ps0.mov" type="video/quicktime">
+</video>
 
 If you are completely stuck on cloning, downloading the ZIP is an acceptable short-term fallback for getting the files onto your computer, but you should still get Git working before lecture 2.
 
