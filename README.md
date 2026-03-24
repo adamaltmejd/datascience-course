@@ -4,16 +4,16 @@ Course website: <https://adamaltmejd.github.io/datascience-course/>.
 
 # Lectures
 
-- 1. Introduction to Data Science for Economists. Slides: [HTML](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.html). Handout PDF: [PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.pdf).
-- 2. Project Workflows and Version Control.
-- 3. R Basics I.
-- 4. R Basics II: Tabular Data and Tidy Thinking.
-- 5. Shell and Independent Workflows.
-- 6. Data Wrangling I.
-- 7. Data Wrangling II.
-- 8. APIs and External Data.
-- 9. LLMs for Data Processing.
-- 10. Visualization and Communication.
+1. Introduction to Data Science for Economists. Slides: [HTML](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.html). Handout PDF: [PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.pdf).
+2. Project Workflows and Version Control.
+3. R Basics I.
+4. R Basics II: Tabular Data and Tidy Thinking.
+5. Shell and Independent Workflows.
+6. Data Wrangling I.
+7. Data Wrangling II.
+8. APIs and External Data.
+9. LLMs for Data Processing.
+10. Visualization and Communication.
 
 # Problem sets
 
