@@ -6,6 +6,8 @@ toc: false
 
 This site hosts course material for EC7422, "Data science for economic analysis", at Stockholm University.
 
+Source files for the course live in the [GitHub repository](https://github.com/adamaltmejd/datascience-course).
+
 Students should rely on the official schedule in [TimeEdit](https://cloud.timeedit.net/su/web/stud1/s.html?sid=8&object=cevt_33060_VT2026&type=courseevent&h=t&startdate=20260221&enddate=20260905&l=en). Material links below are updated as slides and handouts are published.
 
 ## Course schedule
