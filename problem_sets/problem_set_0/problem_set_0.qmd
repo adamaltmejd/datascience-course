@@ -317,17 +317,11 @@ If Git tells you that your name or email is missing, go back to the Git setup st
 
 Do not spend three hours debugging in silence.
 
-Use these in order:
-
 1. read the error message carefully,
 2. try the official docs or installation page for the tool,
 3. search the exact error message,
-4. ask an `LLM` for help if you can paste the exact error,
-5. ask me in class, office hours, or by email.
-
-If you ask for help, include the actual error message and say what operating system you are using. Otherwise debugging becomes guesswork.
-
-For setup problems specifically, I will also hold `PS0` office hours on **26/3, 14:00-15:00 on Zoom**.
+4. ask an `LLM` for help, if you can paste the exact error,
+5. Look for guidance here: <https://happygitwithr.com/>
 
 # Other useful tools to explore on your own (optional)
 
