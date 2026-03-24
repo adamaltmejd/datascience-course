@@ -1,5 +1,5 @@
 ---
-title: "Data Science for Economists"
+title: "Econometrics 3: Data science for economic analysis"
 subtitle: "EC7422, Stockholm University"
 toc: false
 ---
