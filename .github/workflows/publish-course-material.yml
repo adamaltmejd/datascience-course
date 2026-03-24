@@ -32,6 +32,8 @@ concurrency:
 
 env:
   RENV_CONFIG_REPOS_OVERRIDE: CRAN=https://packagemanager.posit.co/cran/latest
+  QUARTO_VERSION: "1.8.26"
+  PLAYWRIGHT_VERSION: "1.58.0"
 
 jobs:
   build:
@@ -46,6 +48,8 @@ jobs:
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: ${{ env.QUARTO_VERSION }}
 
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
@@ -95,14 +99,21 @@ jobs:
         run: quarto render
 
       - name: Install Chromium for Playwright
-        run: uv run --with playwright python -m playwright install --with-deps chromium
+        run: uv run --with "playwright==${PLAYWRIGHT_VERSION}" python -m playwright install --with-deps chromium
 
       - name: Generate revealjs handout PDFs
         run: |
           python -m http.server 8000 --bind 127.0.0.1 --directory _site >/tmp/handout-server.log 2>&1 &
           server_pid=$!
           trap 'kill $server_pid 2>/dev/null || true' EXIT
-          uv run --with playwright python .github/scripts/render_revealjs_handouts.py \
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null
+          uv run --with "playwright==${PLAYWRIGHT_VERSION}" python .github/scripts/render_revealjs_handouts.py \
             --site-dir _site \
             --base-url http://127.0.0.1:8000
 
