@@ -63,6 +63,8 @@ jobs:
             libfontconfig1-dev \
             libfreetype6-dev \
             libgdal-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
             libmagick++-dev \
             libpng-dev \
             libudunits2-dev \
