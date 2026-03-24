@@ -92,7 +92,7 @@ jobs:
             .github/scripts/render_revealjs_handouts.py
 
       - name: Render Quarto project
-        run: quarto render --output-dir _site
+        run: quarto render
 
       - name: Install Chromium for Playwright
         run: uv run --with playwright python -m playwright install --with-deps chromium
