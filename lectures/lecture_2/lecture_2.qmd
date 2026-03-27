@@ -299,7 +299,7 @@ To change the default shell in VSCode press Ctrl/Cmd+Shift+P and chose *Change d
 
 ## The `shell`
 
-- Mac and Linux are both Unix OS and have Linux shells
+- Mac and Linux are Unix-like OS with Unix-style shells
 - Git for Windows provides Bash emulation
 - Why?
   - Almost all servers speak shell
@@ -308,7 +308,7 @@ To change the default shell in VSCode press Ctrl/Cmd+Shift+P and chose *Change d
   - Reproducibility (again!)
 
 ::: {.aside}
-If you want to practice shell skills [cmdchallenge.com](https://cmdchallenge.com/) is fun!
+If you want to practice shell skills [cmdchallenge.com](https://cmdchallenge.com/) is fun! For more dedicated Windows users, [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) is a great way to get a real Linux terminal on Windows.
 :::
 
 ## Things I use the shell for
@@ -568,7 +568,7 @@ git clone https://github.com/adam-test-acc/test-repo.git
 :::
 ::: {.column width="40%"}
 ```bash
-git stage README.md
+git add README.md
 git commit -m "Readme change"
 git push
 ```
@@ -627,7 +627,7 @@ git switch --create test-branch
 :::
 ::: {.column width="40%"}
 ```bash
-git switch master
+git switch main
 git merge test-branch
 ```
 :::
@@ -831,7 +831,7 @@ To use SSH with Github you first need to add your public key to your [GitHub pro
 
 Afterwards, run:
 
-```{bash}
+```bash
 #| error: TRUE
 ssh -T git@github.com
 ```

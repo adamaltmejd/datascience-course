@@ -19,3 +19,5 @@ lectures/**/*_cache
 lectures/**/*_files
 problem_sets/**/*_cache
 problem_sets/**/*_files
+
+**/*.quarto_ipynb

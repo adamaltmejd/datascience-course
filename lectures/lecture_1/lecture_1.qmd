@@ -298,7 +298,7 @@ ggplot(
 2. Project Workflows and Version Control
 3. `R` Basics I
 4. `R` Basics II: Tabular Data and Tidy Thinking
-5. Shell and Independent Workflows
+5. Independent Workflows, Debugging, and AI Support
 :::
 ::: {.column width="50%"}
 6. Data Wrangling I

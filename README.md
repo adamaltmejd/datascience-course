@@ -8,7 +8,7 @@ Course website: <https://adamaltmejd.github.io/datascience-course/>.
 2. Project Workflows and Version Control. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_2/lecture_2.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_2/lecture_2.pdf)]
 3. R Basics I.
 4. R Basics II: Tabular Data and Tidy Thinking.
-5. Shell and Independent Workflows.
+5. Independent Workflows, Debugging, and AI Support.
 6. Data Wrangling I.
 7. Data Wrangling II.
 8. APIs and External Data.
