@@ -1,7 +1,8 @@
 .env
 **/*.RData
 .Rhistory
-**/*.quarto_ipynb
+**/*.quarto_ipynb*
+**/mathjax-config.js
 **/Rplots.pdf
 
 /.quarto/
@@ -18,5 +19,3 @@ lectures/**/*_cache
 lectures/**/*_files
 problem_sets/**/*_cache
 problem_sets/**/*_files
-
-lectures/lecture_[2-6]/
