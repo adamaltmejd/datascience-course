@@ -5,7 +5,7 @@ Course website: <https://adamaltmejd.github.io/datascience-course/>.
 # Lectures
 
 1. Introduction to Data Science for Economists. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_1/lecture_1.pdf)]
-2. Project Workflows and Version Control.
+2. Project Workflows and Version Control. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_2/lecture_2.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_2/lecture_2.pdf)]
 3. R Basics I.
 4. R Basics II: Tabular Data and Tidy Thinking.
 5. Shell and Independent Workflows.
