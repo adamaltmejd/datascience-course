@@ -5,16 +5,6 @@ date: 2026-03-30
 engine: knitr
 ---
 
-## Today
-
-- How to keep a project self-contained
-- How to stop breaking your own file paths
-- Meet the shell
-- How `Git`, `GitHub`, and `VS Code` fit together
-- The basic `Git` cycle: `status`, `add`, `commit`, `push`
-- Digging a bit deeper: branches, pull requests, merge conflicts
-- Recovery habits for when things go wrong
-
 ## Software install check (Problem set 0)
 
 Did you...
@@ -450,15 +440,15 @@ Use `space` to browse, press `h` for help and `q` to quit.
 :::
 ::::
 
-## `Git`, GitHub, `VS Code`
+## `Git`, `GitHub`, `VS Code`
 
 - `Git`: the version-control system on your computer
-- GitHub: a remote home for repositories—uses `Git`
+- `GitHub`: a remote home for repositories—uses `Git`
 - `VS Code`: the editor that lets you work with files and `Git` in one place
 - Keep the roles separate in your head and life gets easier
 
 ::: {.notes}
-GitHub is not needed to use Git. Great for open science. Stuff like DOI's, licenses, etc. I have a repo for each project, host my website on GitHub, and lots more.
+GitHub is not needed to use Git. You can use Git locally without ever pushing to GitHub or host your own Git remote server. But GitHub is free and makes it easy to share your work and collaborate.
 :::
 
 ## How does Git work?
@@ -467,7 +457,7 @@ GitHub is not needed to use Git. Great for open science. Stuff like DOI's, licen
 - Each user works in their own *local* copy
 - Labelled history with **commits**
 - **Branches** enable multi-feature development
-- Changes syncted to GitHub on demand (unlike Dropbox)
+- Changes synchronized to GitHub on demand (unlike Dropbox)
 - Facilitates collaboration with branching, conflict management, pull requests
 
 ::: {.notes}
@@ -603,7 +593,7 @@ Follow the instructions in Problem set 0 to set up your Git `user.name` and `use
 - Branching is awesome, use it!
 
 ::: {.notes}
-This is how modern software is developed. A new feature is built in a branch, then merged to main with a pull request after testing. In research, we can use it to test new data processing strategies, or to try out new analyses.
+This is how software is developed. A new feature is built in a branch, then merged to main with a pull request after testing. In research, we can use it to test new data processing strategies, or to try out new analyses.
 :::
 
 ## Creating a new branch in VS Code
@@ -661,10 +651,6 @@ If you want your collaborators to review/discuss the changes before they are mer
 - `Git` stops because it does not want to guess
 - Annoying, yes
 - Still better than silent overwriting
-
-::: {.notes}
-Let students try. Pair up and edit neighbors repo (after invite).
-:::
 
 ## Merge conflicts in VS Code
 

@@ -23,6 +23,10 @@ td > img {
 	font-size: 0.4em !important;
 }
 
+.reveal .slide > .cell.columns.column-output-location + .cell.columns.column-output-location {
+	margin-block-start: 0.2em;
+}
+
 .panel-tabset-tabby {
 	a {
 		line-height: 0.8em !important;
