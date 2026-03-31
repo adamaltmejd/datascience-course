@@ -1,0 +1,838 @@
+---
+title: "Lecture 3: R Basics I"
+subtitle: "EC7422: Data Science for Economic Analysis"
+date: 2026-04-07
+engine: knitr
+---
+
+## Why code instead of spreadsheet surgery?
+
+![&nbsp;](genetics_excel.png)
+
+::: notes
+[The paper](https://doi.org/10.1186/s13059-016-1044-7) captures a common problem with spreadsheet workflows: once many manual edits accumulate, the data pipeline becomes hard to inspect, explain, and reproduce. In this case, Excel rewrote certain gene codes into dates without warnings, which led to widespread errors in the genetic literature.
+:::
+
+## Today
+
+- Programming fundamentals in `R`
+- Ideas that transfer to other languages
+- Objects, types, logic, functions
+- Follow along on your own machine!
+
+## Programming fundamentals
+
+Most languages revolve around a small set of ideas:
+
+- Expressions return values
+- Operators combine values
+- Assignment binds names
+- Types shape behavior
+- Logic controls decisions
+- Functions package reusable code
+
+::: notes
+By teaching fundamentals I hope you can learn to apply the knowledge also to other programming languages.
+:::
+
+## Setup check
+
+- VSCode `R` interpreter running
+- `R` Script file open
+- `Ctrl/cmd+enter` sends line to interpreter
+
+::: notes
+This lecture assumes a working `R` interpreter and a script editor. In VS Code, the interpreter may run inside a terminal pane, but the shell and the `R` interpreter are different things. If code cannot be sent from the editor to `R`, the rest of the workflow breaks down. See Problem Set 0 instructions for troubleshooting. If you still have problems, try with Positron instead of VS Code (it has built-in support for `R`) or ask for help.
+:::
+
+## Moving from `Stata` to `R`
+
+Some habits carry over; some do not:
+
+- Not limited to one dataset in memory
+- Stata commands = R functions
+- Less "hand-holding", need to be more mindful about what you run
+- More dependent on external packages
+
+::: notes
+CRAN is a huge catalogue of user-created packages. The problem with open source: some packages are outdated or abandoned. You will need to learn to search for and install packages, and keep them updated. And maybe even contribute to the packages you use a lot?
+:::
+
+## R fundamentals
+
+> "Everything is and object and everything has a name"
+
+You can access and modify everything you interact with
+
+::: notes
+Call functions to operate on objects. Functions are also objects, so you can inspect and modify them too.
+:::
+
+# Expressions, Operators, And Assignment {background-color="#40666e"}
+
+## Arithmetic with operators
+
+Type these in the `R` interpreter:
+
+```{r}
+#| output-location: column-fragment
+12 + 3
+```
+
+```{r}
+#| output-location: column-fragment
+8 - 33
+```
+
+```{r}
+#| output-location: column-fragment
+20 / 3
+```
+
+```{r}
+#| output-location: column-fragment
+10^(2 + 1) - 1
+```
+
+`+`, `-`, `/`, and `^` are arithmetic operators.
+
+::: notes
+The `R` interpreter evaluates each expression and prints the resulting value. At this stage, the value is visible, but not stored under a reusable name.
+:::
+
+## Evaluation in the interpreter
+
+- The code is an expression
+- The interpreter evaluates it
+- The printed result is a value
+- Nothing saved yet
+
+## Assignment stores a value in memory
+
+Assignment stores a value in session memory and binds a name to it:
+
+```{r}
+coffee_cups <- 3
+price_per_cup <- 25
+coffee_cups * price_per_cup
+```
+
+::: notes
+The key idea is that values exist independently of names. Assignment connects a name to the current value in memory.
+:::
+
+## Assignment and comparison
+
+The symbols look similar, but they do different jobs:
+
+- `<-` assign a value to a name
+- `==` compare two values
+
+```{r}
+#| output-location: column-fragment
+coffee_cups <- 3
+coffee_cups
+```
+
+```{r}
+#| output-location: column-fragment
+1 == 1
+```
+
+::: notes
+`R` also allows `=` for assignment in some contexts. The course uses `<-` for assignment because it keeps assignment visually distinct from named arguments inside function calls. Using `<-` is an old convention that is still widely used, but `=` is increasingly common for assignment as well. The key is to be consistent and clear in your code.
+:::
+
+## Naming rules
+
+Names should be valid and readable:
+
+```{r}
+#| error: true
+1a <- 1
+```
+
+- Start with a letter
+- Case sensitive (`income` and `Income` are different)
+
+Descriptive beats short:
+
+```{r}
+household_income_after_tax <- 25000
+household_income_after_tax
+```
+
+## Names can be rebound
+
+```{r}
+#| output-location: column-fragment
+result <- 3
+result
+```
+
+```{r}
+#| output-location: column-fragment
+result <- "pass"
+result
+```
+
+```{r}
+#| output-location: column-fragment
+typeof(result)
+```
+
+::: notes
+The name is not the object.
+It just points to the object.
+That distinction matters later.
+:::
+
+## Session memory is temporary
+
+- Objects live in session memory
+- Restart `R` -> gone
+- Scripts recreate state
+
+# Objects, Types, And Vectors {background-color="#40666e"}
+
+## Objects, names, functions
+
+Most code can be read as names, objects, and functions working together:
+
+- Objects store values
+- Names point to objects
+- Functions are objects too
+- `()` calls a function
+- Inspection tools show what exists
+
+## Example
+
+```{r}
+x <- c(2, 4, 6)
+mean(x)
+```
+
+- `x` is a name
+- `c(2, 4, 6)` creates an object
+- `mean` is a function object
+- `mean(x)` calls that function on `x`
+
+::: notes
+This is the recurring pattern for the course. In `R`, a function name like `mean` refers to an object. Adding parentheses, as in `mean(x)`, calls that function with an input.
+:::
+
+## How is an object stored in memory?
+
+- `typeof()` tells us
+
+```{r}
+#| output-location: column-fragment
+typeof(1.0)
+```
+
+```{r}
+#| output-location: column-fragment
+typeof(1L)
+```
+
+```{r}
+#| output-location: column-fragment
+typeof(TRUE)
+```
+
+```{r}
+#| output-location: column-fragment
+typeof("text")
+```
+
+::: {.fragment}
+
+Remember: everything is an object!
+
+```{r}
+#| output-location: column-fragment
+typeof(typeof)
+```
+
+:::
+
+
+## Basic atomic types
+
+Most beginner examples use a few basic storage types:
+
+- `double` numbers with decimals
+- `integer` whole numbers
+- `logical` true / false
+- `character` text
+
+::: notes
+These storage types matter because they determine which operations are valid and how values behave in vectors and tables.
+:::
+
+## `typeof()` is storage, `class()`is behavior
+
+Storage type and class often overlap, but not always:
+
+```{r}
+#| output-location: column-fragment
+today <- as.Date("2026-04-07")
+typeof(today)
+```
+
+```{r}
+#| output-location: column-fragment
+class(today)
+```
+
+## Vectors have one type
+
+- Same underlying type
+- Length 1 or more
+- Scalar = length 1
+
+```{r}
+#| output-location: column-fragment
+typeof(c(1, 2, 3))
+```
+
+```{r}
+#| output-location: column-fragment
+length(c(1, 2, 3))
+```
+
+## Coercion to a common type
+
+Mixed types are coerced to one common storage type:
+
+```{r}
+#| output-location: column-fragment
+survey_answers <- c(1, 2, "3")
+survey_answers
+```
+
+```{r}
+#| output-location: column-fragment
+typeof(survey_answers)
+```
+
+::: notes
+This is unfortunately done silently, which often causes bugs. The rule is that `R` coerces to the "highest" type in the hierarchy: character > double > integer > logical. In this example, the presence of a character causes all values to be coerced to character.
+:::
+
+## Lists can mix types
+
+- Mixed object types
+- Flexible container
+- Later: data frames
+
+```{r}
+#| output-location: default
+student_record <- list("Alice", 24, TRUE, c(7, 8))
+student_record
+```
+
+```{r}
+#| output-location: default
+typeof(student_record)
+```
+
+## Live coding: build objects
+
+- Numeric vector
+- Character vector
+- List
+- Check `typeof()` / `length()`
+
+::: notes
+This slide separates two core ideas: vectors are type-consistent, while lists can mix different object types. `typeof()` and `length()` are the first basic inspection tools.
+:::
+
+# Logic, Missingness, And Control Flow {background-color="#40666e"}
+
+## Logic uses operators
+
+We often need conditions, not just calculations:
+
+```{r}
+#| output-location: column-fragment
+1 == 2
+```
+
+```{r}
+#| output-location: column-fragment
+1 < 2
+```
+
+```{r}
+#| output-location: column-fragment
+1 == 2 & 1 < 2
+```
+
+```{r}
+#| output-location: column-fragment
+1 == 2 | 1 < 2
+```
+
+- `==`, `<`, `>` compare
+- `&`, `|` combine conditions
+
+## A practical condition
+
+```{r}
+#| output-location: column-fragment
+exam_score <- 58
+exam_score >= 50
+```
+
+```{r}
+#| output-location: column-fragment
+exam_score >= 50 & exam_score < 70
+```
+
+```{r}
+#| output-location: column-fragment
+exam_score < 50 | exam_score > 90
+```
+
+## Precedence
+
+Let's say we want to check if a variable is larger than two other variables:
+
+```{r}
+#| output-location: column-fragment
+x <- 3; y <- 1; z <- 4
+x > y & z
+```
+
+::: {.fragment}
+Logical operators (`>`, `==`, etc) are evaluated before Boolean (`&` and `|`).
+
+```{r}
+#| output-location: column
+3 > 1
+```
+
+```{r}
+#| output-location: column
+TRUE & 4
+```
+:::
+
+::: {.fragment}
+To get it right we need to be explicit:
+```{r}
+x > y & x > z
+```
+:::
+
+::: notes
+Boolean operators require logical arguments. R runs `as.logical(4)` before the comparison. All non-zero numbers are coerced to `TRUE`, only `0` is `FALSE`. This is a common source of bugs when the intended logic is not made explicit.
+:::
+
+## `!` negates a logical result
+
+`!` flips `TRUE` to `FALSE` and `FALSE` to `TRUE`:
+
+```{r}
+#| output-location: column-fragment
+!TRUE
+```
+
+```{r}
+#| output-location: column-fragment
+!(1 < 3)
+```
+
+- Useful for "not"
+- Common in filters
+
+## `Not available` = NA
+
+`NA` is a **missing value indicator**
+
+- `NA` is not zero
+- `NA` is not false
+- `NA` is not equal to itself!
+
+
+```{r}
+NA > 0
+```
+
+```{r}
+NA == FALSE
+```
+
+```{r}
+NA == NA
+```
+
+::: notes
+Unlike Stata, missing values are not treated as very large numbers. Missingness often propagates through calculations until it is handled explicitly.
+:::
+
+## `is.na()` checks missingness
+
+`is.na()` marks missing values. `!is.na()` keeps the observed ones:
+
+- `TRUE` means missing
+- `!` flips the result
+
+```{r}
+x <- c(1, NA, 3)
+!is.na(x)
+```
+
+## Special values in numeric work
+
+Some numeric operations do not return ordinary finite numbers or `NA`:
+
+- `Inf` / `-Inf` from dividing by zero
+- `NaN` from undefined numeric operations
+
+```{r}
+#| output-location: column-fragment
+1 / 0
+```
+
+```{r}
+#| output-location: column-fragment
+0 / 0
+```
+
+::: {.fragment}
+`is.na()` catches both `NA` and `NaN`, use `is.nan()` to catch only `NaN`:
+
+```{r}
+is.na(c(NA, NaN))
+```
+
+```{r}
+is.nan(c(NA, NaN))
+```
+:::
+
+## `if` / `else`
+
+Use `if` / `else` when one logical value should choose one branch:
+
+```{r}
+#| output-location: default
+if (1 == 3) "foo" else "bar"
+```
+
+- One logical condition
+- One branch runs
+- One value comes back
+
+## Prefer the multi-line form
+
+```{r}
+#| output-location: default
+if (TRUE) {
+    "yes"
+} else {
+    "no"
+}
+```
+
+## Vectors need `ifelse()`
+
+`if` only works with one logical value at a time:
+
+```{r}
+#| error: true
+#| output-location: default
+if (c(3, 1) == c(1, 4)) "foo" else "bar"
+```
+
+## `ifelse()` works element by element
+
+```{r}
+#| output-location: default
+scores <- c(45, 62, 78)
+ifelse(scores >= 60, "pass", "retry")
+```
+
+- Checks each element
+- Returns a vector
+
+## Recycling is real
+
+```{r}
+#| warning: true
+c(1, 2, 3) > c(1, 3)
+```
+
+- Shorter vector may recycle
+- Sometimes warning
+- Sometimes silent - be careful!
+
+## `%in%` checks membership
+
+`%in%` asks whether each element appears in a reference set:
+
+```{r}
+#| output-location: default
+c("stockholm", "uppsala") %in% c("stockholm", "malmo", "uppsala")
+```
+
+- One `TRUE` / `FALSE` per element
+- Useful for filtering on allowed values
+
+
+# Functions And Reuse {background-color="#40666e"}
+
+## Why functions matter
+
+Functions make code more reusable:
+
+- Same recipe, new inputs
+- Less repetition
+- Easier testing
+- Easier debugging
+
+::: notes
+Functions package a small piece of logic so it can be reused with different inputs. This is one of the main ways programming scales beyond one-off commands typed directly into the interpreter.
+:::
+
+## Functions: inputs and output
+
+A function call passes inputs to a function and returns a value:
+
+```{r}
+#| output-location: column-fragment
+sqrt(16)
+```
+
+```{r}
+#| output-location: column-fragment
+round(pi, digits = 3)
+```
+
+```{r}
+#| output-location: column-fragment
+mean(c(1, NA, 3), na.rm = TRUE)
+```
+
+- Inputs go in
+- A value comes back
+
+::: notes
+When a function is called, `R` evaluates the call and produces a result. In simple cases it helps to think of the arguments being matched to the function's parameter names and the function body then being evaluated with those values.
+:::
+
+## A function call has structure
+
+```{r}
+#| output-location: default
+round(pi, digits = 3)
+```
+
+- `round` is the function
+- `pi` is the first argument
+- `digits = 3` names another argument
+- The call returns `3.142`
+
+::: notes
+This example separates four ideas that are easy to blur together: the function object itself, the values passed in, the names of optional arguments, and the value returned by the call. That distinction carries over directly to other programming languages.
+:::
+
+## Functions are objects too
+
+```{r}
+#| output-location: column-fragment
+typeof(mean)
+```
+
+```{r}
+#| output-location: column-fragment
+class(mean)
+```
+
+::: notes
+Functions are ordinary objects in `R`: they can be inspected, named, stored, and then called with arguments.
+:::
+
+
+## A function definition has three parts
+
+```{r}
+#| output-location: default
+add_bonus <- function(score, bonus = 5) {
+    score + bonus
+}
+```
+
+- Name on the left
+- **Arguments** inside `function(...)`
+- Returned expression inside `{ ... }`
+
+::: notes
+The function definition creates a new function object and stores it under the name `add_bonus`. When the function is called, `score` and `bonus` are bound to the supplied arguments, and the expression inside the body is evaluated. Here the returned value comes from the last expression, `score + bonus`.
+:::
+
+## Named and default arguments
+
+Inside function calls, `=` names an argument. Functions can also provide defaults:
+
+```{r}
+#| output-location: default
+add_bonus <- function(score, bonus = 5) {
+    score + bonus
+}
+
+add_bonus(55)
+```
+
+```{r}
+#| output-location: default
+add_bonus(55, bonus = 10)
+```
+
+::: notes
+Default arguments make a function easier to reuse because common choices do not have to be repeated every time. Naming an argument inside the call makes it explicit which parameter is being changed.
+:::
+
+## Write your own function
+
+```{r}
+#| output-location: default
+return_smaller <- function(v1, v2) {
+    min(v1, v2)
+}
+
+return_smaller(3, 8)
+```
+
+::: notes
+This is a deliberately small example: the main point is not the task itself but the pattern. A function definition gives a name to a reusable computation, and a later call runs that computation on new inputs.
+:::
+
+## Live coding: tiny function
+
+- Add 10
+- Give it a default
+- Test scalar and vector
+
+::: notes
+This exercise combines the ideas from the previous slides: defining a function, adding a default argument, and then checking that the same code works on both single values and vectors.
+:::
+
+# Help, Errors, And Comments {background-color="#40666e"}
+
+## Comments start with `#`
+
+Comments are text for humans. The interpreter ignores them:
+
+```r
+# Drop missing values before computing the mean
+average_non_missing <- mean(x, na.rm = TRUE)
+```
+
+- Add intent
+- Add context
+- Add warnings when needed
+
+::: notes
+Comments are useful when they explain intent, assumptions, or gotchas that are not obvious from the code itself. They are not part of the computation.
+:::
+
+## Prefer comments that add context
+
+```r
+# Less helpful:
+# Calculate the mean
+m <- mean(x, na.rm = TRUE)
+
+# Better:
+average_non_missing <- mean(x, na.rm = TRUE)
+```
+
+- Clear names first
+- Comments for context
+- Avoid narrating obvious code
+
+::: notes
+Self-explanatory names do most of the work. Comments are most useful when they explain why something is done, not simply what a line already says.
+:::
+
+## Get help
+
+- `?mean`
+- `?data.frame`
+- `args(mean)`
+
+![&nbsp;](help_data_frame.png)
+
+::: notes
+Help pages describe what a function does, what arguments it accepts, and what kind of object it returns. `args()` is a quick way to inspect the argument names without reading the full help page.
+:::
+
+## Read the error
+
+```{r}
+#| error: true
+my_data <- data.frame(a = c(1, 2), b = c(3, 4))
+my_dat[1]
+```
+
+::: {.fragment}
+- `my_data` exists
+- `my_dat` does not
+:::
+
+::: notes
+The important habit is to read the error literally before guessing at a fix. In this example the problem is not indexing syntax or object type; it is simply that the name in the second line does not match the name that was created.
+:::
+
+## Inspect before guessing
+
+Print object
+
+```{r}
+#| output-location: column-fragment
+my_data
+```
+
+Check its structure
+
+```{r}
+#| output-location: column-fragment
+str(my_data)
+```
+
+List objects in memory
+
+```{r}
+#| output-location: column-fragment
+ls()
+```
+
+::: notes
+Printing the object, checking its structure, and listing objects in memory are simple ways to narrow down what went wrong. These checks are usually faster and more reliable than changing code by trial and error.
+:::
+
+## A short debugging checklist
+
+- Read the error
+- Check names
+- Print object
+- Check type / class
+- Look up help
+
+::: notes
+This checklist is intentionally basic. Many early bugs come from a misspelled name, a wrong object type, or an incorrect assumption about what a function expects.
+:::
+
+## Main takeaways
+
+- Expressions return values
+- Assignment creates reusable names
+- Types shape behavior
+- Logic is explicit
+- Functions package reusable work
+- Help and errors are part of the workflow
+
+## Next lecture: Tables and Tidy Thinking {.title-slide background-color="#40666e"}
