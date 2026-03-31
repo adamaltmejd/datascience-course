@@ -62,7 +62,7 @@ The main transfer from `Stata` is conceptual rather than syntactic. Many familia
 
 > "Everything is an object and everything has a name"
 
-You can access and modify everything you interact with
+All objects can be named, inspected, and reused.
 
 ::: notes
 This slogan is informal, but useful. In `R`, values, tables, functions, and model results are all objects that can be named, inspected, stored, and passed to other functions.
@@ -144,7 +144,7 @@ coffee_cups
 ```
 
 ::: notes
-`R` also allows `=` for assignment in some contexts. The course uses `<-` for assignment because it keeps assignment visually distinct from named arguments inside function calls. Using `<-` is an old convention that is still widely used, but `=` is increasingly common for assignment as well. The key is to be consistent and clear in your code.
+`=` can also assign in some contexts, but this course uses `<-` for assignment. Later, `=` will mainly appear inside function calls to name arguments.
 :::
 
 ## Naming rules
@@ -203,16 +203,16 @@ This is one reason scripts matter. A script records how objects are created so t
 
 ## Objects, names, functions
 
-Most code can be read as names, objects, and functions working together:
+A useful reading rule for `R` code:
 
-- Objects store values
-- Names point to objects
-- Functions are objects too
-- `()` calls a function
-- Inspection tools show what exists
+- Create or retrieve an object
+- Bind it to a name
+- Pass it to a function
+- Get back another object
+- Inspect when unsure
 
 ::: notes
-This is a compact mental model for reading code. Many lines can be understood as: create an object, bind it to a name, then pass it to a function that returns another object.
+This is a compact reading rule rather than a complete theory of `R`. It is useful because many lines can be understood as: create an object, bind it to a name, pass it to a function, and get another object back.
 :::
 
 ## Example
@@ -301,6 +301,28 @@ class(today)
 
 ::: notes
 The storage type tells how the object is represented internally, while the class tells which methods and behaviors are attached to it. Dates are a good example: stored as numbers underneath, but treated as dates by many functions.
+:::
+
+## Class can change a function's method
+
+The same function name can behave differently for different object classes:
+
+```{r}
+#| output-location: column-fragment
+mean(c(1, 2, 3, 4))
+```
+
+```{r}
+#| output-location: column-fragment
+mean(as.Date(c("2024-01-01", "2025-01-01")))
+```
+
+- Same function name
+- Different object classes
+- Different methods behind the scenes
+
+::: notes
+This is one reason class matters in `R`. Many functions are generic: the printed name stays the same, but the method used depends on the class of the object supplied. Check with `methods(mean)` to see which methods are available for `mean`. Here we used `mean.default()` for the numeric vector and `mean.Date()` for the date vector.
 :::
 
 ## Vectors have one type
@@ -452,6 +474,38 @@ x > y & x > z
 Boolean operators require logical arguments. R runs `as.logical(4)` before the comparison. All non-zero numbers are coerced to `TRUE`, only `0` is `FALSE`. This is a common source of bugs when the intended logic is not made explicit.
 :::
 
+## Decimal comparisons need care
+
+Some decimal numbers cannot be stored exactly:
+
+```{r}
+#| output-location: column-fragment
+0.3 == 0.3
+```
+
+```{r}
+#| output-location: column-fragment
+0.1 + 0.2 == 0.3
+```
+
+::: {.fragment}
+Use a tolerance-based check instead:
+
+```{r}
+#| output-location: default
+isTRUE(all.equal(0.1 + 0.2, 0.3))
+```
+
+```{r}
+#| output-location: default
+abs((0.1 + 0.2) - 0.3) < 1e-8
+```
+:::
+
+::: notes
+This is not an `R` quirk; it is a general feature of floating-point arithmetic in modern programming languages. Equality checks on decimal numbers can therefore fail even when two values look the same when printed.
+:::
+
 ## `!` negates a logical result
 
 `!` flips `TRUE` to `FALSE` and `FALSE` to `TRUE`:
@@ -570,6 +624,10 @@ if (TRUE) {
     "no"
 }
 ```
+
+::: notes
+The one-line form is valid, but the multi-line form is usually easier to read, extend, and debug. Braces and line breaks matter more once conditions and returned expressions become longer.
+:::
 
 ## Vectors need `ifelse()`
 
@@ -770,7 +828,40 @@ This is a deliberately small example: the main point is not the task itself but 
 This exercise combines the ideas from the previous slides: defining a function, adding a default argument, and then checking that the same code works on both single values and vectors.
 :::
 
-# Help, Errors, And Comments {background-color="#40666e"}
+# Packages, Comments, Errors, and Help {background-color="#40666e"}
+
+## Packages extend `R`
+
+Packages add functions, datasets, and tools:
+
+```r
+install.packages("data.table")
+library(data.table)
+```
+
+- Install once
+- Load when needed
+- Read package documentation
+
+::: notes
+Base `R` already does a lot, but packages are a central part of the language. Most real projects use a mix of base functions and contributed packages.
+:::
+
+## `package::function()` syntax
+
+This pattern makes the source of a function explicit:
+
+```r
+data.table::fread("data.csv")
+stats::filter(x, rep(1 / 3, 3))
+```
+
+- Avoid name conflicts
+- Clarify provenance
+
+::: notes
+Different packages can export functions with the same name. Writing `package::function()` avoids ambiguity and makes it clear which implementation is being used.
+:::
 
 ## Comments start with `#`
 
@@ -808,16 +899,16 @@ average_non_missing <- mean(x, na.rm = TRUE)
 Self-explanatory names do most of the work. Comments are most useful when they explain why something is done, not simply what a line already says.
 :::
 
-## Get help
+## A short debugging checklist
 
-- `?mean`
-- `?data.frame`
-- `args(mean)`
-
-![&nbsp;](help_data_frame.png)
+- Read the error
+- Check names
+- Print object
+- Check type / class
+- Get help
 
 ::: notes
-Help pages describe what a function does, what arguments it accepts, and what kind of object it returns. `args()` is a quick way to inspect the argument names without reading the full help page.
+This checklist is intentionally basic. Many early bugs come from a misspelled name, a wrong object type, or an incorrect assumption about what a function expects.
 :::
 
 ## Read the error
@@ -837,43 +928,115 @@ my_dat[1]
 The important habit is to read the error literally before guessing at a fix. In this example the problem is not indexing syntax or object type; it is simply that the name in the second line does not match the name that was created.
 :::
 
-## Inspect before guessing
+## Understanding error messages
 
-Print object
+```{r}
+#| error: TRUE
+#| output-location: column-fragment
+dat = data.frame(a = c(1,2),
+                 b = c(3,4))
+data[1]
+```
+
+::: {.fragment}
+!?!?
+:::
+
+::: {.fragment}
+```{r}
+typeof(data)
+```
+
+```{r}
+typeof(dat)
+```
+
+Learning to read error messages will help you find coding errors.
+:::
+
+::: {.aside}
+Talk on this famous error: <https://posit.co/resources/videos/object-of-type-closure-is-not-subsettable/>
+:::
+
+## Check names
 
 ```{r}
 #| output-location: column-fragment
+exists("my_data")
+```
+
+```{r}
+#| output-location: column-fragment
+exists("my_dat")
+```
+
+- Exact spelling matters
+- One letter can break the code
+
+::: notes
+Many early errors are simple naming problems. Before changing code, check whether the object name being used actually exists in memory.
+:::
+
+## Print object
+
+```{r}
+#| output-location: default
 my_data
 ```
 
-Check its structure
-
-```{r}
-#| output-location: column-fragment
-str(my_data)
-```
-
-List objects in memory
-
-```{r}
-#| output-location: column-fragment
-ls()
-```
+- Check visible values
+- Check obvious surprises
 
 ::: notes
-Printing the object, checking its structure, and listing objects in memory are simple ways to narrow down what went wrong. These checks are usually faster and more reliable than changing code by trial and error.
+Printing the object is often the fastest way to catch a wrong value, a wrong shape, or a mistaken assumption about what the object contains.
 :::
 
-## A short debugging checklist
+## Check type / class
 
-- Read the error
-- Check names
-- Print object
-- Check type / class
-- Look up help
+```{r}
+#| output-location: column-fragment
+typeof(my_data)
+```
+
+```{r}
+#| output-location: column-fragment
+class(my_data)
+```
+
+- Storage and behavior both matter
+- Different objects support different operations
 
 ::: notes
-This checklist is intentionally basic. Many early bugs come from a misspelled name, a wrong object type, or an incorrect assumption about what a function expects.
+An expression may fail simply because the object is not the kind of thing the code expects. Checking both `typeof()` and `class()` helps narrow that down.
+:::
+
+## Get help
+
+- `?mean`
+- `?data.frame`
+- `args(mean)`
+
+![&nbsp;](help_data_frame.png)
+
+::: notes
+Help pages describe what a function does, what arguments it accepts, and what kind of object it returns. `args()` is a quick way to inspect the argument names without reading the full help page.
+:::
+
+## Package docs and vignettes
+
+Package documentation is often the best starting point:
+
+```r
+help(package = "data.table")
+vignette(package = "data.table")
+vignette("datatable-intro", package = "data.table")
+```
+
+- Help page for the package
+- List available vignettes
+
+::: notes
+Function help pages answer small local questions. Vignettes are better when the goal is to understand a package's overall workflow, conventions, and typical usage patterns.
 :::
 
 ## Main takeaways
@@ -883,6 +1046,7 @@ This checklist is intentionally basic. Many early bugs come from a misspelled na
 - Types shape behavior
 - Logic is explicit
 - Functions package reusable work
+- Packages extend the language
 - Help and errors are part of the workflow
 
 ## Next lecture: Tables and Tidy Thinking {.title-slide background-color="#40666e"}
