@@ -2,9 +2,32 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from playwright.sync_api import sync_playwright
+
+
+PDF_EXPORT_OPTIONS = {
+    "view": "print",
+    "showNotes": "true",
+    "pdfSeparateFragments": "false",
+}
+
+PDF_EXPORT_CSS = """
+.reveal .speaker-notes-pdf::before {
+    content: none !important;
+    display: none !important;
+}
+
+.reveal .speaker-notes-pdf > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.reveal .speaker-notes-pdf > * + * {
+    margin-top: 0.5em !important;
+}
+"""
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,7 +47,8 @@ def parse_args() -> argparse.Namespace:
 
 def build_url(base_url: str, relative_path: Path) -> str:
     relative_url = "/".join(quote(part) for part in relative_path.parts)
-    return f"{base_url.rstrip('/')}/{relative_url}?view=print"
+    query = urlencode(PDF_EXPORT_OPTIONS)
+    return f"{base_url.rstrip('/')}/{relative_url}?{query}"
 
 
 def main() -> int:
@@ -70,6 +94,7 @@ def main() -> int:
 
             page.locator(args.wait_selector).wait_for()
             page.wait_for_function("document.fonts.status === 'loaded'")
+            page.add_style_tag(content=PDF_EXPORT_CSS)
             page.wait_for_timeout(args.settle_ms)
             page.pdf(
                 path=str(pdf_path),
