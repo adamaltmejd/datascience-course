@@ -12,10 +12,14 @@ Did you...
 - Install [R](https://www.r-project.org/)?
 - Install [VS Code](https://code.visualstudio.com/) and the [vscode-R extension](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r)?
 - Install and configure [Git](https://git-scm.com/downloads)?
-- Creat an account on [GitHub](https://github.com/) and [GitHub Education](https://github.com/education)?
+- Create an account on [GitHub](https://github.com/) and [GitHub Education](https://github.com/education)?
 
 ::: {.aside}
 Great Git+R setup guide if you want to learn more: <http://happygitwithr.com>
+:::
+
+::: notes
+Problem Set 0 is a setup verification step rather than a formality. The course depends on having a working editor, `R` interpreter, Git installation, and GitHub account early enough that workflow problems do not keep compounding later.
 :::
 
 ## If so...
@@ -29,6 +33,10 @@ Great Git+R setup guide if you want to learn more: <http://happygitwithr.com>
 - Clean projects are easier to share
 - `Git` gives you history with more than just timestamps
 
+::: notes
+Workflow discipline is mainly about reducing avoidable confusion. When projects are structured clearly and changes are recorded intentionally, mistakes are easier to diagnose and collaboration becomes much less fragile.
+:::
+
 ## Warning signs
 
 - You can't find the file you are looking for
@@ -39,6 +47,10 @@ Great Git+R setup guide if you want to learn more: <http://happygitwithr.com>
 - You have scripts called `final.R`, `final_v2.R`, and `final_final_REALLY.R` - but which is the latest?
 - You and your colleagues are working in different versions
 
+::: notes
+These are not cosmetic annoyances. They are early signals that the project lacks a clear source of truth about files, data versions, and analysis steps.
+:::
+
 # Project Hygiene {background-color="#40666e"}
 
 ## **Self-contained** projects
@@ -47,6 +59,10 @@ Great Git+R setup guide if you want to learn more: <http://happygitwithr.com>
 - Keep code, documentation, and project-specific outputs together
 - Avoid reaching out to random files elsewhere on your computer
 - Portable projects are easier to rerun, archive, and share
+
+::: notes
+A self-contained project should be movable as one folder. If the project breaks when copied to another machine or another location on the same machine, the structure is usually too dependent on local accidents.
+:::
 
 ## A sensible project tree
 
@@ -63,6 +79,10 @@ municipality-project/
     └── tables/
 ```
 
+::: notes
+This is a convention rather than a law. The important part is not the exact folder names but the separation of source files, code, and generated outputs.
+:::
+
 ## What goes where?
 
 - `data/raw/`: untouched source files
@@ -70,6 +90,10 @@ municipality-project/
 - `src/`: code/scripts that do the work
 - `output/`: things your code produces for humans to inspect or submit
 - `README.md`: what the project is and how to run it
+
+::: notes
+The structure makes the project easier to inspect because each folder answers a different question: where the source data came from, what code transforms it, and which outputs are meant for humans.
+:::
 
 ## `src/` is for your code
 
@@ -86,6 +110,10 @@ src/
 - Numbers are fine for ordering, but never let them replace descriptive names
 - A good test: could another person (or agent) guess where to look for a specific step?
 
+::: notes
+Good script names reduce search costs. A filename such as `02_merge_data.R` communicates both order and purpose, while names like `02.R` or `new_final.R` force the reader to open files just to guess what they do.
+:::
+
 ## Split code by job, not by mood
 
 - Better: one (or several) script for cleaning, merging, figures
@@ -93,8 +121,7 @@ src/
 - Split by function
 
 ::: notes
-Separating data-manipulation and data-analysis is an example of modularity. The logic
-for this is simple. Lots of things can go wrong. You want to be able to isolate what went wrong.
+Separating data cleaning, merging, analysis, and output generation is a basic form of modularity. When a project is split by job, it is much easier to isolate which step failed and rerun only the relevant part. This is also best practice when working with AI agents, as it allows agents to read only the relevant files for a specific task.
 :::
 
 ## Use relative paths
@@ -128,16 +155,28 @@ use "mydata.dta"
 :::
 :::
 
+::: notes
+Absolute paths hard-code one machine and one folder layout. Relative paths make the project portable because they describe where files are located inside the project rather than on a specific computer.
+:::
+
 ## Use relative paths (cont.)
 
 - The **working directory** is the folder your code is running from 
 - `fread("mydata.csv")` looks for `mydata.csv` in the working directory
+
+::: notes
+Many path errors are really working-directory errors. If code cannot find a file that clearly exists, the first question is often whether the session is running from the expected project root.
+:::
 
 ## To set working directory: open the folder, not the file
 
 - In `VS Code`, open the project root folder
 - Then the file tree, working directory, terminal, and `Git` repo all line up
 - You should see your folder and files in the sidebar
+
+::: notes
+Opening the root folder keeps the editor, terminal, file explorer, and Git repository synchronized. Opening a single file in isolation often breaks that alignment and leads to confusing path behavior.
+:::
 
 ## Use relative paths (cont.)
 
@@ -149,6 +188,10 @@ To reach a subfolder, navigate with `/`:
 On windows, `R` translates `/` to `\` automatically, so you can use forward slashes even on Windows.
 :::
 
+::: notes
+Forward slashes are worth using consistently because they work across operating systems in most course examples. That removes one unnecessary source of cross-platform friction.
+:::
+
 ## Use relative paths (cont.)
 
 To reach a parent folder, navigate with `..`:
@@ -158,12 +201,20 @@ To reach a parent folder, navigate with `..`:
 
 But you should never need to do this if you keep your projects self-contained! Why?
 
+::: notes
+Using `..` is sometimes necessary, but frequent parent-directory navigation usually signals that the project is pulling in files from outside its own folder. That makes the workflow harder to move, archive, and reproduce.
+:::
+
 ## Start new sessions
 - Don't put `clear all` or `rm(list = ls())` at the top of scripts
 - Instead, make it a habit to always start new sessions!
   - More robust/reproducible
   - Forces self-contained code
   - Avoid bugs from leftover objects and settings
+
+::: notes
+Relying on leftover objects in memory makes scripts fragile because success depends on invisible session state. Starting fresh is a simple way to test whether the code really creates everything it needs.
+:::
 
 ## Raw is raw
 
@@ -180,6 +231,10 @@ sudo chmod -R ugo-w data/raw
 ```
 :::
 
+::: notes
+Raw data should be treated as evidence, not as a working draft. If a cleaning decision is important, it belongs in code that writes a new processed file rather than in manual edits to the original source.
+:::
+
 ## Naming is part of analysis
 
 - Name folders, files, variables so anyone can understand
@@ -189,6 +244,10 @@ sudo chmod -R ugo-w data/raw
 
 ::: {.aside}
 Stata makes this hard by limiting names to 32 characters unfortunately.
+:::
+
+::: notes
+Naming is not cosmetic. Clear names preserve meaning across files, scripts, tables, and figures, which makes later checking and collaboration much easier.
 :::
 
 ## `README.md`
@@ -206,6 +265,10 @@ Stata makes this hard by limiting names to 32 characters unfortunately.
 :::
 ::::
 
+::: notes
+A short `README` lowers the entry cost for anyone reopening the project later. It should explain what the project is, what data it uses, and which script or command reproduces the main outputs.
+:::
+
 ## `.gitignore` tells `Git` what to ignore
 
 :::: {.columns}
@@ -222,6 +285,10 @@ Stata makes this hard by limiting names to 32 characters unfortunately.
 :::
 ::::
 
+::: notes
+`.gitignore` exists to keep repositories focused on source and logic. Large raw files, generated outputs, credentials, and disposable artifacts usually belong outside version control.
+:::
+
 ## Example `.gitignore` lines
 
 ```gitignore
@@ -235,6 +302,10 @@ output/**
 - Prefer ignoring folders or generated artifacts you can recreate
 - Be careful with broad patterns like `*.csv`
 - The point is to track source and logic, not every disposable by-product
+
+::: notes
+Ignore rules need some care because an overly broad pattern can hide files that should be tracked. A good rule is to ignore outputs and machine-specific artifacts, not inputs or code that define the analysis.
+:::
 
 # Short shell intro {background-color="#40666e"}
 
@@ -257,6 +328,10 @@ The [Unix philosophy](https://en.wikipedia.org/wiki/Unix_philosophy) is for tool
 - *Terminal, command prompt, tty*: wrapper that runs the shell
 - *Shell, Bash, zsh*: programs that run commands and return output
 - *Console*: your computer
+
+::: notes
+People often use these words interchangeably, which causes confusion. The key distinction is that the terminal is the window or interface, while the shell is the program inside it that reads and runs commands.
+:::
 
 We will use [**Bash**](https://www.gnu.org/software/bash/) which is a *shell variant*
 
@@ -287,6 +362,10 @@ We will use [**Bash**](https://www.gnu.org/software/bash/) which is a *shell var
 To change the default shell in VSCode press Ctrl/Cmd+Shift+P and chose *Change default profile*. Change it to Git Bash on Windows.
 :::
 
+::: notes
+Running the terminal inside VS Code keeps command-line work inside the same project context as the files and Git repository. That reduces the chance of working in the wrong folder by accident.
+:::
+
 ## The `shell`
 
 - Mac and Linux are Unix-like OS with Unix-style shells
@@ -299,6 +378,10 @@ To change the default shell in VSCode press Ctrl/Cmd+Shift+P and chose *Change d
 
 ::: {.aside}
 If you want to practice shell skills [cmdchallenge.com](https://cmdchallenge.com/) is fun! For more dedicated Windows users, [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) is a great way to get a real Linux terminal on Windows.
+:::
+
+::: notes
+The shell is useful well beyond programming classes. It is a standard interface for servers, automation, version control, and many command-line tools used in data work.
 :::
 
 ## Things I use the shell for
@@ -315,6 +398,10 @@ find "raw_data" -name "*.csv" -type f -exec \
   perl -i -0pe 's/Vet ej\/\nVill ej svara/Vet ej\/Vill ej svara/g' {} \;
 ```
 
+::: notes
+The long example is not something to memorize. It an example of how a quick shell command can clean up survey data that R refused to read because of problematic *newline* (`\n`) characters inside the cells. The shell is often the best tool for quick fixes to large numbers of files.
+:::
+
 ## First look
 
 ```bash
@@ -326,6 +413,10 @@ username@hostname:~$
 - `~`: your home folder
 - `$`: the prompt where you type commands
 
+::: notes
+The prompt gives context before any command is run. Reading it helps answer three useful questions immediately: who is running the command, on which machine, and from which folder.
+:::
+
 ## Path symbols
 
 - `.` = current directory
@@ -333,6 +424,10 @@ username@hostname:~$
 - `~` = home directory
 - `/` = sub folder
 - Relative paths use these symbols instead of hard-coding your whole machine
+
+::: notes
+These symbols are a compact way to describe location without typing long absolute paths. Once they become familiar, navigation and file references get much faster.
+:::
 
 ## Commands have a simple structure
 
@@ -343,6 +438,10 @@ command flags argument
 - command = what to do
 - flag = how to do it
 - argument = what to do it to
+
+::: notes
+Most shell commands follow this pattern even when the details vary. Reading commands in terms of action, flags/options, and target makes unfamiliar commands easier to parse.
+:::
 
 ## Commands and flags
 
@@ -358,6 +457,10 @@ command flags argument
 #| output-location: default
 ls -lah ../
 ```
+:::
+
+::: notes
+The key reading habit is to separate the command from its modifiers. In `ls -lah ../`, `ls` is the program, `-lah` changes the output format, and `../` tells it where to look.
 :::
 
 ## Seven commands are enough for now
@@ -380,6 +483,10 @@ git status
 - `mv`: move or rename a file
 - `git status`: what changed?
 
+::: notes
+This list is intentionally small. A few navigation and file-management commands cover a large share of beginner shell use, especially when combined with Git.
+:::
+
 ## A tiny navigation example
 
 ```bash
@@ -389,6 +496,10 @@ cd data
 ls
 cd ..
 ```
+
+::: notes
+The example shows that shell work is usually incremental: check where the session is, inspect contents, move one step, and inspect again. That rhythm prevents many avoidable mistakes.
+:::
 
 ## Small file tasks
 
@@ -408,6 +519,10 @@ mv notes.txt old_notes.txt
 - Use the up-arrow to repeat old commands
 - This reduces typos and makes long paths tolerable
 
+::: notes
+Tab completion is one of the fastest ways to reduce command-line mistakes. It also reveals available filenames and folders, which makes it useful as a discovery tool rather than just a typing shortcut.
+:::
+
 ## `man` for manual
 
 ```bash
@@ -417,6 +532,10 @@ man ls
 ![&nbsp;](man_ls.png){.nostretch width=600}
 
 Use `space` to browse, press `h` for help and `q` to quit.
+
+::: notes
+Manual pages are terse, but they are the canonical reference for many shell commands. Knowing that `man` exists is often more important than memorizing specific flags. Another option is [cheat](https://github.com/cheat/cheat) which provides more concise examples for common commands but needs to be installed manually.
+:::
 
 ## Short shell intro
 
@@ -440,6 +559,10 @@ Use `space` to browse, press `h` for help and `q` to quit.
 :::
 ::::
 
+::: notes
+Version control creates a shared history of what changed, when it changed, and why. That is useful for solo work as well as collaboration because it provides an audit trail and a recovery mechanism.
+:::
+
 ## `Git`, `GitHub`, `VS Code`
 
 - `Git`: the version-control system on your computer
@@ -447,8 +570,8 @@ Use `space` to browse, press `h` for help and `q` to quit.
 - `VS Code`: the editor that lets you work with files and `Git` in one place
 - Keep the roles separate in your head and life gets easier
 
-::: {.notes}
-GitHub is not needed to use Git. You can use Git locally without ever pushing to GitHub or host your own Git remote server. But GitHub is free and makes it easy to share your work and collaborate.
+::: notes
+`Git`, GitHub, and VS Code solve different problems. `Git` manages local history, GitHub hosts shared repositories and collaboration workflows, and VS Code is just the editing environment that exposes those tools in one interface.
 :::
 
 ## How does Git work?
@@ -460,8 +583,8 @@ GitHub is not needed to use Git. You can use Git locally without ever pushing to
 - Changes synchronized to GitHub on demand (unlike Dropbox)
 - Facilitates collaboration with branching, conflict management, pull requests
 
-::: {.notes}
-Any folder can be made into a repo.
+::: notes
+Any ordinary folder can become a Git repository. Git then starts tracking changes to files in that folder, provided those changes are staged and committed.
 :::
 
 ## A repository is just a folder with memory
@@ -471,12 +594,20 @@ Any folder can be made into a repo.
 - The commit history = saved snapshots with messages
 - The remote = the GitHub copy
 
+::: notes
+The staging area is the part people often miss at first. It exists so that the next commit can be assembled intentionally rather than automatically including every changed file.
+:::
+
 ## The four operations to remember
 
 - `git add`: stage changes for the next snapshot
 - `git commit`: record staged changes in your local history
 - `git pull`: bring remote changes down to your machine
 - `git push`: send your local commits up to GitHub
+
+::: notes
+These four commands cover the minimum viable Git workflow for the course. Most later commands are refinements or extensions of these same basic ideas.
+:::
 
 ## The basic cycle
 
@@ -486,6 +617,10 @@ Any folder can be made into a repo.
 4. Commit with a useful message
 5. Pull if the remote may have changed
 6. Push to GitHub
+
+::: notes
+The order matters because Git separates editing, staging, committing, and synchronization. Thinking in that sequence reduces confusion when the repository state does not match expectations.
+:::
 
 ## The core commands
 
@@ -497,12 +632,20 @@ git pull
 git push
 ```
 
+::: notes
+The commit message is part of the record. A useful message explains the change in a way that helps later readers understand what was done.
+:::
+
 ## Stage and commit in two steps, why?
 
 - `git commit` just commits staged files
 - We use `git add <file>` to chose what to commit
   - Can even `git add --patch <file>` to stage parts
 - This allows to divide up changes into multiple commits based on features/components
+
+::: notes
+Separating staging from committing makes the history cleaner. Instead of recording one large mixed snapshot, changes can be grouped into smaller commits that each represent one coherent idea.
+:::
 
 ## Pull and push are not the same
 
@@ -521,6 +664,10 @@ If you work with others, or across multiple computers, pulling before pushing is
 - Am I ahead or behind?
 - When confused, start here
 
+::: notes
+`git status` is often the best first diagnostic because it shows the current state without changing anything. Many Git problems become easier once the repository state is visible.
+:::
+
 ## Initialize a repository (on GitHub)
 
 :::: {.columns}
@@ -538,8 +685,8 @@ git init test-repo
 `git init` initializes local repo on your own machine. Normally better to start from GitHub.com to avoid problems later.
 :::
 
-::: {.notes}
-Creating the repo on GitHub configures upstream correctly. Even if you are moving an existing project to GitHub, better to init on GitHub.com and then move your files into the repo.
+::: notes
+Starting from GitHub is often simpler for beginners because the remote is configured from the start. That avoids an extra round of setup around linking a local repository to its remote counterpart.
 :::
 
 ## Clone a repo in `VS Code`
@@ -549,6 +696,10 @@ Creating the repo on GitHub configures upstream correctly. Even if you are movin
 ```bash
 git clone https://github.com/adam-test-acc/test-repo.git
 ```
+
+::: notes
+Cloning creates a complete local copy of the repository, including its history. After that, edits happen locally and are synchronized with GitHub through pull and push.
+:::
 
 ## Stage, commit, and push changes
 
@@ -567,6 +718,10 @@ git push
 
 Follow the instructions in Problem set 0 to set up your Git `user.name` and `user.email`. Otherwise you will get an error when pressing "Commit".
 
+::: notes
+Git records author identity inside each commit. That is why `user.name` and `user.email` must be configured before the first real commit can be created cleanly.
+:::
+
 ## Good commits are small and legible
 
 - Bad: `update`, `changes`, `stuff`
@@ -575,12 +730,20 @@ Follow the instructions in Problem set 0 to set up your Git `user.name` and `use
 - Commit early and often
 - Commit when one small idea is done
 
+::: notes
+Small commits are easier to review, understand, and reverse. A commit history full of vague labels such as `update` or `stuff` quickly loses its value as documentation.
+:::
+
 ## `Git` is **not backup**
 
 - `Git` tracks changes
 - It does not protect you from deleting the wrong folder
 - It does not make giant raw files pleasant to manage
 - Keep a real backup too (Box/Dropbox, external drive, etc.)
+
+::: notes
+Git is optimized for versioned source files, not for general disaster recovery. Repositories still need ordinary backups, especially when projects depend on large raw data or local machine state.
+:::
 
 # Git Branches {background-color="#40666e"}
 
@@ -592,8 +755,8 @@ Follow the instructions in Problem set 0 to set up your Git `user.name` and `use
 - If you are happy with your changes, merge them to the main branch.
 - Branching is awesome, use it!
 
-::: {.notes}
-This is how software is developed. A new feature is built in a branch, then merged to main with a pull request after testing. In research, we can use it to test new data processing strategies, or to try out new analyses.
+::: notes
+Branches create a safe place for experiments, revisions, or features that are not ready for the main line of work. They are useful in research as well as software development because they keep unfinished ideas separate from the stable version.
 :::
 
 ## Creating a new branch in VS Code
@@ -609,6 +772,10 @@ git switch --create test-branch
 :::
 ::::
 
+::: notes
+Creating a branch copies the current state into a new line of development. From that point on, commits on the branch do not affect `main` until the branch is merged.
+:::
+
 ## Merging branches locally
 
 :::: {.columns}
@@ -623,8 +790,8 @@ git merge test-branch
 :::
 ::::
 
-::: {.notes}
-If no review is needed.
+::: notes
+Local merging is the direct way to combine branches when no review step is needed. In collaborative work, the same merge is often done through a pull request instead.
 :::
 
 ## Pull requests (GitHub feature)
@@ -639,8 +806,8 @@ If no review is needed.
 :::
 ::::
 
-::: {.notes}
-If you want your collaborators to review/discuss the changes before they are merged. You write a summary of changes and assign code reviewers.
+::: notes
+A pull request is mainly a review and discussion tool built around a proposed merge. It should really be called a `merge request`. It adds context, comments, and checks before the branch is integrated into the target branch.
 :::
 
 # Git Merge conflicts {background-color="#40666e"}
@@ -651,6 +818,10 @@ If you want your collaborators to review/discuss the changes before they are mer
 - `Git` stops because it does not want to guess
 - Annoying, yes
 - Still better than silent overwriting
+
+::: notes
+Conflicts happen when two lines of development change the same part of a file in incompatible ways. Git pauses because choosing automatically could destroy one side of the work.
+:::
 
 ## Merge conflicts in VS Code
 
@@ -670,8 +841,8 @@ If you want your collaborators to review/discuss the changes before they are mer
 
 Two contributors have made changes to the same file. Git stops merge to not overwrite changes. Requires manual conflict resolution.
 
-::: {.notes}
-The person who resolves the conflict gets to decide. Unfair? Working in branches with pull requests might be more clear and fair.
+::: notes
+Conflict resolution is a judgment call about which version, or which combination of versions, should survive. Smaller commits and clearer review workflows usually make that judgment easier.
 :::
 
 ## Manual edits
@@ -690,8 +861,8 @@ A not so cool change to the README file.
 
 You fix the conflict manually by simply removing the characters and chosing the text you prefer.
 
-::: {.notes}
-HEAD is the start of the merge conflict (current change). Then the === is a marking for where the two parts divide, and below that is the incoming change (from GitHub).
+::: notes
+The conflict markers show the competing versions inline: the current branch above the separator and the incoming branch below it. Resolving the conflict means editing the file into the exact final text and then removing the markers.
 :::
 
 ## You do not need all of `Git` today
@@ -725,6 +896,10 @@ HEAD is the start of the merge conflict (current change). Then the === is a mark
 - Maybe the file is ignored by `.gitignore`
 - Maybe you forgot to save
 
+::: notes
+This message usually means the edit never reached the repository in a way Git can see, either because the wrong file changed or because the change was not saved or is ignored.
+:::
+
 ## If push is rejected
 
 - Usually authentication failed, or the remote moved
@@ -732,12 +907,20 @@ HEAD is the start of the merge conflict (current change). Then the === is a mark
 - Do not delete the `.git` folder
 - Do not start over unless you understand why
 
+::: notes
+Push rejection usually means either a permissions problem or that the remote branch has new commits that the local branch does not yet include. The error message normally says which of those cases it is.
+:::
+
 ## If you get stuck
 
 - Stop making random changes
 - Figure out what state the project is in
 - Ask for help before you dig deeper
 - Most workflow problems are fixable if you stop early enough
+
+::: notes
+Version-control problems get worse when several speculative fixes are stacked on top of each other. Freezing the state and inspecting it carefully is usually the fastest route back.
+:::
 
 ## What I want you to be able to do after today
 

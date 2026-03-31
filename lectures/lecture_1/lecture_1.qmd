@@ -38,8 +38,8 @@ Let's use Menti to collect a little course data.
 ::: {.aside}
 HT: Drew Conway
 :::
-::: {.notes}
-The course is not econometrics in disguise. The value added is everything that happens before and around formal analysis.
+::: notes
+The course is not econometrics in disguise. The value added is everything that happens before and around formal analysis: collecting data, cleaning it, checking it, documenting it, and turning it into something that can actually be analyzed and shared.
 :::
 
 ## The empirical research process
@@ -55,12 +55,20 @@ The course is not econometrics in disguise. The value added is everything that h
 :::
 ::::
 
+::: notes
+The diagram emphasizes that empirical work is a workflow rather than a straight line. Exploration often reveals data problems, missing documentation, or weak identifiers, which sends the process back to earlier cleaning and checking steps.
+:::
+
 ## Why should you learn data science?
 
 - Economists now work with more data, from more sources, than even a few years ago
 - Sweden is unusually data-rich: registers, administrative data, municipality data, and public APIs
 - That is a real comparative advantage, but only if you can actually get the data, clean it, join it, and check it
 - Good econometrics on bad or badly handled data is still bad research
+
+::: notes
+The bottleneck is often not the statistical model but the ability to obtain, organize, and validate the underlying data. In a data-rich setting like Sweden, that practical bottleneck matters even more.
+:::
 
 ## Why this course?
 
@@ -70,6 +78,10 @@ The course is not econometrics in disguise. The value added is everything that h
 - They matter in research, policy work, and private-sector data jobs
 - I use these tools all the time; I have not estimated a DSGE model since 2013
 
+::: notes
+Economics training already spends substantial time on theory and identification. This course fills the gap between that training and the day-to-day work of building usable datasets and reproducible workflows.
+:::
+
 ## Why code at all?
 
 - Menus and spreadsheets can get you surprisingly far
@@ -78,12 +90,20 @@ The course is not econometrics in disguise. The value added is everything that h
 - A script is also a record of what you actually did
 - Sometimes Excel or Stata is still the right tool; the point is to pick the simplest tool that does the job well
 
+::: notes
+Code is useful because it doubles as both a tool and a record. A script can be rerun, inspected, reviewed, and modified in a way that manual clicking usually cannot.
+:::
+
 ## Why `R` for this course?
 
 - I will assess work in `R`
 - `R` is strong for data acquisition, wrangling, and visualization
 - It is much better suited than `Stata` for the kind of programming workflow this course teaches
 - The skills transfer well to other languages, especially `Python`
+
+::: notes
+`R` is the course language because it handles the full workflow well: reading data, reshaping it, visualizing it, and connecting to external packages and APIs. The underlying workflow habits also transfer well to other programming languages.
+:::
 
 ## And what about `Stata`?
 
@@ -94,6 +114,10 @@ The course is not econometrics in disguise. The value added is everything that h
 
 ::: {.aside}
 For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark-stata-r>.
+:::
+
+::: notes
+This is not an argument that `Stata` is useless. It is an argument that `Stata` is a weaker environment for learning modern programming habits, package ecosystems, and more general data workflows.
 :::
 
 # Reproducibility and Work Habits {background-color="#40666e"}
@@ -112,6 +136,10 @@ For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark
 <https://vdsbook.com/04-data_cleaning#sec-examine-clean>
 :::
 
+::: notes
+These problems are ordinary rather than exceptional. Real datasets often contain inconsistent coding, broken identifiers, odd missing-value conventions, and small structural surprises that only become visible once the data are inspected carefully.
+:::
+
 ## Programming habits that pay off
 
 - Write code you can rerun from scratch
@@ -119,6 +147,10 @@ For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark
 - Name things so another human can read them
 - Keep a sensible project structure and a short `README`
 - Check your data early and often
+
+::: notes
+Good habits are mainly about reducing avoidable mistakes. Small decisions about naming, structure, and repeatability make debugging much cheaper later.
+:::
 
 ## Readable beats clever
 
@@ -128,6 +160,10 @@ For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark
 - Prefer one clear transformation at a time
 - A little verbosity is cheaper than silent confusion
 
+::: notes
+Readable code is part of reproducibility. Clear names and explicit steps make it easier to review logic, locate mistakes, and return to a project after time has passed.
+:::
+
 ## Check, do not just trust
 
 - Print summaries
@@ -136,12 +172,20 @@ For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark
 - Make quick plots before you estimate anything
 - Most bad results look "reasonable" until you inspect the data properly
 
+::: notes
+Many damaging errors produce outputs that look plausible on first inspection. That is why simple checks such as counts, summaries, duplicate tests, and quick plots are a normal part of analysis rather than an optional extra.
+:::
+
 ## Frustration is normal
 
 - Coding is hard even for experienced people
 - Getting stuck is not a sign that you are bad at this
 - The right response is usually to slow down, inspect the objects, and change one thing at a time
 - I will spend a lot of time on debugging and workflow discipline in this course
+
+::: notes
+Debugging is a central part of programming rather than a side issue. Productive workflow usually means isolating one assumption at a time and checking it directly instead of making several random changes at once.
+:::
 
 # Our Working Environment = VS Code {background-color="#40666e"}
 
@@ -157,6 +201,10 @@ For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark
 
 ::: {.aside}
 Good alternatives exist: [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co/), [Cursor](https://www.cursor.com/), and [Zed](https://zed.dev). For this course I am standardizing on `VS Code`.
+:::
+
+::: notes
+Standardizing on one editor reduces setup friction and makes troubleshooting easier. The point is not that VS Code is uniquely superior, but that a shared environment makes the course workflow easier to teach and support.
 :::
 
 ## AI assistants in VS Code
@@ -288,6 +336,10 @@ ggplot(
 - Even a simple series may need multiple source tables because official data definitions change
 - Later lectures will show how to inspect, clean, validate, and extend this into the full course backbone
 
+::: notes
+Even this toy example already depends on identifiers, lookup tables, storage types, and careful joins. Those details are not side issues; they are the basic mechanics of reliable empirical data work.
+:::
+
 # Concluding Remarks {background-color="#40666e"}
 
 ## Course Preview
@@ -309,6 +361,10 @@ ggplot(
 :::
 ::::
 
+::: notes
+The sequence is deliberate: workflow and tooling first, then programming basics, then data wrangling, external data sources, and communication. The later lectures assume the earlier habits are already in place.
+:::
+
 ## Problem sets
 
 - `PS0`: readiness checkpoint, due before lecture 2
@@ -316,6 +372,10 @@ ggplot(
 - `PS2`: released after lecture 5
 - `PS3`: released after lecture 8
 - The regular problem sets are pass/fail
+
+::: notes
+The assignments are designed as workflow checkpoints rather than polished showcase exercises. Passing requires being able to run, inspect, verify, and explain the work, not just produce something that looks finished.
+:::
 
 ## Problem Set 0: Getting Set Up
 
@@ -327,11 +387,19 @@ ggplot(
 - Make one Git commit
 - Submit proof that your environment actually works
 
+::: notes
+`PS0` is a readiness test. Its job is to surface software and setup problems early, before the course depends on a working editor, interpreter, and Git workflow every week.
+:::
+
 ## Concluding remarks
 
 - Learning data science gives you a very useful practical toolkit
 - The course will be most useful if you bring your computer and actually try things yourself
 - Please tell me when I am going too fast or when something is too implicit
 - Next time I will make the assignment workflow concrete
+
+::: notes
+This course is skill-heavy, so passive reading is usually not enough. The payoff comes from running code, inspecting outputs, and building the habit of fixing small workflow problems as they appear.
+:::
 
 ## Next lecture: Project Workflows and Version Control {.title-slide background-color="#40666e"}
