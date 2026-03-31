@@ -32,7 +32,7 @@ Most languages revolve around a small set of ideas:
 - Functions package reusable code
 
 ::: notes
-By teaching fundamentals I hope you can learn to apply the knowledge also to other programming languages.
+These ideas recur across most programming languages. The syntax changes, but the underlying concepts around values, names, types, logic, and functions are broadly transferable.
 :::
 
 ## Setup check
@@ -42,7 +42,7 @@ By teaching fundamentals I hope you can learn to apply the knowledge also to oth
 - `Ctrl/cmd+enter` sends line to interpreter
 
 ::: notes
-This lecture assumes a working `R` interpreter and a script editor. In VS Code, the interpreter may run inside a terminal pane, but the shell and the `R` interpreter are different things. If code cannot be sent from the editor to `R`, the rest of the workflow breaks down. See Problem Set 0 instructions for troubleshooting. If you still have problems, try with Positron instead of VS Code (it has built-in support for `R`) or ask for help.
+The key distinction is conceptual: code is written in the script editor and sent to the `R` interpreter. In VS Code, the interpreter may run inside a terminal pane, but that pane is only the interface, not the shell itself.
 :::
 
 ## Moving from `Stata` to `R`
@@ -55,17 +55,17 @@ Some habits carry over; some do not:
 - More dependent on external packages
 
 ::: notes
-CRAN is a huge catalogue of user-created packages. The problem with open source: some packages are outdated or abandoned. You will need to learn to search for and install packages, and keep them updated. And maybe even contribute to the packages you use a lot?
+The main transfer from `Stata` is conceptual rather than syntactic. Many familiar tasks still exist, but `R` makes objects, function calls, scripts, and packages much more explicit.
 :::
 
 ## R fundamentals
 
-> "Everything is and object and everything has a name"
+> "Everything is an object and everything has a name"
 
 You can access and modify everything you interact with
 
 ::: notes
-Call functions to operate on objects. Functions are also objects, so you can inspect and modify them too.
+This slogan is informal, but useful. In `R`, values, tables, functions, and model results are all objects that can be named, inspected, stored, and passed to other functions.
 :::
 
 # Expressions, Operators, And Assignment {background-color="#40666e"}
@@ -106,6 +106,10 @@ The `R` interpreter evaluates each expression and prints the resulting value. At
 - The interpreter evaluates it
 - The printed result is a value
 - Nothing saved yet
+
+::: notes
+This is the basic rhythm of interactive work in `R`: type an expression, let the interpreter evaluate it, inspect the result, and decide whether it is worth storing under a name.
+:::
 
 ## Assignment stores a value in memory
 
@@ -182,9 +186,7 @@ typeof(result)
 ```
 
 ::: notes
-The name is not the object.
-It just points to the object.
-That distinction matters later.
+Rebinding changes what the name points to; it does not mutate some permanent meaning attached to the name itself. That is why the same name can later refer to a number, a string, a table, or a function.
 :::
 
 ## Session memory is temporary
@@ -192,6 +194,10 @@ That distinction matters later.
 - Objects live in session memory
 - Restart `R` -> gone
 - Scripts recreate state
+
+::: notes
+This is one reason scripts matter. A script records how objects are created so the session can be rebuilt from code rather than from memory.
+:::
 
 # Objects, Types, And Vectors {background-color="#40666e"}
 
@@ -204,6 +210,10 @@ Most code can be read as names, objects, and functions working together:
 - Functions are objects too
 - `()` calls a function
 - Inspection tools show what exists
+
+::: notes
+This is a compact mental model for reading code. Many lines can be understood as: create an object, bind it to a name, then pass it to a function that returns another object.
+:::
 
 ## Example
 
@@ -256,6 +266,10 @@ typeof(typeof)
 
 :::
 
+::: notes
+`typeof()` reports the underlying storage mode of an object. This matters because the storage type influences which operations are possible and how coercion behaves later.
+:::
+
 
 ## Basic atomic types
 
@@ -270,7 +284,7 @@ Most beginner examples use a few basic storage types:
 These storage types matter because they determine which operations are valid and how values behave in vectors and tables.
 :::
 
-## `typeof()` is storage, `class()`is behavior
+## `typeof()` is storage, `class()` is behavior
 
 Storage type and class often overlap, but not always:
 
@@ -284,6 +298,10 @@ typeof(today)
 #| output-location: column-fragment
 class(today)
 ```
+
+::: notes
+The storage type tells how the object is represented internally, while the class tells which methods and behaviors are attached to it. Dates are a good example: stored as numbers underneath, but treated as dates by many functions.
+:::
 
 ## Vectors have one type
 
@@ -300,6 +318,10 @@ typeof(c(1, 2, 3))
 #| output-location: column-fragment
 length(c(1, 2, 3))
 ```
+
+::: notes
+In `R`, a scalar is usually just a vector of length one. Thinking this way helps later when the same functions work on both single values and longer vectors.
+:::
 
 ## Coercion to a common type
 
@@ -484,6 +506,10 @@ x <- c(1, NA, 3)
 !is.na(x)
 ```
 
+::: notes
+This pattern appears constantly in data work. `is.na()` creates a logical vector marking the missing entries, and `!is.na()` flips that result to mark the observed ones instead.
+:::
+
 ## Special values in numeric work
 
 Some numeric operations do not return ordinary finite numbers or `NA`:
@@ -513,6 +539,10 @@ is.nan(c(NA, NaN))
 ```
 :::
 
+::: notes
+These values are easy to confuse, but they mean different things. `NA` means a value is missing, while `NaN` means a numeric calculation itself was undefined.
+:::
+
 ## `if` / `else`
 
 Use `if` / `else` when one logical value should choose one branch:
@@ -525,6 +555,10 @@ if (1 == 3) "foo" else "bar"
 - One logical condition
 - One branch runs
 - One value comes back
+
+::: notes
+`if` / `else` is a control-flow tool: the result depends on whether a condition evaluates to `TRUE` or `FALSE`. The important restriction is that the condition must be a single logical value.
+:::
 
 ## Prefer the multi-line form
 
@@ -547,6 +581,10 @@ if (TRUE) {
 if (c(3, 1) == c(1, 4)) "foo" else "bar"
 ```
 
+::: notes
+This fails because the condition is a logical vector, not a single `TRUE` or `FALSE`. Once data work moves from one value to many values, `ifelse()` is often the right replacement.
+:::
+
 ## `ifelse()` works element by element
 
 ```{r}
@@ -557,6 +595,10 @@ ifelse(scores >= 60, "pass", "retry")
 
 - Checks each element
 - Returns a vector
+
+::: notes
+`ifelse()` is vectorized: it applies the condition separately to each element and builds a new output vector from the two alternatives.
+:::
 
 ## Recycling is real
 
@@ -569,6 +611,10 @@ c(1, 2, 3) > c(1, 3)
 - Sometimes warning
 - Sometimes silent - be careful!
 
+::: notes
+Recycling is convenient in some cases, but dangerous in others because it can produce a result that looks valid while expressing the wrong comparison. Warnings help, but they do not appear in every problematic case.
+:::
+
 ## `%in%` checks membership
 
 `%in%` asks whether each element appears in a reference set:
@@ -580,6 +626,10 @@ c("stockholm", "uppsala") %in% c("stockholm", "malmo", "uppsala")
 
 - One `TRUE` / `FALSE` per element
 - Useful for filtering on allowed values
+
+::: notes
+`%in%` is often clearer than writing several equality checks joined by `|`. It is especially useful when checking whether values belong to a known set of allowed categories or identifiers.
+:::
 
 
 # Functions And Reuse {background-color="#40666e"}
