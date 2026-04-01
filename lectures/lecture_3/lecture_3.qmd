@@ -54,12 +54,12 @@ The main transfer from `Stata` is conceptual rather than syntactic. Many familia
 
 ## R fundamentals
 
-> "Everything is an object and everything has a name"
+> "Everything that exists is an object. Everything that happens is a function call."
 
 All objects can be named, inspected, and reused.
 
 ::: notes
-This slogan is informal, but useful. In `R`, values, tables, functions, and model results are all objects that can be named, inspected, stored, and passed to other functions.
+This slogan, attributed to John Chambers (the creator of the S language), is informal, but useful. In `R`, values, tables, functions, and model results are all objects that can be named, inspected, stored, and passed to other functions.
 :::
 
 # Expressions, Operators, And Assignment {background-color="#40666e"}
@@ -122,7 +122,7 @@ coffee_cups * price_per_cup
 ```
 
 ::: aside
-You can also use `=` for assignment in R. But `<-` is by far the most common, and recommended by the [Tidyverse style guide](https://style.tidyverse.org/). The main reason is that `=` has a special use for arguments in function calls (later), so using `<-` for assignment helps avoid confusion. However, `<-` for assignment can also cause confusion like between `a < -5` (comparison to `-5`) and `a <- 5` (assignment).
+You can also use `=` for assignment in R, but `<-` is the [convention](https://style.tidyverse.org/). The main reason is that `=` is also used for naming function arguments, so `<-` keeps the two uses visually distinct. However, `<-` for assignment can also cause confusion: `a < -5` (comparison to `-5`) and `a <- 5` (assignment) look similar but do very different things.
 :::
 
 ::: notes
@@ -338,7 +338,7 @@ We often need conditions, not just calculations:
 - `&`, `|` combine conditions
 
 ::: notes
-Assignment is different from comparison although the symbols look similar. `=` assigns an object to a name, `==` compare two objects. Logical operators like `&` and `|` combine logical values, not numbers. The result of a logical expression is always `TRUE` or `FALSE`.
+Assignment is different from comparison although the symbols look similar. `=` assigns an object to a name, `==` compares two objects. Logical operators like `&` and `|` combine logical values, not numbers. The result of a logical expression is always `TRUE` or `FALSE`.
 :::
 
 ## A practical condition
@@ -391,7 +391,7 @@ x > y & x > z
 :::
 
 ::: notes
-Boolean operators require logical arguments. R runs `as.logical(4)` before the comparison. All non-zero numbers are coerced to `TRUE`, only `0` is `FALSE`. This is a common source of bugs when the intended logic is not made explicit.
+Logical operators bind tighter than Boolean operators, so `x > y & z` is parsed as `(x > y) & z`, not `x > (y & z)`. The second operand `z` (which is `4`) is then coerced to logical: R runs `as.logical(4)`, and all non-zero numbers become `TRUE`, only `0` becomes `FALSE`. This is a common source of bugs when the intended logic is not made explicit.
 :::
 
 ## Decimal comparisons need care

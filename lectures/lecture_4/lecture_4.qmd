@@ -183,7 +183,7 @@ years[c(TRUE, FALSE, TRUE, FALSE)]
 
 ## Subset by condition with `[]`
 
-Or let a condition evalute to a logical vector on the fly:
+Or let a condition evaluate to a logical vector on the fly:
 
 ```{r}
 scores[scores >= 60]
@@ -249,23 +249,23 @@ unemployment_rate <- c(6.2, 7.1)
 ## Collect them in a list
 
 ```{r}
-table <- list(
+table_list <- list(
   municipality_code,
   year,
   unemployment_rate
 )
-table
+table_list
 ```
 
 ## Give the columns names
 
 ```{r}
-table <- list(
+table_list <- list(
   municipality_code = municipality_code,
   year = year,
   unemployment_rate = unemployment_rate
 )
-table
+table_list
 ```
 
 ::: notes
@@ -288,7 +288,7 @@ table_df
 Note how the naming is implicit.
 
 ::: notes
-A `data.frame` is built by combining equal-length vectors into one tabular object. While `list()` would allow you to supply different length vectors, `data.frame()` would instead recycle the shorter ones.
+A `data.frame` is built by combining equal-length vectors into one tabular object. Unlike `list()`, `data.frame()` requires compatible lengths — it will recycle shorter vectors only if their length evenly divides the longest, and error otherwise.
 :::
 
 ## Under the hood
@@ -307,7 +307,7 @@ str(table_df)
 
 ```{r}
 #| output-location: column-fragment
-str(table)
+str(table_list)
 ```
 
 
