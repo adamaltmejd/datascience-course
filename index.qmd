@@ -14,8 +14,8 @@ Material links below are updated as slides and handouts are published.
 | --- | --- | --- | --- |
 | 1. Introduction to Data Science for Economists | Tuesday, March 24, 2026 | 10:00-12:00 | [Slides](lectures/lecture_1/lecture_1.html), [PDF](lectures/lecture_1/lecture_1.pdf) |
 | 2. Project Workflows and Version Control | Monday, March 30, 2026 | 10:00-12:00 | [Slides](lectures/lecture_2/lecture_2.html), [PDF](lectures/lecture_2/lecture_2.pdf) |
-| 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | Pending |
-| 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | Pending |
+| 3. R Basics I | Tuesday, April 7, 2026 | 10:00-12:00 | [Slides](lectures/lecture_3/lecture_3.html), [PDF](lectures/lecture_3/lecture_3.pdf) |
+| 4. R Basics II: Tabular Data and Tidy Thinking | Thursday, April 16, 2026 | 10:00-12:00 | [Slides](lectures/lecture_4/lecture_4.html), [PDF](lectures/lecture_4/lecture_4.pdf) |
 | 5. Independent Workflows, Debugging, and AI Support | Thursday, April 23, 2026 | 10:00-12:00 | Pending |
 | 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | Pending |
 | 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | Pending |

@@ -13,13 +13,6 @@ engine: knitr
 [The paper](https://doi.org/10.1186/s13059-016-1044-7) captures a common problem with spreadsheet workflows: once many manual edits accumulate, the data pipeline becomes hard to inspect, explain, and reproduce. In this case, Excel rewrote certain gene codes into dates without warnings, which led to widespread errors in the genetic literature.
 :::
 
-## Today
-
-- Programming fundamentals in `R`
-- Ideas that transfer to other languages
-- Objects, types, logic, functions
-- Follow along on your own machine!
-
 ## Programming fundamentals
 
 Most languages revolve around a small set of ideas:
@@ -28,7 +21,8 @@ Most languages revolve around a small set of ideas:
 - Operators combine values
 - Assignment binds names
 - Types shape behavior
-- Logic controls decisions
+- Logic builds conditions
+- Control flow directs execution
 - Functions package reusable code
 
 ::: notes
@@ -111,40 +105,28 @@ The `R` interpreter evaluates each expression and prints the resulting value. At
 This is the basic rhythm of interactive work in `R`: type an expression, let the interpreter evaluate it, inspect the result, and decide whether it is worth storing under a name.
 :::
 
-## Assignment stores a value in memory
+## Assignment
 
-Assignment stores a value in session memory and binds a name to it:
+`<-` stores an object in memory and binds a name to it
 
 ```{r}
 coffee_cups <- 3
 price_per_cup <- 25
+```
+
+We can then run operations on those names:
+
+```{r}
+#| output-location: column-fragment
 coffee_cups * price_per_cup
 ```
 
-::: notes
-The key idea is that values exist independently of names. Assignment connects a name to the current value in memory.
+::: aside
+You can also use `=` for assignment in R. But `<-` is by far the most common, and recommended by the [Tidyverse style guide](https://style.tidyverse.org/). The main reason is that `=` has a special use for arguments in function calls (later), so using `<-` for assignment helps avoid confusion. However, `<-` for assignment can also cause confusion like between `a < -5` (comparison to `-5`) and `a <- 5` (assignment).
 :::
 
-## Assignment and comparison
-
-The symbols look similar, but they do different jobs:
-
-- `<-` assign a value to a name
-- `==` compare two values
-
-```{r}
-#| output-location: column-fragment
-coffee_cups <- 3
-coffee_cups
-```
-
-```{r}
-#| output-location: column-fragment
-1 == 1
-```
-
 ::: notes
-`=` can also assign in some contexts, but this course uses `<-` for assignment. Later, `=` will mainly appear inside function calls to name arguments.
+The key idea is that values exist independently of names. Assignment connects a name to the current value in memory.
 :::
 
 ## Naming rules
@@ -158,15 +140,9 @@ Names should be valid and readable:
 
 - Start with a letter
 - Case sensitive (`income` and `Income` are different)
+- Descriptive beats short (no character limit!)
 
-Descriptive beats short:
-
-```{r}
-household_income_after_tax <- 25000
-household_income_after_tax
-```
-
-## Names can be rebound
+## Names can be rebound / overwritten
 
 ```{r}
 #| output-location: column-fragment
@@ -178,11 +154,6 @@ result
 #| output-location: column-fragment
 result <- "pass"
 result
-```
-
-```{r}
-#| output-location: column-fragment
-typeof(result)
 ```
 
 ::: notes
@@ -199,11 +170,11 @@ Rebinding changes what the name points to; it does not mutate some permanent mea
 This is one reason scripts matter. A script records how objects are created so the session can be rebuilt from code rather than from memory.
 :::
 
-# Objects, Types, And Vectors {background-color="#40666e"}
+# Objects And Types {background-color="#40666e"}
 
 ## Objects, names, functions
 
-A useful reading rule for `R` code:
+Much `R` code can be read as a sequence of steps:
 
 - Create or retrieve an object
 - Bind it to a name
@@ -218,17 +189,18 @@ This is a compact reading rule rather than a complete theory of `R`. It is usefu
 ## Example
 
 ```{r}
-x <- c(2, 4, 6)
-mean(x)
+score <- 62
+sqrt(score)
 ```
 
-- `x` is a name
-- `c(2, 4, 6)` creates an object
-- `mean` is a function object
-- `mean(x)` calls that function on `x`
+- `score` is a name
+- `62` creates a numeric object (a `double`)
+- `<-` binds that object to the name `score`
+- `sqrt` is a function object
+- `sqrt(score)` calls that function
 
 ::: notes
-This is the recurring pattern for the course. In `R`, a function name like `mean` refers to an object. Adding parentheses, as in `mean(x)`, calls that function with an input.
+This is the recurring pattern for the course. In `R`, a function name like `mean` refers to an object. Adding parentheses, as in `mean(x)`, calls that function with an input (the object named `x`).
 :::
 
 ## How is an object stored in memory?
@@ -325,74 +297,18 @@ mean(as.Date(c("2024-01-01", "2025-01-01")))
 This is one reason class matters in `R`. Many functions are generic: the printed name stays the same, but the method used depends on the class of the object supplied. Check with `methods(mean)` to see which methods are available for `mean`. Here we used `mean.default()` for the numeric vector and `mean.Date()` for the date vector.
 :::
 
-## Vectors have one type
+## Live coding: inspect simple objects
 
-- Same underlying type
-- Length 1 or more
-- Scalar = length 1
-
-```{r}
-#| output-location: column-fragment
-typeof(c(1, 2, 3))
-```
-
-```{r}
-#| output-location: column-fragment
-length(c(1, 2, 3))
-```
+- Number
+- Text
+- Date
+- Check `typeof()` / `class()`
 
 ::: notes
-In `R`, a scalar is usually just a vector of length one. Thinking this way helps later when the same functions work on both single values and longer vectors.
+This exercise keeps the focus on the inspection habit. The main point is to create a few simple objects and check how `R` reports their storage mode and class.
 :::
 
-## Coercion to a common type
-
-Mixed types are coerced to one common storage type:
-
-```{r}
-#| output-location: column-fragment
-survey_answers <- c(1, 2, "3")
-survey_answers
-```
-
-```{r}
-#| output-location: column-fragment
-typeof(survey_answers)
-```
-
-::: notes
-This is unfortunately done silently, which often causes bugs. The rule is that `R` coerces to the "highest" type in the hierarchy: character > double > integer > logical. In this example, the presence of a character causes all values to be coerced to character.
-:::
-
-## Lists can mix types
-
-- Mixed object types
-- Flexible container
-- Later: data frames
-
-```{r}
-#| output-location: default
-student_record <- list("Alice", 24, TRUE, c(7, 8))
-student_record
-```
-
-```{r}
-#| output-location: default
-typeof(student_record)
-```
-
-## Live coding: build objects
-
-- Numeric vector
-- Character vector
-- List
-- Check `typeof()` / `length()`
-
-::: notes
-This slide separates two core ideas: vectors are type-consistent, while lists can mix different object types. `typeof()` and `length()` are the first basic inspection tools.
-:::
-
-# Logic, Missingness, And Control Flow {background-color="#40666e"}
+# Logic And Missingness {background-color="#40666e"}
 
 ## Logic uses operators
 
@@ -420,6 +336,10 @@ We often need conditions, not just calculations:
 
 - `==`, `<`, `>` compare
 - `&`, `|` combine conditions
+
+::: notes
+Assignment is different from comparison although the symbols look similar. `=` assigns an object to a name, `==` compare two objects. Logical operators like `&` and `|` combine logical values, not numbers. The result of a logical expression is always `TRUE` or `FALSE`.
+:::
 
 ## A practical condition
 
@@ -476,7 +396,7 @@ Boolean operators require logical arguments. R runs `as.logical(4)` before the c
 
 ## Decimal comparisons need care
 
-Some decimal numbers cannot be stored exactly:
+Decimal numbers are stored as floating points (`double`), which can lead to surprising results:
 
 ```{r}
 #| output-location: column-fragment
@@ -492,17 +412,15 @@ Some decimal numbers cannot be stored exactly:
 Use a tolerance-based check instead:
 
 ```{r}
-#| output-location: default
 isTRUE(all.equal(0.1 + 0.2, 0.3))
 ```
 
 ```{r}
-#| output-location: default
 abs((0.1 + 0.2) - 0.3) < 1e-8
 ```
 :::
 
-::: notes
+::: aside
 This is not an `R` quirk; it is a general feature of floating-point arithmetic in modern programming languages. Equality checks on decimal numbers can therefore fail even when two values look the same when printed.
 :::
 
@@ -550,18 +468,23 @@ Unlike Stata, missing values are not treated as very large numbers. Missingness 
 
 ## `is.na()` checks missingness
 
-`is.na()` marks missing values. `!is.na()` keeps the observed ones:
+`is.na()` returns `TRUE` for missing values:
 
 - `TRUE` means missing
-- `!` flips the result
+- `FALSE` means observed
 
 ```{r}
-x <- c(1, NA, 3)
-!is.na(x)
+#| output-location: column-fragment
+is.na(NA)
+```
+
+```{r}
+#| output-location: column-fragment
+is.na(3)
 ```
 
 ::: notes
-This pattern appears constantly in data work. `is.na()` creates a logical vector marking the missing entries, and `!is.na()` flips that result to mark the observed ones instead.
+`is.na()` is the standard way to test for missingness. On longer objects it returns one logical result per element; that becomes especially important when working with vectors and tables.
 :::
 
 ## Special values in numeric work
@@ -585,11 +508,15 @@ Some numeric operations do not return ordinary finite numbers or `NA`:
 `is.na()` catches both `NA` and `NaN`, use `is.nan()` to catch only `NaN`:
 
 ```{r}
-is.na(c(NA, NaN))
+is.na(NaN)
 ```
 
 ```{r}
-is.nan(c(NA, NaN))
+is.nan(NA)
+```
+
+```{r}
+is.nan(NaN)
 ```
 :::
 
@@ -597,18 +524,32 @@ is.nan(c(NA, NaN))
 These values are easy to confuse, but they mean different things. `NA` means a value is missing, while `NaN` means a numeric calculation itself was undefined.
 :::
 
+# Control Flow {background-color="#40666e"}
+
+## Control flow decides what runs
+
+- Logic creates conditions
+- Control flow uses them
+- Branch or repeat as needed
+
+::: notes
+Without control flow, code runs from top to bottom in a fixed order. Control-flow tools make execution depend on conditions or repetition, which is what turns isolated expressions into small programs.
+:::
+
 ## `if` / `else`
 
 Use `if` / `else` when one logical value should choose one branch:
+
+```
+if (condition) "do this" else "do that"
+```
+
+`condition` is a single logical value that determines which expression is evaluated and returned.
 
 ```{r}
 #| output-location: default
 if (1 == 3) "foo" else "bar"
 ```
-
-- One logical condition
-- One branch runs
-- One value comes back
 
 ::: notes
 `if` / `else` is a control-flow tool: the result depends on whether a condition evaluates to `TRUE` or `FALSE`. The important restriction is that the condition must be a single logical value.
@@ -629,68 +570,24 @@ if (TRUE) {
 The one-line form is valid, but the multi-line form is usually easier to read, extend, and debug. Braces and line breaks matter more once conditions and returned expressions become longer.
 :::
 
-## Vectors need `ifelse()`
-
-`if` only works with one logical value at a time:
-
-```{r}
-#| error: true
-#| output-location: default
-if (c(3, 1) == c(1, 4)) "foo" else "bar"
-```
-
-::: notes
-This fails because the condition is a logical vector, not a single `TRUE` or `FALSE`. Once data work moves from one value to many values, `ifelse()` is often the right replacement.
-:::
-
-## `ifelse()` works element by element
+## `for` loops repeat a block
 
 ```{r}
 #| output-location: default
-scores <- c(45, 62, 78)
-ifelse(scores >= 60, "pass", "retry")
+for (i in 1:4) {
+    print(i^2)
+}
 ```
 
-- Checks each element
-- Returns a vector
+- Repeats one recipe
+- `i` takes one value at a time
+- Basic control-flow tool
 
 ::: notes
-`ifelse()` is vectorized: it applies the condition separately to each element and builds a new output vector from the two alternatives.
+A `for` loop runs the same block repeatedly while a name takes different values in turn. Here `1:4` is a short way to generate the sequence from 1 to 4.
 :::
 
-## Recycling is real
-
-```{r}
-#| warning: true
-c(1, 2, 3) > c(1, 3)
-```
-
-- Shorter vector may recycle
-- Sometimes warning
-- Sometimes silent - be careful!
-
-::: notes
-Recycling is convenient in some cases, but dangerous in others because it can produce a result that looks valid while expressing the wrong comparison. Warnings help, but they do not appear in every problematic case.
-:::
-
-## `%in%` checks membership
-
-`%in%` asks whether each element appears in a reference set:
-
-```{r}
-#| output-location: default
-c("stockholm", "uppsala") %in% c("stockholm", "malmo", "uppsala")
-```
-
-- One `TRUE` / `FALSE` per element
-- Useful for filtering on allowed values
-
-::: notes
-`%in%` is often clearer than writing several equality checks joined by `|`. It is especially useful when checking whether values belong to a known set of allowed categories or identifiers.
-:::
-
-
-# Functions And Reuse {background-color="#40666e"}
+# Functions {background-color="#40666e"}
 
 ## Why functions matter
 
@@ -721,7 +618,7 @@ round(pi, digits = 3)
 
 ```{r}
 #| output-location: column-fragment
-mean(c(1, NA, 3), na.rm = TRUE)
+abs(-12)
 ```
 
 - Inputs go in
@@ -803,6 +700,66 @@ add_bonus(55, bonus = 10)
 Default arguments make a function easier to reuse because common choices do not have to be repeated every time. Naming an argument inside the call makes it explicit which parameter is being changed.
 :::
 
+## Functions use local names
+
+```{r}
+#| output-location: default
+x <- 10
+show_local <- function() {
+    x <- 20
+    x
+}
+c(show_local(), x)
+```
+
+- Function call creates local names
+- Local assignment stays local
+- Outer name unchanged
+
+::: notes
+When a function runs, it uses its own local names. Rebinding a name inside the function does not automatically overwrite a name with the same spelling outside the function.
+:::
+
+## Name lookup can go outward
+
+```{r}
+#| output-location: default
+x <- 10
+add_outer_x <- function(z) {
+    z + x
+}
+add_outer_x(5)
+```
+
+- Local names first
+- Then surrounding names
+- Convenient, but easy to hide dependencies - avoid
+
+::: notes
+If a name is not found inside the function, R can look outward to the surrounding environment. That is useful, but it can also make code harder to understand when important inputs are not passed explicitly as arguments.
+:::
+
+## Pipes (`|>`) make nesting less awkward
+
+```{r}
+#| output-location: default
+mean(c(seq(0, 10), rep(NA, 10)), na.rm = TRUE)
+```
+
+is the same as 
+
+```{r}
+#| output-location: default
+seq(0, 10) |> 
+  c(rep(NA, 10)) |> 
+  mean(na.rm = TRUE)
+```
+
+- Piped content enters the first argument of the next function
+- Avoids nested parentheses
+- Reads left to right
+- Still a function call, just different syntax
+
 ## Write your own function
 
 ```{r}
@@ -822,10 +779,10 @@ This is a deliberately small example: the main point is not the task itself but 
 
 - Add 10
 - Give it a default
-- Test scalar and vector
+- Test two different inputs
 
 ::: notes
-This exercise combines the ideas from the previous slides: defining a function, adding a default argument, and then checking that the same code works on both single values and vectors.
+This exercise combines the ideas from the previous slides: defining a function, adding a default argument, and then calling it with different inputs.
 :::
 
 # Packages, Comments, Errors, and Help {background-color="#40666e"}
@@ -835,8 +792,8 @@ This exercise combines the ideas from the previous slides: defining a function, 
 Packages add functions, datasets, and tools:
 
 ```r
-install.packages("data.table")
-library(data.table)
+install.packages("ggplot2")
+library(ggplot2)
 ```
 
 - Install once
@@ -852,7 +809,7 @@ Base `R` already does a lot, but packages are a central part of the language. Mo
 This pattern makes the source of a function explicit:
 
 ```r
-data.table::fread("data.csv")
+readr::read_csv("data.csv")
 stats::filter(x, rep(1 / 3, 3))
 ```
 
@@ -1027,9 +984,8 @@ Help pages describe what a function does, what arguments it accepts, and what ki
 Package documentation is often the best starting point:
 
 ```r
-help(package = "data.table")
-vignette(package = "data.table")
-vignette("datatable-intro", package = "data.table")
+help(package = "ggplot2")
+vignette(package = "ggplot2")
 ```
 
 - Help page for the package
@@ -1045,8 +1001,9 @@ Function help pages answer small local questions. Vignettes are better when the 
 - Assignment creates reusable names
 - Types shape behavior
 - Logic is explicit
+- Control flow shapes execution
 - Functions package reusable work
 - Packages extend the language
 - Help and errors are part of the workflow
 
-## Next lecture: Tables and Tidy Thinking {.title-slide background-color="#40666e"}
+## Next lecture: Vectors, Tables, and Tidy Thinking {.title-slide background-color="#40666e"}

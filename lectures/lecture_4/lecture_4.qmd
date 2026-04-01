@@ -1,0 +1,817 @@
+---
+title: "Lecture 4: R Basics II: Vectors, Tables, and Tidy Thinking"
+subtitle: "EC7422: Data Science for Economic Analysis"
+date: 2026-04-16
+engine: knitr
+---
+
+```{r}
+#| echo: false
+options(width = 70)
+```
+
+## Today
+
+- From single values to vectors
+- From vectors to tables
+- Table access and column work
+- Keys, factors, tidy data
+- Checks and quick plots
+
+## Review: lecture 3 in one minute
+
+- Expressions evaluate to values
+- Assignment binds names to objects
+- Types affect behavior
+- Logic and `if / else` control decisions
+- Functions package reusable work
+
+# Vectors {background-color="#40666e"}
+
+## A vector stores many values of one type
+
+```{r}
+scores <- c(45, 62, 78)
+scores
+```
+
+- One name for many values
+- Values stay in order
+- One object in memory
+
+::: notes
+A vector is the basic way R stores values. In fact, also singletons are really vectors of length one.
+:::
+
+## Mixed values are coerced
+
+If you try to mix values, R will force them to a common type:
+
+```{r}
+survey_answers <- c(1, 2, "3")
+survey_answers
+```
+
+```{r}
+typeof(survey_answers)
+```
+
+- One vector, one type
+- Coercion can be silent and cause bugs
+
+::: notes
+When mixed values are combined, they are coerced to a common type according to a hierarchy. R tries to preserve information, but sometimes the coercion can hide a mistake.
+:::
+
+## Logical operators evaluate each pair of elements
+
+```{r}
+scores >= 60
+```
+
+```{r}
+scores >= 60 & scores < 75
+```
+
+- Same operators as before
+- One result per element: a logical vector
+
+```{r}
+typeof(scores >= 60)
+```
+
+::: notes
+The operators are familiar from lecture 3, but the result is now a logical vector rather than one single logical value.
+:::
+
+## Be wary of recycling
+
+```{r}
+#| warning: true
+c(1, 2, 3) > c(1, 3)
+```
+
+- Shorter vector may repeat
+- Sometimes warning
+- Sometimes silent
+
+::: notes
+Recycling can be convenient, but it can also hide a mistake. Length mismatches deserve suspicion.
+:::
+
+## "Vectorized" functions operate element by element
+
+```{r}
+#| output-location: default
+trial <- c(1, NA, 3)
+is.na(trial)
+!is.na(trial)
+```
+
+- Same `is.na()`
+- One result per element
+- Useful before filtering
+
+::: notes
+Not all functions take vector inputs. The missingness tools from lecture 3 become more useful once many values are handled at once. This pattern shows up constantly in data cleaning.
+:::
+
+## Use `%in%` to check membership
+
+```{r}
+#| output-location: default
+cities <- c("stockholm", "uppsala", "umea")
+cities %in% c("stockholm", "malmo", "uppsala")
+```
+
+- Membership in a reference set
+- One result per element
+
+
+Often clearer than many `|`:
+
+```{r}
+#| output-location: default
+cities == "stockholm" | cities == "malmo" | cities == "uppsala"
+```
+
+::: notes
+`%in%` is especially useful when checking whether values belong to an allowed set of categories, identifiers, or years.
+:::
+
+## `ifelse()` builds a new vector
+
+The `if / else` pattern requires `condition` to be a single logical value. If you want to apply the same logic to many values, `ifelse()` is the vectorized alternative:
+
+```{r}
+#| output-location: default
+ifelse(scores >= 60, "pass", "retry")
+```
+
+- Condition checked element by element
+- Output has matching length
+- Useful for quick categories
+
+## Subset by position with `[]`
+
+```{r}
+years <- c(2021, 2022, 2023, 2024)
+years[1]
+```
+
+- Position-based subsetting
+- One element or several
+- Fundamental operator in `R`
+
+Use `:` to create a sequence of integers:
+
+```{r}
+2:4
+```
+
+```{r}
+years[2:4]
+```
+
+## Subset by logical vector with `[]`
+
+Use a same-length logical vector to keep matching elements:
+```{r}
+#| output-location: default
+years[c(TRUE, FALSE, TRUE, FALSE)]
+```
+
+## Subset by condition with `[]`
+
+Or let a condition evalute to a logical vector on the fly:
+
+```{r}
+scores[scores >= 60]
+```
+
+```{r}
+years[years >= 2023]
+```
+
+This is what we use to filter table rows!
+
+## Vectors can replace loops
+
+```{r}
+out <- numeric(length(scores))
+for (i in seq_along(scores)) {
+  out[i] <- scores[i]^2
+}
+out
+```
+
+```{r}
+scores^2
+```
+
+- Same result
+- Loop is explicit
+- Vector form is shorter and often faster
+
+::: notes
+The point is not that loops are wrong. The point is that many operations in R already know how to work element by element on a whole vector, so the shorter vector form is often easier to read and write.
+:::
+
+## A list can hold different kinds of objects
+
+```{r}
+#| output-location: default
+student_record <- list(name = "Alice", age = 24, passed = TRUE)
+student_record
+typeof(student_record)
+```
+
+- Flexible container
+- Mixed object types allowed
+
+::: notes
+Lists are more flexible than atomic vectors because their elements do not all need the same type.
+:::
+
+# From Vectors To Tables {background-color="#40666e"}
+
+## Start with three column vectors
+
+A table is really just a collection of equal-length vectors. Let's build one:
+
+```{r}
+#| output-location: default
+municipality_code <- c("0180", "1280")
+year <- c(2023, 2023)
+unemployment_rate <- c(6.2, 7.1)
+```
+
+## Collect them in a list
+
+```{r}
+table <- list(
+  municipality_code,
+  year,
+  unemployment_rate
+)
+table
+```
+
+## Give the columns names
+
+```{r}
+table <- list(
+  municipality_code = municipality_code,
+  year = year,
+  unemployment_rate = unemployment_rate
+)
+table
+```
+
+::: notes
+The ingredients of a simple table are just equal-length vectors. Before there is any table syntax, there are already ordinary vectors in memory.
+:::
+
+## Data frames
+
+`data.frame()` is the built-in way of doing this
+
+```{r}
+table_df <- data.frame(
+  municipality_code,
+  year,
+  unemployment_rate
+)
+table_df
+```
+
+Note how the naming is implicit.
+
+::: notes
+A `data.frame` is built by combining equal-length vectors into one tabular object. While `list()` would allow you to supply different length vectors, `data.frame()` would instead recycle the shorter ones.
+:::
+
+## Under the hood
+
+`data.frame` is just a named equal-length list:
+
+```{r}
+#| output-location: column-fragment
+typeof(table_df)
+```
+
+```{r}
+#| output-location: column-fragment
+str(table_df)
+```
+
+```{r}
+#| output-location: column-fragment
+str(table)
+```
+
+
+::: notes
+The difference is that `data.frame` has a different `class`. The special class `data.frame` adds table behavior to an underlying list. For example, the class comes with its own print method (`print.data.frame`) that shows the list in a tabular format.
+:::
+
+## A matrix is something else
+
+Matrices are also rectangular, but they hold one common type:
+
+```{r}
+as.matrix(table_df)
+```
+
+```{r}
+typeof(as.matrix(table_df))
+```
+
+- Still rows and columns, but stored as a single vector
+- One common type for all cells
+
+::: notes
+A matrix is closer to one atomic vector with dimensions than to a list of column vectors. That is why matrices are useful for numeric linear algebra.
+:::
+
+## The municipal panel from Lecture 1
+
+```{r}
+#| output-location: default
+panel_df <- read.csv("../lecture_1/lecture_1_demo_panel.csv")
+head(panel_df)
+```
+
+## Inspect before doing anything else
+
+```{r}
+#| output-location: default
+str(panel_df)
+```
+
+Also try `View(panel_df)` in VsCode for an interactive viewer.
+
+::: notes
+The first step with a new table should be inspection rather than immediate filtering or plotting. Printing a few rows, checking structure, and looking at variable names usually reveals the row meaning, key candidates, and suspicious column types quickly.
+:::
+
+## Ask five questions first
+
+- What is one observation/row?
+- What is the key?
+- Which columns:
+  - identify?
+  - measure?
+  - label?
+
+## Count rows and columns
+
+```{r}
+#| output-location: column-fragment
+nrow(panel_df)
+```
+
+```{r}
+#| output-location: column-fragment
+ncol(panel_df)
+```
+
+## Check the variable names
+
+```{r}
+#| output-location: default
+names(panel_df)
+```
+
+## What is the key?
+
+A database concept: the key is a set of columns that **uniquely** identifies one observation
+
+- `municipality_code + year`
+- Not municipality name, that is a label
+
+::: notes
+The key is the combination of columns that uniquely identifies one observation. Here that combination is municipality code and year.
+:::
+
+## Identifier versus label
+
+- Code = identifier
+- Name = label
+- Identifier for matching
+- Label for humans
+
+## Leading zeroes matter
+
+```{r}
+#| output-location: default
+str(panel_df)
+```
+
+```{r}
+#| output-location: default
+panel_df <- read.csv(
+  "../lecture_1/lecture_1_demo_panel.csv",
+  colClasses = c(municipality_code = "character")
+)
+str(panel_df)
+```
+
+::: aside
+read.csv guesses that "municipality_code" is numeric because it only contains numbers. But if its an identifier the leading zeroes matter and we need to make sure to tell R to read it as character. That is what the `colClasses` argument does in the `read.csv()` call.
+:::
+
+# Subsetting Tables {background-color="#40666e"}
+
+## A table column is just a vector
+
+`$` pulls the column out, then `[]` subsets that vector like before
+
+```{r}
+#| output-location: default
+panel_df$year[1]
+```
+
+```{r}
+#| output-location: default
+panel_df$year[1:5]
+```
+
+::: notes
+This is the key bridge. After a column has been extracted from the table, subsetting works exactly like it does on any other vector.
+:::
+
+## On data.frame: `[]` keeps table, `[[]]`, `$` pulls vector
+
+`[]` returns a one-column table
+
+```{r}
+head(panel_df["year"])
+```
+
+`[[]]` returns the vector inside
+
+```{r}
+head(panel_df[["year"]])
+```
+
+::: notes
+This distinction is about returned shape more than about internal storage. Keeping the table shape is useful when further table operations should still work on the result as a table.
+:::
+
+## Subsetting both rows and columns with `[]`
+
+```{r}
+#| output-location: default
+panel_df[1:3, c("municipality_name", "year")]
+```
+
+- First slot = rows
+- Second slot = columns
+
+## Filter with logic
+
+Works just like vector filtering, but keeps the table shape:
+
+```{r}
+#| output-location: default
+panel_df[
+  panel_df$year == 2023 &
+  panel_df$municipality_name %in% c("Stockholm", "Uppsala", "Kiruna"),
+  c("municipality_name", "year", "unemployment_rate")
+]
+```
+
+## Filtering keeps row meaning
+
+```{r}
+#| output-location: default
+panel_df[
+  panel_df$municipality_code %in% c("0180", "0380", "1280") &
+  panel_df$year %in% c(2022, 2023),
+]
+```
+
+- Fewer rows
+- Same observation
+- Note `,` at the end to keep all columns
+
+# Working With Table Columns {background-color="#40666e"}
+
+## Assigning to a new column
+
+We can create a new column by assigning to a name that doesn't exist yet:
+
+```{r}
+#| output-location: default
+panel_df$high_unemployment <- panel_df$unemployment_rate > 8
+head(panel_df[c("municipality_name", "unemployment_rate", "high_unemployment")])
+```
+
+::: aside
+The `unemployment_rate` column is a vector, and the comparison (`> 8`) is vectorized. The operation evaluates to a logical vector of the same length as the original column, and the result stays aligned row by row with the original table.
+:::
+
+## `ifelse()` can build categories
+
+```{r}
+#| output-location: default
+panel_df$period <- ifelse(panel_df$year >= 2020, "recent", "older")
+head(panel_df[c("year", "period")])
+```
+
+::: notes
+`ifelse()` is often useful for creating quick derived categories from existing columns. Because the output is a vector of the same length, it can be added back to the table as a new column.
+:::
+
+# Categories {background-color="#40666e"}
+
+## `factor()` creates categorical data
+
+A factor is a vector of integer levels with attached labels
+
+```{r}
+kon <- c(1L, 2L, 1L, 1L, 2L)
+typeof(kon)
+```
+
+```{r}
+kon <- kon |>
+  factor(
+    levels = c(1, 2),
+    labels = c("Male", "Female")
+  )
+typeof(kon)
+```
+
+```{r}
+class(kon)
+```
+
+```{r}
+str(kon)
+```
+
+```{r}
+kon
+```
+
+## A factor in a table
+
+```{r}
+sex_demo <- data.frame(
+  id = 1:4,
+  sex_code = c(1, 2, 1, 2)
+)
+sex_demo$sex <- factor(
+  sex_demo$sex_code,
+  levels = c(1, 2),
+  labels = c("Male", "Female")
+)
+sex_demo
+```
+
+## What a factor stores
+
+- Numeric codes
+- Human labels
+- Explicit categories
+
+::: aside
+Factors attach labels to stored codes. Factors look like labeled text when printed, but internally they store integer codes plus a set of levels. This saves lots of memory and is useful for various reasons. But factors behave differently from plain character columns sometimes and need a bit of caution.
+:::
+
+# Tidy Data {background-color="#40666e"}
+
+## Tidy data
+
+Tidy data is a standard way of organizing tables that makes them easier to work with. The tidy data principles are simple but powerful, and they apply to almost any kind of data.
+
+![&nbsp;](../lecture_1/tidy-data.png)
+
+::: notes
+This picture gives the compact rule behind tidy data: columns correspond to variables, rows correspond to observations, and each cell contains one value. The rest of the section just makes that rule concrete with examples.
+:::
+
+## Tidy data rule
+
+- One row per observation
+- One column per variable
+- One cell per value
+
+## Wide table: year in the column name
+
+```{r}
+#| output-location: default
+wide_rates <- data.frame(
+  municipality_code = c("0180", "0380", "1280"),
+  unemployment_rate_2022 = c(10.5, 10.2, 18.0),
+  unemployment_rate_2023 = c(10.5, 9.9, 17.7)
+)
+wide_rates
+```
+
+## Tidy table: year as a variable
+
+```{r}
+#| output-location: default
+tidy_rates <- data.frame(
+  municipality_code = c("0180", "0180", "0380", "0380", "1280", "1280"),
+  year = c(2022, 2023, 2022, 2023, 2022, 2023),
+  unemployment_rate = c(10.5, 10.5, 10.2, 9.9, 18.0, 17.7)
+)
+tidy_rates
+```
+
+## Same question, two table shapes
+
+Both tables contain the same information, but one is easier to work with:
+
+```{r}
+#| output-location: default
+wide_rates[c("municipality_code", "unemployment_rate_2023")]
+```
+
+```{r}
+#| output-location: default
+tidy_rates[tidy_rates$year == 2023, c("municipality_code", "unemployment_rate")]
+```
+
+## Why tidy usually wins
+
+- Same code across years
+- Easier filtering
+- Easier joining
+- Easier plotting
+
+# Basic Checks {background-color="#40666e"}
+
+## Check names and types
+
+Before filtering or plotting, check the boring structure first:
+
+```{r}
+#| output-location: default
+names(panel_df)[1:6]
+```
+
+```{r}
+#| output-location: default
+str(panel_df)
+```
+
+- Names reveal variable content
+- Types reveal how `R` will treat the column
+
+## Check the range
+
+Summary statistics catch implausible values quickly:
+
+```{r}
+#| output-location: default
+summary(panel_df$unemployment_rate)
+```
+
+- Minimum and maximum
+- Center and spread
+- Anything implausible?
+
+## Check missing values
+
+Then count missingness explicitly:
+
+```{r}
+#| output-location: default
+sum(is.na(panel_df$unemployment_rate))
+```
+
+- Missing values?
+- Count first
+- Investigate next
+
+## Check the key
+
+```{r}
+#| output-location: default
+any(duplicated(panel_df[c("municipality_code", "year")]))
+```
+
+```{r}
+#| output-location: default
+head(panel_df[c("municipality_code", "year")])
+```
+
+## Break the table on purpose
+
+```{r}
+#| output-location: default
+bad_panel <- panel_df[c(1, 2, 3, 4, 1), ]
+bad_panel$unemployment_rate[2] <- NA
+```
+
+- One missing value
+- One duplicated key
+
+## Check the broken example
+
+```{r}
+#| output-location: default
+is.na(bad_panel$unemployment_rate)
+```
+
+```{r}
+#| output-location: default
+duplicated(bad_panel[c("municipality_code", "year")])
+```
+
+```{r}
+#| output-location: default
+any(duplicated(bad_panel[c("municipality_code", "year")]))
+```
+
+## Filter out missing rows
+
+```{r}
+#| output-location: default
+bad_panel[!is.na(bad_panel$unemployment_rate), ]
+```
+
+- Keep observed rows
+- Drop missing values explicitly
+
+## Checklist for a new table
+
+- Row meaning
+- Key
+- Unique key?
+- Right types?
+- Missing values?
+
+::: notes
+This checklist separates structure questions from value questions. Both matter before any serious analysis starts.
+:::
+
+# Quick Inspection Plots {background-color="#40666e"}
+
+## Why plot now?
+
+Simple plots are useful long before polished visualization:
+
+- Check data fast
+- Use in problem sets
+- Better design in lecture 10
+
+## Three quick plot patterns
+
+- `hist(x)`
+- `boxplot(x)`
+- `plot(x, y)`
+
+## Histogram
+
+```{r}
+#| output-location: default
+hist(
+  panel_df$unemployment_rate,
+  breaks = 30,
+  main = "Municipal unemployment rates",
+  xlab = "Unemployment rate"
+)
+```
+
+## Quick boxplot
+
+```{r}
+#| output-location: default
+recent_panel <- subset(panel_df, year >= 2020)
+boxplot(
+  formula = unemployment_rate ~ year,
+  data = recent_panel,
+  xlab = "Year",
+  ylab = "Unemployment rate"
+)
+```
+
+## Quick scatterplot
+
+```{r}
+#| output-location: default
+plot(
+  x = panel_df$year,
+  y = panel_df$unemployment_rate,
+  xlab = "Year",
+  ylab = "Unemployment rate"
+)
+```
+
+## Main takeaways
+
+- Vectors support element-wise work
+- Vectorization often avoids explicit repetition
+- Tables are lists of equal-length vectors
+- Keys and identifiers matter
+- Tidy helps repeated work
+- Check early
+- Plot early
+
+## Next lecture: Independent Workflows, Debugging, and AI Support {.title-slide background-color="#40666e"}
