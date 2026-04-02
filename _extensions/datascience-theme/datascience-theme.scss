@@ -198,6 +198,8 @@ $code-block-border-color:          $border !default;
   box-sizing: border-box;
   box-shadow: none;
   padding: 10px 13px;
+  max-height: 480px; // safety net — tall code blocks scroll instead of overflowing
+  overflow-y: auto;
 }
 
 // ── Pandoc/Quarto code-block resets ────────────────────────
