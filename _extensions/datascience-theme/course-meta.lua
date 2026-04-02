@@ -21,10 +21,13 @@ function Pandoc(doc)
   if inst ~= "" then table.insert(footer_parts, inst) end
   local footer = table.concat(footer_parts, " · ")
 
-  -- Update subtitle to include date: "Lecture 4 · 2026-04-16"
-  if num ~= "" and date ~= "" then
+  -- Build subtitle from available fields
+  local subtitle_parts = {}
+  if num ~= "" then table.insert(subtitle_parts, "Lecture " .. num) end
+  if date ~= "" then table.insert(subtitle_parts, date) end
+  if #subtitle_parts > 0 then
     doc.meta.subtitle = pandoc.Inlines({
-      pandoc.Str("Lecture " .. num .. " · " .. date)
+      pandoc.Str(table.concat(subtitle_parts, " · "))
     })
   end
 
