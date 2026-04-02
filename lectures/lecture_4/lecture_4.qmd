@@ -1,6 +1,7 @@
 ---
-title: "Lecture 4: R Basics II: Vectors, Tables, and Tidy Thinking"
-subtitle: "EC7422: Data Science for Economic Analysis"
+title: "Vectors, Tables, and Tidy Thinking"
+subtitle: "Lecture 4"
+lecture-number: 4
 date: 2026-04-16
 engine: knitr
 ---
@@ -101,27 +102,24 @@ Recycling can be convenient, but it can also hide a mistake. Length mismatches d
 
 ## Boolean operators also recycle
 
-The same is true for element-wise Boolean operators:
-
 ```{r}
-#| warning: true
-c(TRUE, FALSE) & c(TRUE, FALSE, FALSE)
-```
-
-```{r}
+#| output-location: fragment
 #| warning: true
 c(TRUE, FALSE) | c(FALSE, TRUE, FALSE)
 ```
-
+::: fragment
 `&&` and `||` are different: they only look at the first element and are meant for scalar conditions.
-
-```{r}
-TRUE && FALSE
-```
 
 ```{r}
 TRUE || FALSE
 ```
+
+```{r}
+#| output-location: fragment
+#| error: true
+c(TRUE, FALSE) || c(FALSE, TRUE, FALSE)
+```
+:::
 
 ::: notes
 `&` and `|` work element by element and follow the same recycling rules as other vectorized operators. `&&` and `||` only inspect the first element, which is why they are the right operators inside `if / else` conditions. If vectors are supplied to `&&` or `||`, R uses the first element and warns.
