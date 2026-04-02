@@ -134,6 +134,20 @@ $code-block-border-color:          $border !default;
   color: $marker;
 }
 
+// Nested lists use → arrows instead of bullets
+.reveal ul ul {
+  list-style: none;
+
+  li::before {
+    content: "\2192";
+    color: $marker;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+    margin-right: 4px;
+  }
+}
+
 .reveal ol li::marker {
   color: $accent;
   font-weight: 600;
@@ -264,10 +278,15 @@ $code-block-border-color:          $border !default;
   background: rgba($slate-100, 0.45);
 }
 
+.reveal table tr:last-child td {
+  border-bottom: 2px solid $border;
+}
+
 .reveal table caption {
   color: $ink-soft;
   font-variant: small-caps;
 }
+
 
 // ── Media ──────────────────────────────────────────────────
 .reveal img,
@@ -461,6 +480,44 @@ section[data-background-color] {
 .small-output .cell-output { font-size: 0.7em !important; }
 .tiny-output .cell-output  { font-size: 0.4em !important; }
 .center-h { display: flex; justify-content: center; }
+
+// Inline text highlighting: [text]{.alert}, [text]{.fg style="--col: red"}
+.alert { color: $emphasis; }
+.fg { color: var(--col, $ink); }
+.bg {
+  background-color: var(--col, $bg-code);
+  padding: 1px 4px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+// Styled link button: [Link text](url){.button}
+.reveal .button {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: $accent;
+  border: 1px solid $accent;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: darken($accent, 10%);
+    border-color: darken($accent, 10%);
+  }
+
+  &::before {
+    content: "\25B6";
+    margin-right: 5px;
+  }
+}
 
 // tinytable datasummary_skim() image margin fix
 td > img { margin: 0 !important; }
