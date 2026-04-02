@@ -1,15 +1,43 @@
 format:
-  clean-revealjs:
-  #revealjs:
+  revealjs:
     embed-resources: true
     slide-level: 2
+    center: false
     theme:
-      - ../custom.scss
+      - default
+      - ../datascience-theme.scss
+    highlight-style: arrow
+    menu:
+      side: left
     mermaid:
       theme: forest
     slide-number: c/t
     auto-stretch: true
     output-location: column
+    html-math-method:
+      method: mathjax
+      url: "https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"
+    include-before-body:
+      - text: |
+          <script>
+          window.MathJax = {
+            tex: {
+              inlineMath: [['\\(', '\\)']],
+              displayMath: [['\\[', '\\]']],
+              processEscapes: true,
+              processRefs: true,
+              processEnvironments: true
+            },
+            chtml: {
+              font: 'mathjax-asana'
+            },
+            startup: {
+              ready: () => {
+                MathJax.startup.defaultReady();
+              }
+            }
+          };
+          </script>
     filters:
       - reveal-auto-agenda
     revealjs-plugins:

@@ -1,0 +1,493 @@
+/*-- scss:defaults --*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+// ── Color palette ──────────────────────────────────────────
+$slate-50:    #f8fafc;
+$slate-100:   #f1f5f9;
+$slate-200:   #e2e8f0;
+$slate-500:   #64748b;
+$slate-900:   #0f172a;
+$teal-500:    #14b8a6;
+$teal-700:    #0f766e;
+$orange-700:  #c2410c;
+$amber-500:   #f59e0b;
+$amber-600:   #d97706;
+
+$bg:          $slate-50;
+$bg-code:     $slate-100;
+$ink:         $slate-900;
+$ink-soft:    $slate-500;
+$accent:      $teal-700;
+$emphasis:    $orange-700;
+$marker:      $amber-600;
+$border:      $slate-200;
+$code-border: mix($accent, $border, 60%);
+
+$gap: 8px;
+
+// ── Quarto / Reveal variables ──────────────────────────────
+$body-bg:                          $bg !default;
+$body-color:                       $ink !default;
+$link-color:                       $accent !default;
+$selection-bg:                     rgba($teal-500, 0.3) !default;
+
+$font-family-sans-serif:           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !default;
+$presentation-heading-font:        "Inter", -apple-system, BlinkMacSystemFont, sans-serif !default;
+$font-family-monospace:            "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", monospace !default;
+
+$presentation-font-size-root:      31px;
+$presentation-heading-color:       $ink !default;
+$presentation-heading-font-weight: 600 !default;
+
+$code-block-bg:                    white !default;
+$code-block-border-color:          $border !default;
+
+/*-- scss:rules --*/
+
+// ── Base ───────────────────────────────────────────────────
+.reveal .slides {
+  text-align: left;
+}
+
+// Force top-alignment when center: false
+// (reveal.js clears inline top to "", letting sections drift)
+.reveal .slides > section {
+  top: 0 !important;
+}
+
+.reveal .slide {
+  line-height: 1.35;
+}
+
+.reveal p {
+  margin: 6px 0 10px;
+}
+
+.reveal strong,
+.reveal b {
+  color: $emphasis;
+  font-weight: 600;
+}
+
+.reveal em {
+  color: $accent;
+}
+
+.reveal a {
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.15em;
+
+  &:hover {
+    color: darken($accent, 8%);
+  }
+}
+
+// ── Headings ───────────────────────────────────────────────
+.reveal h1,
+.reveal h2 {
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.reveal h1 {
+  font-size: 1.65em;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.reveal h2 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 3px;
+  border-bottom: 2px solid $border;
+}
+
+.reveal h3 {
+  margin-top: 4px;
+  color: $accent;
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.reveal h4 {
+  color: $emphasis;
+  font-size: 0.82em;
+  font-weight: 600;
+}
+
+// ── Lists ──────────────────────────────────────────────────
+.reveal ul,
+.reveal ol {
+  padding-left: 20px;
+}
+
+.reveal ul {
+  margin-bottom: 0 !important;
+}
+
+.reveal ul li::marker {
+  color: $marker;
+}
+
+.reveal ol li::marker {
+  color: $accent;
+  font-weight: 600;
+}
+
+// ── Blockquote ─────────────────────────────────────────────
+.reveal blockquote {
+  width: 100%;
+  margin: 14px 0;
+  padding: 10px 14px;
+  color: $ink;
+  background: rgba($slate-100, 0.6);
+  border-left: 4px solid $accent;
+  box-shadow: none;
+  font-style: italic;
+}
+
+// ── Code blocks ────────────────────────────────────────────
+// Inline code
+.reveal code {
+  font-family: $font-family-monospace;
+  color: $ink;
+  background: $bg-code;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+// Block code: visual box on pre, code element is transparent
+.reveal pre {
+  background: white;
+  border: 1px solid $border;
+  border-left: 3px solid $code-border;
+  border-radius: 5px;
+  box-sizing: border-box;
+  box-shadow: none;
+  padding: 10px 13px;
+}
+
+// ── Pandoc/Quarto code-block resets ────────────────────────
+// Pandoc generates line-number positioning CSS (3em margin gutter,
+// negative span offsets, sourceCode backgrounds) that conflicts with
+// our compact layout. We reset it all and reimplement line numbers
+// as simple inline-flow elements.
+.reveal {
+  div.sourceCode {
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  .code-copy-outer-scaffold,
+  .cell-output {
+    overflow: visible !important;
+  }
+
+  pre code {
+    display: block;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    line-height: 1.25;
+  }
+
+  pre code a {
+    pointer-events: none;
+    cursor: default;
+    text-decoration: none;
+  }
+
+  pre.numberSource {
+    margin-left: 0 !important;
+    padding-left: 13px !important;
+  }
+
+  pre.numberSource code > span {
+    position: static !important;
+    left: auto !important;
+    padding-left: 0 !important;
+  }
+
+  // Line numbers: [14px right-aligned number][13px gap][code text]
+  pre.numberSource code > span > a:first-child::before {
+    position: static !important;
+    left: auto !important;
+    width: 14px !important;
+    margin-right: 13px;
+    padding: 0 !important;
+    text-align: right;
+  }
+}
+
+// ── Cell spacing ───────────────────────────────────────────
+.reveal .cell {
+  margin: $gap 0 0 0;
+}
+
+.reveal .cell > .cell-output {
+  margin-top: $gap;
+}
+
+.reveal .cell pre {
+  margin: 0;
+}
+
+// ── Tables ─────────────────────────────────────────────────
+.reveal table {
+  margin-top: 6px;
+  border-collapse: collapse;
+  font-size: 0.82em;
+}
+
+.reveal table th,
+.reveal table td {
+  padding: 4px 7px;
+  border-color: $border;
+  text-align: left;
+}
+
+.reveal table th {
+  color: $ink;
+  font-weight: 600;
+  border-bottom: 2px solid mix($accent, $bg, 35%);
+}
+
+.reveal table tr:nth-child(even) td {
+  background: rgba($slate-100, 0.45);
+}
+
+.reveal table caption {
+  color: $ink-soft;
+  font-variant: small-caps;
+}
+
+// ── Media ──────────────────────────────────────────────────
+.reveal img,
+.reveal video,
+.reveal iframe {
+  border-radius: 3px;
+}
+
+// ── Progress, slide number, footer ─────────────────────────
+.reveal .progress {
+  color: $accent;
+  height: 3px;
+}
+
+.reveal .slide-number {
+  color: $ink-soft;
+  font-size: 0.42em;
+  font-family: $font-family-monospace;
+}
+
+.reveal .footer,
+.reveal .figure-caption,
+.reveal figcaption {
+  color: $ink-soft;
+}
+
+.reveal figcaption {
+  text-align: center;
+}
+
+// ── Callouts ───────────────────────────────────────────────
+.reveal .callout {
+  border: 1px solid $border;
+  border-left: 5px solid $accent;
+  border-radius: 5px;
+  background: rgba(white, 0.6);
+}
+
+// ── Title slide ────────────────────────────────────────────
+#title-slide {
+  position: relative;
+  text-align: left;
+  padding: 20px 20px 16px;
+  background: white;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $accent 0%, $teal-500 40%, $amber-500 100%);
+  }
+
+  .title {
+    margin-top: 16px;
+    color: $ink;
+    font-size: 1.85em;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    margin-top: 5px;
+    color: $accent;
+    font-size: 0.72em;
+    font-weight: 500;
+  }
+
+  .quarto-title-authors {
+    display: block;
+    margin-top: 26px;
+  }
+
+  .quarto-title-author,
+  .quarto-title-author-name,
+  .quarto-title-author-email,
+  .quarto-title-affiliation,
+  .date {
+    width: auto;
+    padding: 0;
+    color: $ink-soft;
+    font-size: 0.55em;
+  }
+}
+
+// ── Section dividers ───────────────────────────────────────
+section[data-background-color] {
+  h1, h2, h3, p, li, span {
+    color: white !important;
+  }
+}
+
+// ── Cell output styling ────────────────────────────────────
+.reveal .cell-output pre {
+  background: $bg-code;
+  border-left-color: mix($accent, $border, 40%);
+}
+
+.reveal .cell-output pre code {
+  color: $ink-soft;
+}
+
+// ── Column output layout ───────────────────────────────────
+// Override Quarto's per-child margin-block-start rules
+.reveal .slide .columns {
+  margin-block-start: $gap !important;
+}
+
+.reveal .cell.columns.column-output-location {
+  align-items: stretch;
+
+  > .column {
+    display: flex;
+    flex: 1 1 0 !important;
+    min-width: 0;
+    overflow: visible !important;
+  }
+
+  // Flex chain: column → scaffold → cell-code → pre (all stretch)
+  .code-copy-outer-scaffold,
+  .code-copy-outer-scaffold .cell-code {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .code-copy-outer-scaffold .cell-code {
+    overflow: visible !important;
+  }
+
+  .code-copy-outer-scaffold .cell-code pre {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .cell-output {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cell-output pre {
+    flex: 1;
+    overflow: hidden;
+  }
+}
+
+// ── Panel tabsets ──────────────────────────────────────────
+.reveal .panel-tabset .nav-tabs {
+  border-bottom: 2px solid $border;
+
+  .nav-link {
+    color: $ink-soft;
+    font-size: 0.72em;
+    font-weight: 500;
+    padding: 4px 9px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    background: none;
+
+    &.active {
+      color: $accent;
+      border-bottom-color: $accent;
+    }
+
+    code {
+      font-size: 0.85em;
+      background: none;
+      padding: 0;
+    }
+  }
+}
+
+// Compact tabset variant
+.panel-tabset-tabby a {
+  line-height: 12px !important;
+  padding: 2px 4px !important;
+
+  code {
+    font-size: 0.6em !important;
+  }
+}
+
+// ── Utility classes ────────────────────────────────────────
+.small-output .cell-output { font-size: 0.7em !important; }
+.tiny-output .cell-output  { font-size: 0.4em !important; }
+.center-h { display: flex; justify-content: center; }
+
+// tinytable datasummary_skim() image margin fix
+td > img { margin: 0 !important; }
+
+// fixest etable rendered-image support
+.etable {
+  width: 100%;
+  height: calc(100% - 50px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+// Column width variants for output-location: column
+.reveal .columns3070 > div.column:first-child { width: 30%; }
+.reveal .columns3070 div.column:not(:first-child) { width: 70%; }
+.reveal .columns7030 > div.column:first-child { width: 70%; }
+.reveal .columns7030 div.column:not(:first-child) { width: 30%; }
+.reveal .columns4060 > div.column:first-child { width: 40%; }
+.reveal .columns4060 div.column:not(:first-child) { width: 60%; }
+.reveal .columns6040 > div.column:first-child { width: 60%; }
+.reveal .columns6040 div.column:not(:first-child) { width: 40%; }
