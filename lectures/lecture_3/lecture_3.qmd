@@ -131,22 +131,18 @@ The key idea is that values exist independently of names. Assignment connects a 
 
 ## Naming rules
 
-Names should be valid and readable:
-
-```{r}
-#| error: true
-1a <- 1
-```
-
-- Start with a letter
-- Case sensitive (`income` and `Income` are different)
+- Must start with a letter
+- Are case sensitive (`income` and `Income` are different)
 - Descriptive beats short (no character limit!)
 
-Some names are reserved:
+```{r}
+v1 <- 100 # valid but not descriptive
+annual_income <- 100 # valid and descriptive
+```
 
 ```{r}
 #| error: true
-function <- 1
+1a <- 1 # invalid
 ```
 
 ## Names can be rebound / overwritten
@@ -165,6 +161,66 @@ result
 
 ::: notes
 Rebinding changes what the name points to; it does not mutate some permanent meaning attached to the name itself. That is why the same name can later refer to a number, a string, a table, or a function.
+:::
+
+## Reserved words
+
+Assigning a value to these names will not work:
+
+```R
+if
+else 
+while 
+for
+TRUE 
+FALSE 
+NULL 
+Inf 
+NaN 
+NA 
+```
+
+or:
+
+```{r}
+#| output-location: column-fragment
+#| error: true
+function <- 1
+```
+
+::: aside
+For a full list of reserved names, see [here](http://stat.ethz.ch/R-manual/R-devel/library/base/html/Reserved.html).
+:::
+
+## Predefined words
+
+Some words are in use, but not strictly reserved:
+
+```{r}
+#| output-location: column-fragment
+pi
+```
+
+```{r}
+#| output-location: column-fragment
+pi <- 20
+pi
+```
+
+Lots of names are already taken by built-in objects and functions.
+
+```{r}
+#| output-location: fragment
+#| error: true
+c(1, 2, 5)
+c <- 4
+c(1, 2 ,5)
+```
+
+Don't overwrite them.
+
+::: notes
+R understands the difference between `c` the function and `c` the variable here because of the parentheses. However, this is still very sloppy coding because it creates confusion for the reader and can lead to errors in more complex cases. Try printing `c` after the assignment, it will not refer to the function anymore. If you use Positron or enable diagnostics in VSCode-R you should get warnings if you try to assign to a name that is already in use by a built-in function.
 :::
 
 ## Session memory is temporary
@@ -784,7 +840,7 @@ c(show_local(), x)
 When a function runs, it uses its own local names. Rebinding a name inside the function does not automatically overwrite a name with the same spelling outside the function.
 :::
 
-## Name lookup searches outward
+## Where does `R` look for a name?
 
 ```{r}
 #| output-location: default
@@ -795,12 +851,42 @@ add_outer_x <- function(z) {
 add_outer_x(5)
 ```
 
-- Local names first
+- Function arguments and local names first
 - Then surrounding names
-- Convenient but bug prone - avoid!
+- If still missing: `object 'name' not found`
+- Convenient but bug prone: avoid hidden dependencies
 
 ::: notes
-If a name is not found inside the function, R can look outward to the surrounding environment. That is useful, but it can also make code harder to understand when important inputs are not passed explicitly as arguments.
+This is scoping in practice. R first looks for a name inside the function call itself, then outward to surrounding environments. That is useful, but it also creates a common failure mode: code silently depends on an outer object that was never passed as an argument, or errors because the author assumed a name would already exist.
+:::
+
+## `lm()` cannot find names inside a table
+
+```{r}
+#| output-location: default
+toy_df <- data.frame(
+    x = c(1, 2, 3),
+    y = c(2, 4, 5)
+)
+```
+
+```{r}
+#| error: true
+#| output-location: column-fragment
+lm(y ~ x)
+```
+
+```{r}
+#| output-location: column-fragment
+coef(lm(y ~ x, data = toy_df))
+```
+
+- `x` and `y` are column names inside `toy_df`
+- `lm(y ~ x)` looks for objects named `x` and `y`
+- `data = toy_df` tells `R` where to look
+
+::: notes
+A common error, especially when coming from Stata. The formula uses the column names, but those names live inside the table rather than in the global environment. Passing `data = toy_df` tells the function to evaluate the formula inside that data frame.
 :::
 
 ## Pipes (`|>`) make nesting less awkward
@@ -1044,11 +1130,12 @@ An expression may fail simply because the object is not the kind of thing the co
 - `?mean`
 - `?data.frame`
 - `args(mean)`
+- `example(plot)`
 
 ![&nbsp;](help_data_frame.png)
 
 ::: notes
-Help pages describe what a function does, what arguments it accepts, and what kind of object it returns. `args()` is a quick way to inspect the argument names without reading the full help page.
+Help pages describe what a function does, what arguments it accepts, and what kind of object it returns. `args()` is a quick way to inspect the argument names without reading the full help page. `example()` runs the examples from a help page, which is often a fast way to see a function in action.
 :::
 
 ## Package docs and vignettes
