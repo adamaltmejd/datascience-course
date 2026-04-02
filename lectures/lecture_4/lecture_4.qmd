@@ -99,6 +99,34 @@ c(1, 2, 3) > c(1, 3)
 Recycling can be convenient, but it can also hide a mistake. Length mismatches deserve suspicion.
 :::
 
+## Boolean operators also recycle
+
+The same is true for element-wise Boolean operators:
+
+```{r}
+#| warning: true
+c(TRUE, FALSE) & c(TRUE, FALSE, FALSE)
+```
+
+```{r}
+#| warning: true
+c(TRUE, FALSE) | c(FALSE, TRUE, FALSE)
+```
+
+`&&` and `||` are different: they only look at the first element and are meant for scalar conditions.
+
+```{r}
+TRUE && FALSE
+```
+
+```{r}
+TRUE || FALSE
+```
+
+::: notes
+`&` and `|` work element by element and follow the same recycling rules as other vectorized operators. `&&` and `||` only inspect the first element, which is why they are the right operators inside `if / else` conditions. If vectors are supplied to `&&` or `||`, R uses the first element and warns.
+:::
+
 ## "Vectorized" functions operate element by element
 
 ```{r}
@@ -152,28 +180,31 @@ ifelse(scores >= 60, "pass", "retry")
 - Output has matching length
 - Useful for quick categories
 
-## Subset by position with `[]`
+## Subset vectors *by position* with `[]`
 
 ```{r}
 years <- c(2021, 2022, 2023, 2024)
+```
+
+Integer vector inside `[]` subsets by position.
+
+```{r}
+#| output-location: column-fragment
 years[1]
 ```
 
-- Position-based subsetting
-- One element or several
-- Fundamental operator in `R`
-
-Use `:` to create a sequence of integers:
+Negative indices drop positions:
 
 ```{r}
-2:4
+#| output-location: column-fragment
+years[c(-3, -4)]
 ```
 
-```{r}
-years[2:4]
-```
+::: aside
+We can use `:` to create a sequence of integers, which is often useful for subsetting by position; for example `years[2:4]` gives us the second through fourth elements of the `years` vector. Try it!
+:::
 
-## Subset by logical vector with `[]`
+## Subset vectors *by logical vector* with `[]`
 
 Use a same-length logical vector to keep matching elements:
 ```{r}
@@ -181,7 +212,7 @@ Use a same-length logical vector to keep matching elements:
 years[c(TRUE, FALSE, TRUE, FALSE)]
 ```
 
-## Subset by condition with `[]`
+## Subset vectors *by condition* with `[]`
 
 Or let a condition evaluate to a logical vector on the fly:
 
@@ -783,10 +814,9 @@ hist(
 
 ```{r}
 #| output-location: default
-recent_panel <- subset(panel_df, year >= 2020)
 boxplot(
   formula = unemployment_rate ~ year,
-  data = recent_panel,
+  data = panel_df[panel_df$year >= 2020, ],
   xlab = "Year",
   ylab = "Unemployment rate"
 )

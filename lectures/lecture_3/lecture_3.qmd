@@ -473,6 +473,36 @@ NA == NA
 Unlike Stata, missing values are not treated as very large numbers. Missingness often propagates through calculations until it is handled explicitly.
 :::
 
+## `NA` could be anything
+
+Missingness propagates through logical operations:
+
+```{r}
+#| output-location: column-fragment
+NA > 0
+```
+
+```{r}
+#| output-location: column-fragment
+NA & TRUE
+```
+
+But:
+
+```{r}
+#| output-location: column-fragment
+NA | TRUE
+```
+
+```{r}
+#| output-location: column-fragment
+NA & FALSE
+```
+
+::: {.fragment}
+Here, it does not matter what `NA` could be, since both `TRUE | TRUE` and `FALSE | TRUE` evalute to `TRUE`.
+:::
+
 ## `is.na()` checks missingness
 
 `is.na()` returns `TRUE` for missing values:
