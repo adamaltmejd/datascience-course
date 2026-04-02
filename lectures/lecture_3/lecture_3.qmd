@@ -142,6 +142,13 @@ Names should be valid and readable:
 - Case sensitive (`income` and `Income` are different)
 - Descriptive beats short (no character limit!)
 
+Some names are reserved:
+
+```{r}
+#| error: true
+function <- 1
+```
+
 ## Names can be rebound / overwritten
 
 ```{r}
@@ -604,7 +611,7 @@ Functions package a small piece of logic so it can be reused with different inpu
 
 ## Functions: inputs and output
 
-A function call passes inputs to a function and returns a value:
+A function call passes inputs to a function and returns an object:
 
 ```{r}
 #| output-location: column-fragment
@@ -613,35 +620,33 @@ sqrt(16)
 
 ```{r}
 #| output-location: column-fragment
-round(pi, digits = 3)
+abs(-12)
 ```
 
 ```{r}
 #| output-location: column-fragment
-abs(-12)
+round(pi)
 ```
 
-- Inputs go in
-- A value comes back
-
 ::: notes
-When a function is called, `R` evaluates the call and produces a result. In simple cases it helps to think of the arguments being matched to the function's parameter names and the function body then being evaluated with those values.
+When a function is called, `R` evaluates the call and produces a result. Result can be printed or just stored. In simple cases it helps to think of the arguments being matched to the function's parameter names and the function body then being evaluated with those values.
 :::
 
-## A function call has structure
+## Function call structure
 
 ```{r}
-#| output-location: default
 round(pi, digits = 3)
 ```
 
 - `round` is the function
 - `pi` is the first argument
 - `digits = 3` names another argument
+  - digits is an optional argument with a default of `0`
 - The call returns `3.142`
+- The return value is printed
 
 ::: notes
-This example separates four ideas that are easy to blur together: the function object itself, the values passed in, the names of optional arguments, and the value returned by the call. That distinction carries over directly to other programming languages.
+This example separates five ideas that are easy to blur together: the function object itself, the values passed in, the names of optional arguments, and the value returned by the call. That distinction carries over directly to other programming languages.
 :::
 
 ## Functions are objects too
@@ -680,7 +685,9 @@ The function definition creates a new function object and stores it under the na
 
 ## Named and default arguments
 
-Inside function calls, `=` names an argument. Functions can also provide defaults:
+Inside function calls `=` names an argument.
+
+Functions can also provide defaults:
 
 ```{r}
 #| output-location: default
@@ -700,7 +707,34 @@ add_bonus(55, bonus = 10)
 Default arguments make a function easier to reuse because common choices do not have to be repeated every time. Naming an argument inside the call makes it explicit which parameter is being changed.
 :::
 
-## Functions use local names
+## Functions can have any number of arguments
+
+```{r}
+#| output-location: default
+myfunc <- function(v1, v2) {
+    max(v1, v2)
+}
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: TRUE
+myfunc(1,2)
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: TRUE
+myfunc(1,2,3)
+```
+
+```{r}
+#| output-location: column-fragment
+#| error: TRUE
+myfunc(c(1,2))
+```
+
+## Scoping: functions use "local" names
 
 ```{r}
 #| output-location: default
@@ -720,7 +754,7 @@ c(show_local(), x)
 When a function runs, it uses its own local names. Rebinding a name inside the function does not automatically overwrite a name with the same spelling outside the function.
 :::
 
-## Name lookup can go outward
+## Name lookup searches outward
 
 ```{r}
 #| output-location: default
@@ -733,7 +767,7 @@ add_outer_x(5)
 
 - Local names first
 - Then surrounding names
-- Convenient, but easy to hide dependencies - avoid
+- Convenient but bug prone - avoid!
 
 ::: notes
 If a name is not found inside the function, R can look outward to the surrounding environment. That is useful, but it can also make code harder to understand when important inputs are not passed explicitly as arguments.
@@ -751,7 +785,7 @@ is the same as
 ```{r}
 #| output-location: default
 seq(0, 10) |> 
-  c(rep(NA, 10)) |> 
+  append(rep(NA, 10)) |> 
   mean(na.rm = TRUE)
 ```
 
@@ -825,13 +859,21 @@ Different packages can export functions with the same name. Writing `package::fu
 Comments are text for humans. The interpreter ignores them:
 
 ```r
-# Drop missing values before computing the mean
-average_non_missing <- mean(x, na.rm = TRUE)
+# myfunc(x, y) returns largest number of v1 and v2
+myfunc = function(v1, v2) max(v1, v2)
 ```
 
 - Add intent
 - Add context
 - Add warnings when needed
+- Use comments to get code suggestions from Copilot
+
+::: {.fragment}
+**But**: "Good code explains itself"
+```r
+return_largest_number = function(v1, v2) max(v1, v2)
+```
+:::
 
 ::: notes
 Comments are useful when they explain intent, assumptions, or gotchas that are not obvious from the code itself. They are not part of the computation.
