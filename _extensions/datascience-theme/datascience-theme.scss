@@ -267,8 +267,14 @@ $code-block-border-color:          $border !default;
   margin-top: $gap;
 }
 
+// Zero pre margins inside cells (spacing handled by cell/output rules)
 .reveal .cell pre {
   margin: 0;
+}
+
+// Consecutive standalone pre elements get consistent spacing
+.reveal .slide pre + pre {
+  margin-top: $gap;
 }
 
 // ── Tables ─────────────────────────────────────────────────
