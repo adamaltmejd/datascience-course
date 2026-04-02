@@ -210,6 +210,7 @@ $code-block-border-color:          $border !default;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    overflow: hidden; // Firefox shows spurious scrollbars on flex-stretched containers
     line-height: 1.25;
   }
 
@@ -246,7 +247,9 @@ $code-block-border-color:          $border !default;
   margin: $gap 0 0 0;
 }
 
-.reveal .cell > .cell-output {
+// Gap between any adjacent blocks inside a cell (code→output, output→code)
+.reveal .cell > .cell-output,
+.reveal .cell > .code-copy-outer-scaffold ~ .code-copy-outer-scaffold {
   margin-top: $gap;
 }
 
@@ -403,6 +406,7 @@ section[data-background-color] {
 
   > .column {
     display: flex;
+    flex-direction: column;
     flex: 1 1 0 !important;
     min-width: 0;
     overflow: visible !important;
@@ -421,6 +425,9 @@ section[data-background-color] {
     overflow: visible !important;
   }
 
+  // Firefox treats flex-stretched containers as scrollable when
+  // content is shorter than the stretched size. Lock down overflow
+  // on every level of the chain to prevent this.
   .code-copy-outer-scaffold .cell-code pre {
     flex: 1;
     overflow-x: auto;
@@ -431,6 +438,11 @@ section[data-background-color] {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cell-output + .cell-output {
+    margin-top: $gap;
   }
 
   .cell-output pre {
