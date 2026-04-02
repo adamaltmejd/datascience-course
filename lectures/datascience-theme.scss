@@ -100,9 +100,23 @@ $code-block-border-color:          $border !default;
 .reveal h2 {
   font-size: 1.25em;
   font-weight: 600;
-  margin-bottom: 10px;
-  padding-bottom: 3px;
-  border-bottom: 2px solid $border;
+  margin-bottom: 20px;
+  padding-bottom: 6px;
+}
+
+// Gradient line on all content slides, positioned identically to the title slide.
+// Uses ::before on the section so both title and content slides share
+// the exact same rendering path — no sub-pixel drift between slides.
+.reveal .slides section.level2 {
+  &::before {
+    content: "";
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, $accent 0%, $teal-500 40%, $amber-500 100%);
+  }
 }
 
 .reveal h3 {
@@ -300,8 +314,12 @@ $code-block-border-color:          $border !default;
 
 // ── Progress, slide number, footer ─────────────────────────
 .reveal .progress {
-  color: $accent;
   height: 3px;
+  background: rgba($border, 0.3);
+
+  span {
+    background: $accent !important;
+  }
 }
 
 .reveal .slide-number {
@@ -310,15 +328,25 @@ $code-block-border-color:          $border !default;
   font-family: $font-family-monospace;
 }
 
-.reveal .footer,
+.reveal .footer {
+  color: mix($ink-soft, $bg, 40%);
+  font-size: 10px;
+  text-align: left;
+}
+
 .reveal .figure-caption,
 .reveal figcaption {
   color: $ink-soft;
-}
-
-.reveal figcaption {
   text-align: center;
 }
+
+// Course info line — injected into #title-slide by course-meta.lua
+.course-header {
+  font-size: 0.55em;
+  font-weight: 500;
+  color: $ink-soft;
+}
+
 
 // ── Callouts ───────────────────────────────────────────────
 .reveal .callout {
@@ -330,23 +358,34 @@ $code-block-border-color:          $border !default;
 
 // ── Title slide ────────────────────────────────────────────
 #title-slide {
-  position: relative;
   text-align: left;
-  padding: 20px 20px 16px;
-  background: white;
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
 
+  // Gradient line — same ::before mechanism as content slides
   &::before {
     content: "";
     position: absolute;
-    top: 0;
+    top: 52px;
     left: 0;
     right: 0;
-    height: 4px;
+    height: 3px;
     background: linear-gradient(90deg, $accent 0%, $teal-500 40%, $amber-500 100%);
   }
 
+  // Course info just below the gradient (not centered)
+  .course-header {
+    order: 1;
+    padding-top: 58px; // clear past the gradient
+  }
+
+  // Title + subtitle centered vertically and horizontally
   .title {
-    margin-top: 16px;
+    order: 2;
+    margin-top: auto;
+    align-self: center;
+    text-align: center;
     color: $ink;
     font-size: 1.85em;
     font-weight: 700;
@@ -355,27 +394,23 @@ $code-block-border-color:          $border !default;
   }
 
   .subtitle {
-    margin-top: 5px;
+    order: 3;
+    align-self: center;
+    text-align: center;
     color: $accent;
-    font-size: 0.72em;
-    font-weight: 500;
+    font-size: 0.85em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-top: 6px;
+    margin-bottom: auto;
   }
 
-  .quarto-title-authors {
-    display: block;
-    margin-top: 26px;
-  }
-
-  .quarto-title-author,
-  .quarto-title-author-name,
-  .quarto-title-author-email,
-  .quarto-title-affiliation,
+  .quarto-title-authors,
   .date {
-    width: auto;
-    padding: 0;
-    color: $ink-soft;
-    font-size: 0.55em;
+    display: none;
   }
+
 }
 
 // ── Section dividers ───────────────────────────────────────

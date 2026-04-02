@@ -1,3 +1,8 @@
+course-code: "EC7422"
+course-name: "Data Science for Economic Analysis"
+institution: "Stockholm University"
+author-email: "adam.altmejd@su.se"
+
 format:
   revealjs:
     embed-resources: true
@@ -39,6 +44,7 @@ format:
           };
           </script>
     filters:
+      - course-meta.lua
       - reveal-auto-agenda
     revealjs-plugins:
       - attribution
