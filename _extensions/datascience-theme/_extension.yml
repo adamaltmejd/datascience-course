@@ -1,0 +1,13 @@
+title: datascience-theme
+author: Adam Altmejd Selder
+version: 0.1.0
+quarto-required: ">=1.3.0"
+contributes:
+  formats:
+    revealjs:
+      theme: [default, datascience-theme.scss]
+      highlight-style: arrow
+      slide-number: c/t
+      center: false
+      filters:
+        - course-meta.lua

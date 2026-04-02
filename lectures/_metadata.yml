@@ -4,21 +4,15 @@ institution: "Stockholm University"
 author-email: "adam.altmejd@su.se"
 
 format:
-  revealjs:
+  datascience-theme-revealjs:
     embed-resources: true
     slide-level: 2
-    center: false
-    theme:
-      - default
-      - ../datascience-theme.scss
-    highlight-style: arrow
+    auto-stretch: true
+    output-location: column
     menu:
       side: left
     mermaid:
       theme: forest
-    slide-number: c/t
-    auto-stretch: true
-    output-location: column
     html-math-method:
       method: mathjax
       url: "https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"
@@ -44,7 +38,6 @@ format:
           };
           </script>
     filters:
-      - course-meta.lua
       - reveal-auto-agenda
     revealjs-plugins:
       - attribution
