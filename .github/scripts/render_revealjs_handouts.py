@@ -83,6 +83,7 @@ def main() -> int:
             "--size", args.size,
             "--pause", str(args.pause),
             "--load-pause", str(args.load_pause),
+            "--chrome-arg=--no-sandbox",
         ]
 
         result = subprocess.run(cmd, check=False)
