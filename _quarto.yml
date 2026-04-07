@@ -9,7 +9,7 @@ project:
     - lectures/**/*.qmd
     - problem_sets/**/*.qmd
 author:
-  - name: Adam Altmejd Selder
+  - name: Adam Altmejd
     orcid: 0000-0002-4248-0677
     email: adam.altmejd@su.se
     affiliations: The Institute for Evaluation of Labour Market and Education Policy (IFAU)
