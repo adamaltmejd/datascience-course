@@ -223,6 +223,7 @@ $code-block-border-color:          $border-default !default;
 // Inline code — inherits parent text color, just adds background + monospace
 .reveal code {
   font-family: $font-family-monospace;
+  font-variant-ligatures: none; // keep == != <= -> as discrete characters
   color: inherit;
   background: $bg-inline-code;
   border-radius: 3px;
