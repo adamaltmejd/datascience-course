@@ -59,6 +59,8 @@ $border-code:     mix($info, $neutral-200, 50%); // left accent border on code b
 $border-output:   mix($info, $neutral-200, 40%);   // left accent border on output blocks
 $border-callout:  $primary;             // callout left border
 $border-blockquote: $primary;           // blockquote left border
+$border-aside:    mix($info, $neutral-200, 30%); // aside left accent border
+$border-note:     $primary;             // handout note left accent border
 
 $gap: 8px;
 
@@ -365,30 +367,37 @@ $code-block-border-color:          $border-default !default;
 
 // ── Asides ─────────────────────────────────────────────────
 // Boxed style for slide asides (visible footnote-like content)
-.reveal .aside,
-.reveal .slide aside:not(.notes) {
+// Shared base for asides and handout notes
+%bottom-box {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   background: $bg-aside;
   border: 1px solid $border-default;
   border-radius: 5px;
-  padding: 8px 12px;
+  padding: 10px 13px;
   font-size: 0.55em;
+  line-height: 1.25;
   color: $text-muted;
-  width: 100% !important;
   box-sizing: border-box;
+
+  p, ul, ol { margin: 0; }
+  p + p { margin-top: 0.4em; }
 }
 
-// Notes: hidden in presentation, styled for print/PDF
-@media print {
-  .reveal aside.notes {
-    display: block !important;
-    background: $bg-aside;
-    border: 1px solid $border-default;
-    border-radius: 5px;
-    padding: 8px 12px;
-    font-size: 0.8em;
-    color: $text-muted;
-    margin-top: 12px;
-  }
+.reveal .aside,
+.reveal .slide aside:not(.notes) {
+  @extend %bottom-box;
+  border-left: 3px solid $border-aside;
+}
+
+// Notes: hidden in presentation, visible in handout mode (?handout=true)
+body.handout .reveal aside.notes {
+  @extend %bottom-box;
+  display: block !important;
+  border-left: 3px solid $border-note;
 }
 
 // ── Attribution ────────────────────────────────────────────

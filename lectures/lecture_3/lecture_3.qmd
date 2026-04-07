@@ -211,20 +211,24 @@ pi <- 20
 pi
 ```
 
+```{r}
+#| echo: false
+rm(pi)
+```
+
 Lots of names are already taken by built-in objects and functions.
 
 ```{r}
-#| output-location: fragment
-#| error: true
-c(1, 2, 5)
-c <- 4
-c(1, 2 ,5)
+#| output-location: column-fragment
+if (T) "yes" else "no"
+T <- 0
+if (T) "yes" else "no"
 ```
 
 Don't overwrite them.
 
 ::: notes
-R understands the difference between `c` the function and `c` the variable here because of the parentheses. However, this is still very sloppy coding because it creates confusion for the reader and can lead to errors in more complex cases. Try printing `c` after the assignment, it will not refer to the function anymore. If you use Positron or enable diagnostics in VSCode-R you should get warnings if you try to assign to a name that is already in use by a built-in function.
+`T` is short for `TRUE`, but unlike `TRUE` it is not reserved. If you assign `T <- 0`, then `T` no longer means `TRUE`, which can lead to very confusing bugs. The same goes for `F` and `FALSE`.
 :::
 
 ## Session memory is temporary
@@ -338,11 +342,14 @@ typeof(today)
 class(today)
 ```
 
+- `typeof()` = how it's stored in memory
+- `class()` = what it does
+
 ::: notes
 The storage type tells how the object is represented internally, while the class tells which methods and behaviors are attached to it. Dates are a good example: stored as numbers underneath, but treated as dates by many functions.
 :::
 
-## Class can change a function's method
+## Function methods depend on class
 
 The same function name can behave differently for different object classes:
 
@@ -362,17 +369,6 @@ mean(as.Date(c("2024-01-01", "2025-01-01")))
 
 ::: notes
 This is one reason class matters in `R`. Many functions are generic: the printed name stays the same, but the method used depends on the class of the object supplied. Check with `methods(mean)` to see which methods are available for `mean`. Here we used `mean.default()` for the numeric vector and `mean.Date()` for the date vector.
-:::
-
-## Live coding: inspect simple objects
-
-- Number
-- Text
-- Date
-- Check `typeof()` / `class()`
-
-::: notes
-This exercise keeps the focus on the inspection habit. The main point is to create a few simple objects and check how `R` reports their storage mode and class.
 :::
 
 # Logic And Missingness
@@ -407,24 +403,6 @@ We often need conditions, not just calculations:
 ::: notes
 Assignment is different from comparison although the symbols look similar. `=` assigns an object to a name, `==` compares two objects. Logical operators like `&` and `|` combine logical values, not numbers. The result of a logical expression is always `TRUE` or `FALSE`.
 :::
-
-## A practical condition
-
-```{r}
-#| output-location: column-fragment
-exam_score <- 58
-exam_score >= 50
-```
-
-```{r}
-#| output-location: column-fragment
-exam_score >= 50 & exam_score < 70
-```
-
-```{r}
-#| output-location: column-fragment
-exam_score < 50 | exam_score > 90
-```
 
 ## Precedence
 
@@ -508,7 +486,7 @@ This is not an `R` quirk; it is a general feature of floating-point arithmetic i
 - Useful for "not"
 - Common in filters
 
-## `Not available` = NA
+## Not available = `NA`
 
 `NA` is a **missing value indicator**
 
@@ -756,7 +734,9 @@ Functions are ordinary objects in `R`: they can be inspected, named, stored, and
 :::
 
 
-## A function definition has three parts
+## Creating a function
+
+`function()` creates a new function object:
 
 ```{r}
 #| output-location: default
@@ -797,11 +777,13 @@ add_bonus(55, bonus = 10)
 Default arguments make a function easier to reuse because common choices do not have to be repeated every time. Naming an argument inside the call makes it explicit which parameter is being changed.
 :::
 
-## Functions can have any number of arguments
+## Arguments
+
+Myfunc takes two arguments, `v1` and `v2`, and returns the larger of the two. `v2` has a default value of `5`, so if it is not supplied, the function will compare `v1` to `5`.
 
 ```{r}
 #| output-location: default
-myfunc <- function(v1, v2) {
+myfunc <- function(v1, v2 = 5) {
     max(v1, v2)
 }
 ```
@@ -824,6 +806,10 @@ myfunc(1,2,3)
 myfunc(c(1,2))
 ```
 
+::: fragment
+The last call returns `5` and not `2` because the whole `c(1,2)` is supplied for `v1` and no object is supplied for `v2`.
+:::
+
 ## Scoping: functions use "local" names
 
 ```{r}
@@ -840,8 +826,8 @@ c(show_local(), x)
 - Local assignment stays local
 - Outer name unchanged
 
-::: notes
-When a function runs, it uses its own local names. Rebinding a name inside the function does not automatically overwrite a name with the same spelling outside the function.
+::: aside
+`x <- 10` assigns `10` to the name `x` in the **global environment**. In a sense, all global environment objects are like "globals" in Stata. When `show_local()` runs, it creates a new local name `x` that is separate from the global `x`. The assignment `x <- 20` changes the local `x`, but does not affect the global `x`.
 :::
 
 ## Where does `R` look for a name?
@@ -858,13 +844,14 @@ add_outer_x(5)
 - Function arguments and local names first
 - Then surrounding names
 - If still missing: `object 'name' not found`
-- Convenient but bug prone: avoid hidden dependencies
+- Convenient but bug prone
+  - **Pass all used objects as arguments**
 
 ::: notes
-This is scoping in practice. R first looks for a name inside the function call itself, then outward to surrounding environments. That is useful, but it also creates a common failure mode: code silently depends on an outer object that was never passed as an argument, or errors because the author assumed a name would already exist.
+R first looks for a name inside the function call itself, then outward to surrounding environments. That is useful, but it also creates a common failure mode: code silently depends on an outer object that was never passed as an argument, or errors because the author assumed a name would already exist.
 :::
 
-## `lm()` cannot find names inside a table
+## You need to tell `R` where to look
 
 ```{r}
 #| output-location: default
@@ -872,6 +859,11 @@ toy_df <- data.frame(
     x = c(1, 2, 3),
     y = c(2, 4, 5)
 )
+```
+
+```{r}
+#| echo: false
+rm(y, x)
 ```
 
 ```{r}
@@ -890,53 +882,7 @@ coef(lm(y ~ x, data = toy_df))
 - `data = toy_df` tells `R` where to look
 
 ::: notes
-A common error, especially when coming from Stata. The formula uses the column names, but those names live inside the table rather than in the global environment. Passing `data = toy_df` tells the function to evaluate the formula inside that data frame.
-:::
-
-## Pipes (`|>`) make nesting less awkward
-
-```{r}
-#| output-location: default
-mean(c(seq(0, 10), rep(NA, 10)), na.rm = TRUE)
-```
-
-is the same as 
-
-```{r}
-#| output-location: default
-seq(0, 10) |> 
-  append(rep(NA, 10)) |> 
-  mean(na.rm = TRUE)
-```
-
-- Piped content enters the first argument of the next function
-- Avoids nested parentheses
-- Reads left to right
-- Still a function call, just different syntax
-
-## Write your own function
-
-```{r}
-#| output-location: default
-return_smaller <- function(v1, v2) {
-    min(v1, v2)
-}
-
-return_smaller(3, 8)
-```
-
-::: notes
-This is a deliberately small example: the main point is not the task itself but the pattern. A function definition gives a name to a reusable computation, and a later call runs that computation on new inputs.
-:::
-
-## Live coding: tiny function
-
-- Add 10
-- Give it a default
-- Test two different inputs
-
-::: notes
-This exercise combines the ideas from the previous slides: defining a function, adding a default argument, and then calling it with different inputs.
+A common error, especially when coming from Stata. The formula uses the column names, but those names live inside the table rather than in the global environment. Passing `data = toy_df` tells the function to evaluate the formula inside that data frame instead of in the global environment.
 :::
 
 # Packages, Comments, Errors, and Help
@@ -1018,7 +964,28 @@ average_non_missing <- mean(x, na.rm = TRUE)
 Self-explanatory names do most of the work. Comments are most useful when they explain why something is done, not simply what a line already says.
 :::
 
-## A short debugging checklist
+## Pipes (`|>`) make code easier to read
+
+```{r}
+#| output-location: default
+mean(c(seq(0, 10), rep(NA, 10)), na.rm = TRUE)
+```
+
+is the same as 
+
+```{r}
+#| output-location: default
+seq(0, 10) |> 
+  append(rep(NA, 10)) |> 
+  mean(na.rm = TRUE)
+```
+
+- Piped content enters the first argument of the next function
+- Avoids nested parentheses
+- Reads left to right
+- Still a function call, just different syntax
+
+## A quick intro to figuring out what went wrong
 
 - Read the error
 - Check names
@@ -1027,7 +994,7 @@ Self-explanatory names do most of the work. Comments are most useful when they e
 - Get help
 
 ::: notes
-This checklist is intentionally basic. Many early bugs come from a misspelled name, a wrong object type, or an incorrect assumption about what a function expects.
+We'll cover debugging in more depth later, but these are the main steps to take when an error occurs. The key is to read the error message carefully and then use tools like `exists()`, printing, and checking types to understand what went wrong.
 :::
 
 ## Read the error
@@ -1047,7 +1014,7 @@ my_dat[1]
 The important habit is to read the error literally before guessing at a fix. In this example the problem is not indexing syntax or object type; it is simply that the name in the second line does not match the name that was created.
 :::
 
-## Understanding error messages
+## Understand the error
 
 ```{r}
 #| error: TRUE

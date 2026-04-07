@@ -30,7 +30,7 @@ concurrency:
 env:
   RENV_CONFIG_REPOS_OVERRIDE: CRAN=https://packagemanager.posit.co/cran/latest
   QUARTO_VERSION: "1.8.26"
-  PLAYWRIGHT_VERSION: "1.58.0"
+  DECKTAPE_VERSION: "3.15.0"
 
 jobs:
   build:
@@ -94,8 +94,13 @@ jobs:
       - name: Render Quarto project
         run: quarto render
 
-      - name: Install Chromium for Playwright
-        run: uv run --with "playwright==${PLAYWRIGHT_VERSION}" python -m playwright install --with-deps chromium
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install decktape
+        run: npm install -g "decktape@${DECKTAPE_VERSION}"
 
       - name: Generate revealjs handout PDFs
         run: |
@@ -109,7 +114,7 @@ jobs:
             sleep 1
           done
           curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null
-          uv run --with "playwright==${PLAYWRIGHT_VERSION}" python .github/scripts/render_revealjs_handouts.py \
+          python .github/scripts/render_revealjs_handouts.py \
             --site-dir _site \
             --base-url http://127.0.0.1:8000
 

@@ -1,33 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import shutil
+import subprocess
 from pathlib import Path
-from urllib.parse import quote, urlencode
-
-from playwright.sync_api import sync_playwright
+from urllib.parse import quote
 
 
-PDF_EXPORT_OPTIONS = {
-    "view": "print",
-    "showNotes": "true",
-    "pdfSeparateFragments": "false",
-}
-
-PDF_EXPORT_CSS = """
-.reveal .speaker-notes-pdf::before {
-    content: none !important;
-    display: none !important;
-}
-
-.reveal .speaker-notes-pdf > * {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-}
-
-.reveal .speaker-notes-pdf > * + * {
-    margin-top: 0.5em !important;
-}
-"""
+DECKTAPE_PARAMS = "handout=true&pdfSeparateFragments=false"
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,17 +18,28 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--glob", default="lectures/**/lecture_*.html")
-    parser.add_argument("--paper-format", default="A4")
-    parser.add_argument("--wait-selector", default=".reveal.ready")
-    parser.add_argument("--timeout-ms", type=int, default=30000)
-    parser.add_argument("--settle-ms", type=int, default=2000)
+    parser.add_argument("--size", default="1600x900")
+    parser.add_argument("--pause", type=int, default=1000)
+    parser.add_argument("--load-pause", type=int, default=2000)
     return parser.parse_args()
+
+
+def find_decktape() -> str:
+    path = shutil.which("decktape")
+    if path:
+        return path
+    # Try npx/bunx fallback
+    for runner in ("bunx", "npx"):
+        if shutil.which(runner):
+            return runner
+    raise FileNotFoundError(
+        "decktape not found. Install with: npm install -g decktape"
+    )
 
 
 def build_url(base_url: str, relative_path: Path) -> str:
     relative_url = "/".join(quote(part) for part in relative_path.parts)
-    query = urlencode(PDF_EXPORT_OPTIONS)
-    return f"{base_url.rstrip('/')}/{relative_url}?{query}"
+    return f"{base_url.rstrip('/')}/{relative_url}?{DECKTAPE_PARAMS}"
 
 
 def main() -> int:
@@ -65,47 +56,40 @@ def main() -> int:
             f"No lecture HTML files matched {args.glob!r} under {site_dir}"
         )
 
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        context = browser.new_context(
-            color_scheme="light",
-            service_workers="block",
-            viewport={"width": 1600, "height": 900},
+    decktape = find_decktape()
+    is_runner = decktape in ("bunx", "npx")
+
+    for html_path in html_paths:
+        relative_html = html_path.relative_to(site_dir)
+        pdf_path = output_dir / relative_html.with_suffix(".pdf")
+        pdf_path.parent.mkdir(parents=True, exist_ok=True)
+
+        url = build_url(args.base_url, relative_html)
+        print(
+            f"Printing {relative_html} -> {pdf_path.relative_to(output_dir)}",
+            flush=True,
         )
 
-        for html_path in html_paths:
-            relative_html = html_path.relative_to(site_dir)
-            pdf_path = output_dir / relative_html.with_suffix(".pdf")
-            pdf_path.parent.mkdir(parents=True, exist_ok=True)
+        cmd = []
+        if is_runner:
+            cmd = [decktape, "decktape"]
+        else:
+            cmd = [decktape]
 
-            url = build_url(args.base_url, relative_html)
-            print(
-                f"Printing {relative_html} -> {pdf_path.relative_to(output_dir)}",
-                flush=True,
+        cmd += [
+            "reveal",
+            url,
+            str(pdf_path),
+            "--size", args.size,
+            "--pause", str(args.pause),
+            "--load-pause", str(args.load_pause),
+        ]
+
+        result = subprocess.run(cmd, check=False)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"decktape failed for {relative_html} (exit {result.returncode})"
             )
-
-            page = context.new_page()
-            page.set_default_timeout(args.timeout_ms)
-
-            response = page.goto(url, wait_until="networkidle")
-            if response is None or not response.ok:
-                status = "no response" if response is None else response.status
-                raise RuntimeError(f"Failed to load {url} ({status})")
-
-            page.locator(args.wait_selector).wait_for()
-            page.wait_for_function("document.fonts.status === 'loaded'")
-            page.add_style_tag(content=PDF_EXPORT_CSS)
-            page.wait_for_timeout(args.settle_ms)
-            page.pdf(
-                path=str(pdf_path),
-                format=args.paper_format,
-                margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
-                print_background=True,
-            )
-            page.close()
-
-        context.close()
-        browser.close()
 
     return 0
 

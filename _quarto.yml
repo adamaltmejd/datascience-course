@@ -31,4 +31,3 @@ knitr:
       knitr.graphics.auto_pdf: true
 fig-align: center
 bibliography: ["datascience-course.bib"]
-#highlight-style: github

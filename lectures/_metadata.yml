@@ -5,7 +5,6 @@ author-email: "adam.altmejd@su.se"
 
 format:
   datascience-theme-revealjs:
-    embed-resources: true
     slide-level: 2
     auto-stretch: true
     output-location: column
@@ -36,6 +35,24 @@ format:
               }
             }
           };
+          </script>
+    include-after-body:
+      - text: |
+          <script>
+          if (location.search.includes('handout')) {
+            document.body.classList.add('handout');
+            function stackNotes(slide) {
+              const note = slide.querySelector(':scope > aside.notes');
+              const aside = slide.querySelector(':scope > aside:not(.notes)');
+              if (note && aside) {
+                requestAnimationFrame(() => {
+                  aside.style.bottom = (note.offsetHeight + 8) + 'px';
+                });
+              }
+            }
+            Reveal.on('slidechanged', e => stackNotes(e.currentSlide));
+            Reveal.on('ready', e => stackNotes(e.currentSlide));
+          }
           </script>
     filters:
       - reveal-auto-agenda
