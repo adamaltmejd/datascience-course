@@ -59,7 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (f) {
     f.textContent = %q;
     function toggleFooter(slide) {
-      f.style.display = (slide.id === 'title-slide') ? 'none' : '';
+      var hide = slide.id === 'title-slide'
+        || slide.classList.contains('agenda-slide')
+        || slide.hasAttribute('data-background-color');
+      f.style.display = hide ? 'none' : '';
     }
     if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
       toggleFooter(Reveal.getCurrentSlide());

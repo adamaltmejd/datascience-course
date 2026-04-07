@@ -2,46 +2,82 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
-// ── Color palette ──────────────────────────────────────────
-$slate-50:    #f8fafc;
-$slate-100:   #f1f5f9;
-$slate-200:   #e2e8f0;
-$slate-500:   #64748b;
-$slate-900:   #0f172a;
-$teal-500:    #14b8a6;
-$teal-700:    #0f766e;
-$orange-700:  #c2410c;
-$amber-500:   #f59e0b;
-$amber-600:   #d97706;
+// ══════════════════════════════════════════════════════════
+// COLOR SYSTEM
+// Edit colors here — everything else derives from these.
+// ══════════════════════════════════════════════════════════
 
-$bg:          $slate-50;
-$bg-code:     $slate-100;
-$ink:         $slate-900;
-$ink-soft:    $slate-500;
-$accent:      $teal-700;
-$emphasis:    $orange-700;
-$marker:      $amber-600;
-$border:      $slate-200;
-$code-border: mix($accent, $border, 60%);
+// ── Neutrals ───────────────────────────────────────────────
+$neutral-50:  #f8fafc; // lightest (slide background)
+$neutral-100: #f1f5f9; // code/output backgrounds
+$neutral-200: #e2e8f0; // borders
+$neutral-500: #64748b; // muted text (captions, footnotes, line numbers)
+$neutral-800: #1e293b; // dark backgrounds
+$neutral-900: #0f172a; // body text
+
+// ── Palette ────────────────────────────────────────────────
+$primary:   #644043; // chocolate plum
+$secondary: #FFEAC2; // light yellow
+$success:   #C9CBA3; // dry sage
+$danger:    #E26D5C; // vibrant coral
+// $info:      #723D46; // wine plum
+$info:      #924F5B; // smoky rose
+
+// ── Text colors ────────────────────────────────────────────
+$text-body:       $neutral-900;         // main body text
+$text-muted:      $neutral-500;         // captions, footnotes, asides, line numbers
+$text-heading:    $neutral-900;         // h1, h2 headings
+$text-subheading: $primary;             // h3 (uppercase label headings)
+$text-emphasis:   $danger;              // bold/strong text
+$text-italic:     $primary;             // emphasized/italic text
+$text-link:       $primary;             // links
+$text-link-hover: darken($primary, 8%); // link hover state
+
+// ── Styling elements ───────────────────────────────────────
+$bullet-color:    $info;             // ul markers + nested arrow markers
+$ol-marker-color: $info;             // ordered list markers
+$gradient-start:  $primary;             // heading underline + title slide gradient
+$gradient-end:    $secondary;           // gradient end color
+$progress-bar:    $primary;             // bottom progress bar fill
+$selection:       rgba($info, 0.35);    // text selection highlight
+$button-bg:       $primary;             // .button background
+
+// ── Backgrounds ────────────────────────────────────────────
+$bg-slide:        $neutral-100;          // slide background
+$bg-code:         lighten($success, 25%);         // block code background
+$bg-inline-code:  lighten($success, 25%);         // inline code background
+$bg-output:       $neutral-200;         // cell output background
+$bg-aside:        $neutral-200;         // aside/footnote boxes
+$bg-blockquote:   rgba($neutral-100, 0.6); // blockquote background
+$bg-callout:      rgba(white, 0.6);     // callout box background
+$bg-divider:      $secondary;           // section divider (level1) background
+$bg-toc:          $primary;             // TOC/agenda slide background (full bleed)
+
+// ── Borders ────────────────────────────────────────────────
+$border-default:  $neutral-200;         // general borders (tables, code blocks)
+$border-code:     mix($info, $neutral-200, 50%); // left accent border on code blocks
+$border-output:   mix($info, $neutral-200, 40%);   // left accent border on output blocks
+$border-callout:  $primary;             // callout left border
+$border-blockquote: $primary;           // blockquote left border
 
 $gap: 8px;
 
 // ── Quarto / Reveal variables ──────────────────────────────
-$body-bg:                          $bg !default;
-$body-color:                       $ink !default;
-$link-color:                       $accent !default;
-$selection-bg:                     rgba($teal-500, 0.3) !default;
+$body-bg:                          $bg-slide !default;
+$body-color:                       $text-body !default;
+$link-color:                       $text-link !default;
+$selection-bg:                     $selection !default;
 
 $font-family-sans-serif:           "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !default;
 $presentation-heading-font:        "Inter", -apple-system, BlinkMacSystemFont, sans-serif !default;
 $font-family-monospace:            "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", monospace !default;
 
 $presentation-font-size-root:      31px;
-$presentation-heading-color:       $ink !default;
+$presentation-heading-color:       $text-heading !default;
 $presentation-heading-font-weight: 600 !default;
 
-$code-block-bg:                    white !default;
-$code-block-border-color:          $border !default;
+$code-block-bg:                    $bg-code !default;
+$code-block-border-color:          $border-default !default;
 
 /*-- scss:rules --*/
 
@@ -61,17 +97,17 @@ $code-block-border-color:          $border !default;
 }
 
 .reveal p {
-  margin: 6px 0 10px;
+  margin: 10px 0 16px;
 }
 
 .reveal strong,
 .reveal b {
-  color: $emphasis;
+  color: $text-emphasis;
   font-weight: 600;
 }
 
 .reveal em {
-  color: $accent;
+  color: $text-italic;
 }
 
 .reveal a {
@@ -80,7 +116,7 @@ $code-block-border-color:          $border !default;
   text-underline-offset: 0.15em;
 
   &:hover {
-    color: darken($accent, 8%);
+    color: $text-link-hover;
   }
 }
 
@@ -100,13 +136,11 @@ $code-block-border-color:          $border !default;
 .reveal h2 {
   font-size: 1.25em;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
   padding-bottom: 6px;
 }
 
 // Gradient line on all content slides, positioned identically to the title slide.
-// Uses ::before on the section so both title and content slides share
-// the exact same rendering path — no sub-pixel drift between slides.
 .reveal .slides section.level2 {
   &::before {
     content: "";
@@ -115,13 +149,13 @@ $code-block-border-color:          $border !default;
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, $accent 0%, $teal-500 40%, $amber-500 100%);
+    background: linear-gradient(90deg, $gradient-start 0%, $gradient-end 100%);
   }
 }
 
 .reveal h3 {
   margin-top: 4px;
-  color: $accent;
+  color: $text-subheading;
   font-size: 0.85em;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -129,7 +163,7 @@ $code-block-border-color:          $border !default;
 }
 
 .reveal h4 {
-  color: $emphasis;
+  color: $text-emphasis;
   font-size: 0.82em;
   font-weight: 600;
 }
@@ -138,14 +172,20 @@ $code-block-border-color:          $border !default;
 .reveal ul,
 .reveal ol {
   padding-left: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .reveal ul {
-  margin-bottom: 0 !important;
+  margin-bottom: 10px !important;
+}
+
+.reveal li {
+  margin-bottom: 6px;
 }
 
 .reveal ul li::marker {
-  color: $marker;
+  color: $bullet-color;
 }
 
 // Nested lists use → arrows instead of bullets
@@ -154,7 +194,7 @@ $code-block-border-color:          $border !default;
 
   li::before {
     content: "\2192";
-    color: $marker;
+    color: $bullet-color;
     display: inline-block;
     width: 1em;
     margin-left: -1em;
@@ -163,7 +203,7 @@ $code-block-border-color:          $border !default;
 }
 
 .reveal ol li::marker {
-  color: $accent;
+  color: $ol-marker-color;
   font-weight: 600;
 }
 
@@ -172,28 +212,28 @@ $code-block-border-color:          $border !default;
   width: 100%;
   margin: 14px 0;
   padding: 10px 14px;
-  color: $ink;
-  background: rgba($slate-100, 0.6);
-  border-left: 4px solid $accent;
+  color: $text-body;
+  background: $bg-blockquote;
+  border-left: 4px solid $border-blockquote;
   box-shadow: none;
   font-style: italic;
 }
 
 // ── Code blocks ────────────────────────────────────────────
-// Inline code
+// Inline code — inherits parent text color, just adds background + monospace
 .reveal code {
   font-family: $font-family-monospace;
-  color: $ink;
-  background: $bg-code;
+  color: inherit;
+  background: $bg-inline-code;
   border-radius: 3px;
   padding: 1px 4px;
 }
 
 // Block code: visual box on pre, code element is transparent
 .reveal pre {
-  background: white;
-  border: 1px solid $border;
-  border-left: 3px solid $code-border;
+  background: $bg-code;
+  border: 1px solid $border-default;
+  border-left: 3px solid $border-code;
   border-radius: 5px;
   box-sizing: border-box;
   box-shadow: none;
@@ -228,6 +268,7 @@ $code-block-border-color:          $border !default;
     box-shadow: none !important;
     overflow: hidden; // Firefox shows spurious scrollbars on flex-stretched containers
     line-height: 1.25;
+    color: $text-body; // block code keeps dark text regardless of parent
   }
 
   pre code a {
@@ -263,9 +304,11 @@ $code-block-border-color:          $border !default;
   margin: $gap 0 0 0;
 }
 
-// Gap between any adjacent blocks inside a cell (code→output, output→code)
+// Consistent gap between all adjacent blocks inside a cell
+// (code→output, output→code, output→output, code→code)
 .reveal .cell > .cell-output,
-.reveal .cell > .code-copy-outer-scaffold ~ .code-copy-outer-scaffold {
+.reveal .cell > .code-copy-outer-scaffold ~ .code-copy-outer-scaffold,
+.reveal .cell > .cell-output ~ .code-copy-outer-scaffold {
   margin-top: $gap;
 }
 
@@ -289,29 +332,28 @@ $code-block-border-color:          $border !default;
 .reveal table th,
 .reveal table td {
   padding: 4px 7px;
-  border-color: $border;
+  border-color: $border-default;
   text-align: left;
 }
 
 .reveal table th {
-  color: $ink;
+  color: $text-body;
   font-weight: 600;
-  border-bottom: 2px solid mix($accent, $bg, 35%);
+  border-bottom: 2px solid mix($primary, $bg-slide, 35%);
 }
 
 .reveal table tr:nth-child(even) td {
-  background: rgba($slate-100, 0.45);
+  background: rgba($neutral-100, 0.45);
 }
 
 .reveal table tr:last-child td {
-  border-bottom: 2px solid $border;
+  border-bottom: 2px solid $border-default;
 }
 
 .reveal table caption {
-  color: $ink-soft;
+  color: $text-muted;
   font-variant: small-caps;
 }
-
 
 // ── Media ──────────────────────────────────────────────────
 .reveal img,
@@ -320,31 +362,66 @@ $code-block-border-color:          $border !default;
   border-radius: 3px;
 }
 
+// ── Asides ─────────────────────────────────────────────────
+// Boxed style for slide asides (visible footnote-like content)
+.reveal .aside,
+.reveal .slide aside:not(.notes) {
+  background: $bg-aside;
+  border: 1px solid $border-default;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 0.55em;
+  color: $text-muted;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+// Notes: hidden in presentation, styled for print/PDF
+@media print {
+  .reveal aside.notes {
+    display: block !important;
+    background: $bg-aside;
+    border: 1px solid $border-default;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 0.8em;
+    color: $text-muted;
+    margin-top: 12px;
+  }
+}
+
+// ── Attribution ────────────────────────────────────────────
+.reveal .attribution .content {
+  color: $text-muted;
+}
+
 // ── Progress, slide number, footer ─────────────────────────
 .reveal .progress {
   height: 3px;
-  background: rgba($border, 0.3);
+  background: rgba($border-default, 0.3);
 
   span {
-    background: $accent !important;
+    background: $progress-bar !important;
   }
 }
 
 .reveal .slide-number {
-  color: $ink-soft;
+  color: $text-muted;
   font-size: 0.42em;
   font-family: $font-family-monospace;
+
+  a { text-decoration: none; color: inherit; }
 }
 
 .reveal .footer {
-  color: mix($ink-soft, $bg, 40%);
+  color: mix($text-muted, $bg-slide, 40%);
   font-size: 10px;
   text-align: left;
 }
 
 .reveal .figure-caption,
 .reveal figcaption {
-  color: $ink-soft;
+  color: $text-muted;
   text-align: center;
 }
 
@@ -352,16 +429,15 @@ $code-block-border-color:          $border !default;
 .course-header {
   font-size: 0.55em;
   font-weight: 500;
-  color: $ink-soft;
+  color: $text-muted;
 }
-
 
 // ── Callouts ───────────────────────────────────────────────
 .reveal .callout {
-  border: 1px solid $border;
-  border-left: 5px solid $accent;
+  border: 1px solid $border-default;
+  border-left: 5px solid $border-callout;
   border-radius: 5px;
-  background: rgba(white, 0.6);
+  background: $bg-callout;
 }
 
 // ── Title slide ────────────────────────────────────────────
@@ -379,7 +455,7 @@ $code-block-border-color:          $border !default;
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, $accent 0%, $teal-500 40%, $amber-500 100%);
+    background: linear-gradient(90deg, $gradient-start 0%, $gradient-end 100%);
   }
 
   // Course info just below the gradient (not centered)
@@ -394,7 +470,7 @@ $code-block-border-color:          $border !default;
     margin-top: auto;
     align-self: center;
     text-align: center;
-    color: $ink;
+    color: $text-body;
     font-size: 1.85em;
     font-weight: 700;
     line-height: 1.05;
@@ -405,7 +481,7 @@ $code-block-border-color:          $border !default;
     order: 3;
     align-self: center;
     text-align: center;
-    color: $accent;
+    color: $text-subheading;
     font-size: 0.85em;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -418,24 +494,69 @@ $code-block-border-color:          $border !default;
   .date {
     display: none;
   }
-
 }
 
 // ── Section dividers ───────────────────────────────────────
+// H1 sections (level1) get dark background; text forced white.
+.reveal .slides section.level1 {
+  background: $bg-divider;
+
+  h1, h2, h3, p, li, span {
+    color: white !important;
+  }
+}
+
+// Legacy: any slide with explicit data-background-color
 section[data-background-color] {
   h1, h2, h3, p, li, span {
     color: white !important;
   }
 }
 
+// ── TOC / Agenda slides ──────────────────────────────────
+// Auto-agenda plugin creates slides with .agenda-slide class.
+// Muted accent background, no bullet markers, marker-colored text.
+.reveal .slides section.agenda-slide {
+  // Full-slide primary background (box-shadow extends beyond section padding)
+  background: $bg-toc !important;
+  box-shadow: 0 0 0 100vmax $bg-toc !important;
+
+  ul, .agenda {
+    list-style: none !important;
+    padding-left: 0 !important;
+  }
+
+  li::before { display: none !important; } // kill arrow markers
+  li::marker { color: transparent !important; }
+
+  // Secondary-colored text on primary background
+  h1, h2, h3, p, li, span {
+    color: rgba($secondary, 0.6) !important;
+  }
+
+  .agenda-heading {
+    color: $secondary !important;
+    font-weight: 600;
+  }
+
+  .agenda-active {
+    color: white !important;
+    font-weight: 700;
+  }
+
+  .agenda-inactive {
+    opacity: 0.5;
+  }
+}
+
 // ── Cell output styling ────────────────────────────────────
 .reveal .cell-output pre {
-  background: $bg-code;
-  border-left-color: mix($accent, $border, 40%);
+  background: $bg-output;
+  border-left-color: $border-output;
 }
 
 .reveal .cell-output pre code {
-  color: $ink-soft;
+  color: $text-muted;
 }
 
 // ── Column output layout ───────────────────────────────────
@@ -496,10 +617,10 @@ section[data-background-color] {
 
 // ── Panel tabsets ──────────────────────────────────────────
 .reveal .panel-tabset .nav-tabs {
-  border-bottom: 2px solid $border;
+  border-bottom: 2px solid $border-default;
 
   .nav-link {
-    color: $ink-soft;
+    color: $text-muted;
     font-size: 0.72em;
     font-weight: 500;
     padding: 4px 9px;
@@ -509,8 +630,8 @@ section[data-background-color] {
     background: none;
 
     &.active {
-      color: $accent;
-      border-bottom-color: $accent;
+      color: $text-subheading;
+      border-bottom-color: $text-subheading;
     }
 
     code {
@@ -537,10 +658,10 @@ section[data-background-color] {
 .center-h { display: flex; justify-content: center; }
 
 // Inline text highlighting: [text]{.alert}, [text]{.fg style="--col: red"}
-.alert { color: $emphasis; }
-.fg { color: var(--col, $ink); }
+.alert { color: $danger; }
+.fg { color: var(--col, $text-body); }
 .bg {
-  background-color: var(--col, $bg-code);
+  background-color: var(--col, $bg-inline-code);
   padding: 1px 4px;
   border-radius: 3px;
   display: inline-block;
@@ -556,16 +677,16 @@ section[data-background-color] {
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
-  background-color: $accent;
-  border: 1px solid $accent;
+  background-color: $button-bg;
+  border: 1px solid $button-bg;
   color: white !important;
   text-decoration: none;
   border-radius: 4px;
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: darken($accent, 10%);
-    border-color: darken($accent, 10%);
+    background-color: darken($button-bg, 10%);
+    border-color: darken($button-bg, 10%);
   }
 
   &::before {

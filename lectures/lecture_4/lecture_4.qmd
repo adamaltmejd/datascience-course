@@ -27,7 +27,7 @@ options(width = 70)
 - Logic and `if / else` control decisions
 - Functions package reusable work
 
-# Vectors {background-color="#40666e"}
+# Vectors
 
 ## A vector stores many values of one type
 
@@ -262,7 +262,7 @@ typeof(student_record)
 Lists are more flexible than atomic vectors because their elements do not all need the same type.
 :::
 
-# From Vectors To Tables {background-color="#40666e"}
+# From Vectors To Tables
 
 ## Start with three column vectors
 
@@ -450,7 +450,7 @@ str(panel_df)
 read.csv guesses that "municipality_code" is numeric because it only contains numbers. But if its an identifier the leading zeroes matter and we need to make sure to tell R to read it as character. That is what the `colClasses` argument does in the `read.csv()` call.
 :::
 
-# Subsetting Tables {background-color="#40666e"}
+# Subsetting Tables
 
 ## A table column is just a vector
 
@@ -525,7 +525,7 @@ panel_df[
 - Same observation
 - Note `,` at the end to keep all columns
 
-# Working With Table Columns {background-color="#40666e"}
+# Working With Table Columns
 
 ## Assigning to a new column
 
@@ -553,7 +553,7 @@ head(panel_df[c("year", "period")])
 `ifelse()` is often useful for creating quick derived categories from existing columns. Because the output is a vector of the same length, it can be added back to the table as a new column.
 :::
 
-# Categories {background-color="#40666e"}
+# Categories
 
 ## `factor()` creates categorical data
 
@@ -610,7 +610,7 @@ sex_demo
 Factors attach labels to stored codes. Factors look like labeled text when printed, but internally they store integer codes plus a set of levels. This saves lots of memory and is useful for various reasons. But factors behave differently from plain character columns sometimes and need a bit of caution.
 :::
 
-# Tidy Data {background-color="#40666e"}
+# Tidy Data
 
 ## Tidy data
 
@@ -673,7 +673,7 @@ tidy_rates[tidy_rates$year == 2023, c("municipality_code", "unemployment_rate")]
 - Easier joining
 - Easier plotting
 
-# Basic Checks {background-color="#40666e"}
+# Basic Checks
 
 ## Check names and types
 
@@ -780,7 +780,7 @@ bad_panel[!is.na(bad_panel$unemployment_rate), ]
 This checklist separates structure questions from value questions. Both matter before any serious analysis starts.
 :::
 
-# Quick Inspection Plots {background-color="#40666e"}
+# Quick Inspection Plots
 
 ## Why plot now?
 
@@ -842,4 +842,4 @@ plot(
 - Check early
 - Plot early
 
-## Next lecture: Independent Workflows, Debugging, and AI Support {.title-slide background-color="#40666e"}
+## Next lecture: Independent Workflows, Debugging, and AI Support

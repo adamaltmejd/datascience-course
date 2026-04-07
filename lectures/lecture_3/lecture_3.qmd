@@ -35,6 +35,10 @@ These ideas recur across most programming languages. The syntax changes, but the
 - `R` Script file open
 - `Ctrl/cmd+enter` sends line to interpreter
 
+::: aside
+I've been testing out Positron and it seems to work well enough by now that I actually want to recommend you to try it. Lots of R features will "just work".
+:::
+
 ::: notes
 The key distinction is conceptual: code is written in the script editor and sent to the `R` interpreter. In VS Code, the interpreter may run inside a terminal pane, but that pane is only the interface, not the shell itself.
 :::
@@ -62,7 +66,7 @@ All objects can be named, inspected, and reused.
 This slogan, attributed to John Chambers (the creator of the S language), is informal, but useful. In `R`, values, tables, functions, and model results are all objects that can be named, inspected, stored, and passed to other functions.
 :::
 
-# Expressions, Operators, And Assignment {background-color="#40666e"}
+# Expressions, Operators, And Assignment
 
 ## Arithmetic with operators
 
@@ -233,7 +237,7 @@ R understands the difference between `c` the function and `c` the variable here 
 This is one reason scripts matter. A script records how objects are created so the session can be rebuilt from code rather than from memory.
 :::
 
-# Objects And Types {background-color="#40666e"}
+# Objects And Types
 
 ## Objects, names, functions
 
@@ -371,7 +375,7 @@ This is one reason class matters in `R`. Many functions are generic: the printed
 This exercise keeps the focus on the inspection habit. The main point is to create a few simple objects and check how `R` reports their storage mode and class.
 :::
 
-# Logic And Missingness {background-color="#40666e"}
+# Logic And Missingness
 
 ## Logic uses operators
 
@@ -617,7 +621,7 @@ is.nan(NaN)
 These values are easy to confuse, but they mean different things. `NA` means a value is missing, while `NaN` means a numeric calculation itself was undefined.
 :::
 
-# Control Flow {background-color="#40666e"}
+# Control Flow
 
 ## Control flow decides what runs
 
@@ -680,7 +684,7 @@ for (i in 1:4) {
 A `for` loop runs the same block repeatedly while a name takes different values in turn. Here `1:4` is a short way to generate the sequence from 1 to 4.
 :::
 
-# Functions {background-color="#40666e"}
+# Functions
 
 ## Why functions matter
 
@@ -935,7 +939,7 @@ This is a deliberately small example: the main point is not the task itself but 
 This exercise combines the ideas from the previous slides: defining a function, adding a default argument, and then calling it with different inputs.
 :::
 
-# Packages, Comments, Errors, and Help {background-color="#40666e"}
+# Packages, Comments, Errors, and Help
 
 ## Packages extend `R`
 
@@ -1165,4 +1169,4 @@ Function help pages answer small local questions. Vignettes are better when the 
 - Packages extend the language
 - Help and errors are part of the workflow
 
-## Next lecture: Vectors, Tables, and Tidy Thinking {.title-slide background-color="#40666e"}
+## Next lecture: Vectors, Tables, and Tidy Thinking

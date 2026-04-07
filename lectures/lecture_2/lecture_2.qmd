@@ -51,7 +51,7 @@ Workflow discipline is mainly about reducing avoidable confusion. When projects 
 These are not cosmetic annoyances. They are early signals that the project lacks a clear source of truth about files, data versions, and analysis steps.
 :::
 
-# Project Hygiene {background-color="#40666e"}
+# Project Hygiene
 
 ## **Self-contained** projects
 
@@ -307,7 +307,7 @@ output/**
 Ignore rules need some care because an overly broad pattern can hide files that should be tracked. A good rule is to ignore outputs and machine-specific artifacts, not inputs or code that define the analysis.
 :::
 
-# Short shell intro {background-color="#40666e"}
+# Short shell intro
 
 ## The Unix shell
 
@@ -543,7 +543,7 @@ Manual pages are terse, but they are the canonical reference for many shell comm
 - Hopefully the sight of a command line will be a bit less scary
 - Resources at the end for those who want more!
 
-# Version Control in Git {background-color="#40666e"}
+# Version Control in Git
 
 ## Why version control?
 
@@ -745,7 +745,7 @@ Small commits are easier to review, understand, and reverse. A commit history fu
 Git is optimized for versioned source files, not for general disaster recovery. Repositories still need ordinary backups, especially when projects depend on large raw data or local machine state.
 :::
 
-# Git Branches {background-color="#40666e"}
+# Git Branches
 
 ## Branches
 
@@ -810,7 +810,7 @@ Local merging is the direct way to combine branches when no review step is neede
 A pull request is mainly a review and discussion tool built around a proposed merge. It should really be called a `merge request`. It adds context, comments, and checks before the branch is integrated into the target branch.
 :::
 
-# Git Merge conflicts {background-color="#40666e"}
+# Git Merge conflicts
 
 ## Merge conflicts
 
@@ -871,7 +871,7 @@ The conflict markers show the competing versions inline: the current branch abov
 - Useful soon: `pull`, branches, pull requests, conflict awareness
 - Useful later: `SSH`, rebasing, tags, more careful collaboration workflows
 
-# Git Failure Modes {background-color="#40666e"}
+# Git Failure Modes
 
 ## Boring failure modes
 
@@ -956,7 +956,7 @@ But first, ask your AI or check [Oh Shit, Git!?](https://ohshitgit.com)
 - Functions
 - Reading simple errors without immediately spiraling
 
-# Extras {.title-slide background-color="#40666e"}
+# Extras
 
 ## SSH=Secure shell
 

@@ -120,7 +120,7 @@ For a concrete speed comparison, see <https://github.com/matthieugomez/benchmark
 This is not an argument that `Stata` is useless. It is an argument that `Stata` is a weaker environment for learning modern programming habits, package ecosystems, and more general data workflows.
 :::
 
-# Reproducibility and Work Habits {background-color="#40666e"}
+# Reproducibility and Work Habits
 
 ## Common data problems
 
@@ -187,7 +187,7 @@ Many damaging errors produce outputs that look plausible on first inspection. Th
 Debugging is a central part of programming rather than a side issue. Productive workflow usually means isolating one assumption at a time and checking it directly instead of making several random changes at once.
 :::
 
-# Our Working Environment = VS Code {background-color="#40666e"}
+# Our Working Environment = VS Code
 
 ## VS Code for this course
 
@@ -224,7 +224,7 @@ Standardizing on one editor reduces setup friction and makes troubleshooting eas
 - The point of `PS0` is not "read some instructions"
 - The point is to prove that your environment actually works
 
-# Let's Do Some Data Science {background-color="#40666e"}
+# Let's Do Some Data Science
 
 ## A tiny live demo
 
@@ -340,7 +340,7 @@ ggplot(
 Even this toy example already depends on identifiers, lookup tables, storage types, and careful joins. Those details are not side issues; they are the basic mechanics of reliable empirical data work.
 :::
 
-# Concluding Remarks {background-color="#40666e"}
+# Concluding Remarks
 
 ## Course Preview
 
@@ -402,4 +402,4 @@ The assignments are designed as workflow checkpoints rather than polished showca
 This course is skill-heavy, so passive reading is usually not enough. The payoff comes from running code, inspecting outputs, and building the habit of fixing small workflow problems as they appear.
 :::
 
-## Next lecture: Project Workflows and Version Control {.title-slide background-color="#40666e"}
+## Next lecture: Project Workflows and Version Control
