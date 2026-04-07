@@ -221,6 +221,10 @@ Lots of names are already taken by built-in objects and functions.
 ```{r}
 #| output-location: column-fragment
 if (T) "yes" else "no"
+```
+
+```{r}
+#| output-location: column-fragment
 T <- 0
 if (T) "yes" else "no"
 ```
