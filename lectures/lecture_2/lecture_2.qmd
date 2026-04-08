@@ -1,7 +1,7 @@
 ---
-title: "Lecture 2: Project Workflows and Version Control"
-subtitle: "EC7422: Data Science for Economic Analysis"
+title: "Project Workflows and Version Control"
 date: 2026-03-30
+lecture-number: 2
 engine: knitr
 ---
 
@@ -130,14 +130,6 @@ Many do-files start like this:
 
 ```stata
 clear all
-cd "C:/my_project/analysis"
-use "mydata.dta"
-```
-
-or even worse: 
-
-```stata
-clear all
 use "C:/my_project/analysis/mydata.dta"
 ```
 
@@ -145,10 +137,9 @@ use "C:/my_project/analysis/mydata.dta"
 Don't do this!
 
 - Absolute paths hard-code your own machine
-- Use **relative paths** that travel with the project
+- Use **relative paths** that travel with the project:
 
 ::: {.fragment}
-All you need is:
 ```stata
 use "mydata.dta"
 ```
