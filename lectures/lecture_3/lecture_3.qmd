@@ -1,8 +1,7 @@
 ---
 title: "Lecture 3: R Basics I"
-subtitle: "EC7422: Data Science for Economic Analysis"
+lecture-number: 3
 date: 2026-04-07
-engine: knitr
 ---
 
 ## Why code instead of spreadsheet surgery?

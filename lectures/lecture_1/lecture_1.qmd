@@ -1,6 +1,6 @@
 ---
-title: "Lecture 1: Introduction"
-subtitle: "TESTING"
+title: "Introduction"
+lecture-number: 1
 date: 2026-03-24
 ---
 
@@ -215,7 +215,7 @@ Standardizing on one editor reduces setup friction and makes troubleshooting eas
   - suggesting code
   - helping you search documentation faster
 - Treat it like a fast assistant, not an autopilot
-- If you cannot explain what the tool produced, you should not submit it
+- Only submit code you understand and can explain
 
 ## VS Code and `R`
 

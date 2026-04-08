@@ -1,9 +1,7 @@
 ---
 title: "Vectors, Tables, and Tidy Thinking"
-subtitle: "Lecture 4"
 lecture-number: 4
 date: 2026-04-16
-engine: knitr
 ---
 
 ```{r}
