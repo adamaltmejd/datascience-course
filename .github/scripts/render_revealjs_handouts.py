@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -8,6 +10,7 @@ from urllib.parse import quote
 
 
 DECKTAPE_PARAMS = "handout=true&pdfSeparateFragments=false"
+HASH_FILE = ".pdf_hashes.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -19,8 +22,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--glob", default="lectures/**/lecture_*.html")
     parser.add_argument("--size", default="1920x1400")
-    parser.add_argument("--pause", type=int, default=1000)
-    parser.add_argument("--load-pause", type=int, default=2000)
+    parser.add_argument("--pause", type=int, default=250)
+    parser.add_argument("--load-pause", type=int, default=500)
     return parser.parse_args()
 
 
@@ -28,7 +31,6 @@ def find_decktape() -> str:
     path = shutil.which("decktape")
     if path:
         return path
-    # Try npx/bunx fallback
     for runner in ("bunx", "npx"):
         if shutil.which(runner):
             return runner
@@ -40,6 +42,21 @@ def find_decktape() -> str:
 def build_url(base_url: str, relative_path: Path) -> str:
     relative_url = "/".join(quote(part) for part in relative_path.parts)
     return f"{base_url.rstrip('/')}/{relative_url}?{DECKTAPE_PARAMS}"
+
+
+def file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_hashes(output_dir: Path) -> dict[str, str]:
+    hash_path = output_dir / HASH_FILE
+    if hash_path.exists():
+        return json.loads(hash_path.read_text())
+    return {}
+
+
+def save_hashes(output_dir: Path, hashes: dict[str, str]) -> None:
+    (output_dir / HASH_FILE).write_text(json.dumps(hashes, indent=2) + "\n")
 
 
 def main() -> int:
@@ -59,10 +76,21 @@ def main() -> int:
     decktape = find_decktape()
     is_runner = decktape in ("bunx", "npx")
 
+    old_hashes = load_hashes(output_dir)
+    new_hashes: dict[str, str] = {}
+
     for html_path in html_paths:
         relative_html = html_path.relative_to(site_dir)
         pdf_path = output_dir / relative_html.with_suffix(".pdf")
         pdf_path.parent.mkdir(parents=True, exist_ok=True)
+
+        key = str(relative_html)
+        current_hash = file_hash(html_path)
+        new_hashes[key] = current_hash
+
+        if old_hashes.get(key) == current_hash and pdf_path.exists():
+            print(f"Unchanged {relative_html}, skipping", flush=True)
+            continue
 
         url = build_url(args.base_url, relative_html)
         print(
@@ -92,6 +120,7 @@ def main() -> int:
                 f"decktape failed for {relative_html} (exit {result.returncode})"
             )
 
+    save_hashes(output_dir, new_hashes)
     return 0
 
 

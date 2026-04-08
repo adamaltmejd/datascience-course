@@ -97,6 +97,15 @@ jobs:
       - name: Install decktape
         run: npm install -g "decktape@${DECKTAPE_VERSION}"
 
+      - name: Restore cached handout PDFs
+        uses: actions/cache@v4
+        with:
+          path: |
+            _site/lectures/**/lecture_*.pdf
+            _site/.pdf_hashes.json
+          key: handout-pdfs-${{ hashFiles('_site/lectures/**/lecture_*.html') }}
+          restore-keys: handout-pdfs-
+
       - name: Generate revealjs handout PDFs
         run: |
           python -m http.server 8000 --bind 127.0.0.1 --directory _site >/tmp/handout-server.log 2>&1 &
@@ -112,6 +121,7 @@ jobs:
           python .github/scripts/render_revealjs_handouts.py \
             --site-dir _site \
             --base-url http://127.0.0.1:8000
+          rm -f _site/.pdf_hashes.json
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
