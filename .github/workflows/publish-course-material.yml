@@ -29,7 +29,7 @@ concurrency:
 
 env:
   RENV_CONFIG_REPOS_OVERRIDE: CRAN=https://packagemanager.posit.co/cran/latest
-  QUARTO_VERSION: "1.8.26"
+  QUARTO_VERSION: "1.9.36"
   DECKTAPE_VERSION: "3.15.0"
 
 jobs:
@@ -76,7 +76,7 @@ jobs:
       - name: Restore renv library
         uses: r-lib/actions/setup-renv@v2
         with:
-          cache-version: 3
+          cache-version: 4
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -86,6 +86,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.11.3"
           enable-cache: true
           cache-dependency-glob: |
             .github/workflows/publish-course-material.yml
@@ -108,7 +109,7 @@ jobs:
           server_pid=$!
           trap 'kill $server_pid 2>/dev/null || true' EXIT
           for attempt in {1..30}; do
-            if curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null; then
+            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null 2>&1; then
               break
             fi
             sleep 1
