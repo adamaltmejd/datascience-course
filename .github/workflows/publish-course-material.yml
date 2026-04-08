@@ -102,7 +102,7 @@ jobs:
         with:
           path: |
             _site/lectures/**/lecture_*.pdf
-            _site/.pdf_hashes.json
+            .pdf_hashes.json
           key: handout-pdfs-${{ hashFiles('_site/lectures/**/lecture_*.html') }}
           restore-keys: handout-pdfs-
 
@@ -121,7 +121,6 @@ jobs:
           python .github/scripts/render_revealjs_handouts.py \
             --site-dir _site \
             --base-url http://127.0.0.1:8000
-          rm -f _site/.pdf_hashes.json
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4

@@ -48,15 +48,15 @@ def file_hash(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def load_hashes(output_dir: Path) -> dict[str, str]:
-    hash_path = output_dir / HASH_FILE
+def load_hashes() -> dict[str, str]:
+    hash_path = Path(HASH_FILE)
     if hash_path.exists():
         return json.loads(hash_path.read_text())
     return {}
 
 
-def save_hashes(output_dir: Path, hashes: dict[str, str]) -> None:
-    (output_dir / HASH_FILE).write_text(json.dumps(hashes, indent=2) + "\n")
+def save_hashes(hashes: dict[str, str]) -> None:
+    Path(HASH_FILE).write_text(json.dumps(hashes, indent=2) + "\n")
 
 
 def main() -> int:
@@ -76,7 +76,7 @@ def main() -> int:
     decktape = find_decktape()
     is_runner = decktape in ("bunx", "npx")
 
-    old_hashes = load_hashes(output_dir)
+    old_hashes = load_hashes()
     new_hashes: dict[str, str] = {}
 
     for html_path in html_paths:
@@ -120,7 +120,7 @@ def main() -> int:
                 f"decktape failed for {relative_html} (exit {result.returncode})"
             )
 
-    save_hashes(output_dir, new_hashes)
+    save_hashes(new_hashes)
     return 0
 
 
