@@ -213,7 +213,6 @@ pi
 
 ```{r}
 #| echo: false
-#| output-location: default
 rm(pi)
 ```
 
@@ -868,7 +867,6 @@ toy_df <- data.frame(
 
 ```{r}
 #| echo: false
-#| output-location: default
 rm(y, x)
 ```
 

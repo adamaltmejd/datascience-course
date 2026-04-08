@@ -8,7 +8,6 @@ engine: knitr
 
 ```{r}
 #| echo: false
-#| output-location: default
 options(width = 70)
 ```
 

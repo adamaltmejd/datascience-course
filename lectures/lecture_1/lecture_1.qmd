@@ -237,7 +237,6 @@ Standardizing on one editor reduces setup friction and makes troubleshooting eas
 
 ```{r}
 #| echo: false
-#| output-location: default
 library(data.table)
 library(tinytable)
 
@@ -262,7 +261,6 @@ tt(preview)
 
 ```{r}
 #| echo: false
-#| output-location: default
 library(data.table)
 library(ggplot2)
 
@@ -295,7 +293,6 @@ ggplot(unemployment_summary, aes(x = year, y = unemployment_rate)) +
 
 ```{r}
 #| echo: false
-#| output-location: default
 library(data.table)
 library(ggplot2)
 
