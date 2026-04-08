@@ -58,25 +58,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes \
-            gdal-bin \
             gsfonts \
             libcairo2-dev \
             libcurl4-openssl-dev \
             libfontconfig1-dev \
             libfreetype6-dev \
-            libgdal-dev \
             libharfbuzz-dev \
             libfribidi-dev \
-            libmagick++-dev \
-            libpng-dev \
-            librsvg2-dev \
-            libudunits2-dev \
-            libx11-dev
+            librsvg2-dev
 
       - name: Restore renv library
         uses: r-lib/actions/setup-renv@v2
         with:
-          cache-version: 4
+          cache-version: 5
 
       - name: Set up Python
         uses: actions/setup-python@v6
