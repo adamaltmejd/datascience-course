@@ -10,4 +10,6 @@ contributes:
       slide-number: c/t
       center: false
       filters:
+        - auto-agenda.lua
         - course-meta.lua
+        - attribution.lua

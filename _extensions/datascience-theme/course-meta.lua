@@ -1,47 +1,35 @@
 -- course-meta.lua
 -- Reads course-code, course-name, institution, lecture-number from YAML.
 -- Injects:
---   1. Footer text via JS: "EC7422: Lecture 4 · Stockholm University"
---   2. Course header on title slide via JS
+--   1. Footer text: "EC7422 · Lecture 4 · Stockholm University"
+--   2. Course header + detail line on title slide
+--   3. Handout mode: stacks aside + notes boxes so they don't overlap
 -- Shared fields go in _metadata.yml, lecture-number per lecture.
 
 function Pandoc(doc)
+  if not quarto.doc.isFormat("revealjs") then return doc end
+
   local code = pandoc.utils.stringify(doc.meta["course-code"] or "")
   local name = pandoc.utils.stringify(doc.meta["course-name"] or "")
   local inst = pandoc.utils.stringify(doc.meta["institution"] or "")
   local num  = pandoc.utils.stringify(doc.meta["lecture-number"] or "")
+  local date = pandoc.utils.stringify(doc.meta["date"] or "")
 
   if code == "" then return doc end
 
-  local date = pandoc.utils.stringify(doc.meta["date"] or "")
-
-  -- Build footer text: EC7422 · Lecture 4 · Stockholm University
   local footer_parts = { code }
   if num ~= "" then table.insert(footer_parts, "Lecture " .. num) end
   if inst ~= "" then table.insert(footer_parts, inst) end
   local footer = table.concat(footer_parts, " · ")
 
-  -- Build subtitle from available fields
-  local subtitle_parts = {}
-  if num ~= "" then table.insert(subtitle_parts, "Lecture " .. num) end
-  if date ~= "" then table.insert(subtitle_parts, date) end
-  if #subtitle_parts > 0 then
-    doc.meta.subtitle = pandoc.Inlines({
-      pandoc.Str(table.concat(subtitle_parts, " · "))
-    })
-  end
-
-  -- Get author info. Quarto flattens author to a MetaList of MetaInlines.
-  -- Email is in the original YAML but not in the flattened structure,
-  -- so we read it from a custom field or the raw author block.
+  -- Quarto flattens author to a MetaList of MetaInlines.
+  -- Email is not in the flattened structure, so we read a custom field.
   local author_name = ""
   if doc.meta.author then
     author_name = pandoc.utils.stringify(doc.meta.author[1] or doc.meta.author)
   end
-  -- Quarto stores email separately; fall back to custom field
   local author_email = pandoc.utils.stringify(doc.meta["author-email"] or "")
 
-  -- JS that sets footer and injects course header on title slide
   local course_line = code .. ": " .. name .. ", " .. inst
   local instructor_line = ""
   if author_name ~= "" then
@@ -51,10 +39,14 @@ function Pandoc(doc)
     end
   end
 
+  local detail_parts = {}
+  if num ~= "" then table.insert(detail_parts, "Lecture " .. num) end
+  if date ~= "" then table.insert(detail_parts, date) end
+  local detail_line = table.concat(detail_parts, " · ")
+
   local js = string.format([[
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Set footer and hide on title slide
   var f = document.querySelector('.reveal .footer');
   if (f) {
     f.textContent = %q;
@@ -66,22 +58,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
       toggleFooter(Reveal.getCurrentSlide());
+    } else {
+      Reveal.on('ready', function(e) { toggleFooter(e.currentSlide); });
     }
-    Reveal.on('ready', function(e) { toggleFooter(e.currentSlide); });
     Reveal.on('slidechanged', function(e) { toggleFooter(e.currentSlide); });
   }
 
-  // Add course header to title slide
   var ts = document.getElementById('title-slide');
   if (ts) {
     var h = document.createElement('div');
     h.className = 'course-header';
-    h.innerHTML = %q + '<br>' + %q;
+    var line1 = document.createTextNode(%q);
+    h.appendChild(line1);
+    h.appendChild(document.createElement('br'));
+    h.appendChild(document.createTextNode(%q));
     ts.insertBefore(h, ts.firstChild);
+    var detail = %q;
+    if (detail) {
+      var d = document.createElement('div');
+      d.className = 'course-details';
+      d.textContent = detail;
+      ts.appendChild(d);
+    }
+  }
+
+  // ?handout=true: stack aside + notes boxes so they don't overlap
+  if (new URLSearchParams(location.search).has('handout')) {
+    document.body.classList.add('handout');
+    function stackNotes(slide) {
+      var note = slide.querySelector(':scope > aside.notes');
+      var aside = slide.querySelector(':scope > aside:not(.notes)');
+      if (note && aside) {
+        var h = note.offsetHeight;
+        requestAnimationFrame(function() {
+          aside.style.bottom = (h + 8) + 'px';
+        });
+      }
+    }
+    if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
+      stackNotes(Reveal.getCurrentSlide());
+    } else {
+      Reveal.on('ready', function(e) { stackNotes(e.currentSlide); });
+    }
+    Reveal.on('slidechanged', function(e) { stackNotes(e.currentSlide); });
   }
 });
 </script>
-]], footer, course_line, instructor_line)
+]], footer, course_line, instructor_line, detail_line)
 
   doc.blocks:insert(pandoc.RawBlock("html", js))
   return doc

@@ -44,8 +44,8 @@ $button-bg:       $primary;             // .button background
 
 // ── Backgrounds ────────────────────────────────────────────
 $bg-slide:        $neutral-100;          // slide background
-$bg-code:         lighten($success, 25%);         // block code background
-$bg-inline-code:  lighten($success, 25%);         // inline code background
+$bg-code:         lighten($success, 25%);         // code background (block + inline)
+$bg-inline-code:  $bg-code;
 $bg-output:       $neutral-200;         // cell output background
 $bg-aside:        $neutral-200;         // aside/footnote boxes
 $bg-blockquote:   rgba($neutral-100, 0.6); // blockquote background
@@ -82,6 +82,17 @@ $code-block-bg:                    $bg-code !default;
 $code-block-border-color:          $border-default !default;
 
 /*-- scss:rules --*/
+
+// ── Shared placeholders ─────────────────────────────────────
+%gradient-line {
+  content: "";
+  position: absolute;
+  top: 52px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, $gradient-start 0%, $gradient-end 100%);
+}
 
 // ── Base ───────────────────────────────────────────────────
 .reveal .slides {
@@ -142,17 +153,8 @@ $code-block-border-color:          $border-default !default;
   padding-bottom: 6px;
 }
 
-// Gradient line on all content slides, positioned identically to the title slide.
 .reveal .slides section.level2 {
-  &::before {
-    content: "";
-    position: absolute;
-    top: 52px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, $gradient-start 0%, $gradient-end 100%);
-  }
+  &::before { @extend %gradient-line; }
 }
 
 .reveal h3 {
@@ -175,10 +177,6 @@ $code-block-border-color:          $border-default !default;
 .reveal ol {
   padding-left: 20px;
   margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.reveal ul {
   margin-bottom: 10px !important;
 }
 
@@ -401,8 +399,30 @@ body.handout .reveal aside.notes {
 }
 
 // ── Attribution ────────────────────────────────────────────
-.reveal .attribution .content {
+// Vertical text along the right edge of the viewport.
+// attribution.lua tags .attribution divs with data-slide-id, then
+// JS relocates them from inside slides to .reveal (viewport space)
+// and toggles visibility per slide.
+
+// Hide while still inside slides (before JS relocates to .reveal)
+.reveal .slides .attribution[data-slide-id] {
+  display: none;
+}
+
+// Viewport-level positioning after JS moves them to .reveal
+.reveal > .attribution {
+  position: fixed;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%) rotate(180deg);
+  writing-mode: vertical-lr;
+  text-orientation: sideways;
+  font-size: 15px;
   color: $text-muted;
+  pointer-events: none;
+
+  a, p { pointer-events: auto; margin: 0; }
+  a { color: $text-muted; text-decoration: none; }
 }
 
 // ── Progress, slide number, footer ─────────────────────────
@@ -455,29 +475,31 @@ body.handout .reveal aside.notes {
   text-align: left;
   display: flex !important;
   flex-direction: column;
+  justify-content: center;
   height: 100%;
 
-  // Gradient line — same ::before mechanism as content slides
-  &::before {
-    content: "";
-    position: absolute;
-    top: 52px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, $gradient-start 0%, $gradient-end 100%);
-  }
+  &::before { @extend %gradient-line; }
 
-  // Course info just below the gradient (not centered)
+  // Course name + institution, pinned just below the gradient
   .course-header {
-    order: 1;
-    padding-top: 58px; // clear past the gradient
+    position: absolute;
+    top: 58px; // clear past the gradient
+    left: 0;
   }
 
-  // Title + subtitle centered vertically and horizontally
+  // Lecture number · date, above title
+  .course-details {
+    order: -1;
+    align-self: center;
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 0.55em;
+    font-weight: 500;
+    color: $text-muted;
+  }
+
+  // Title + subtitle centered vertically by justify-content: center
   .title {
-    order: 2;
-    margin-top: auto;
     align-self: center;
     text-align: center;
     color: $text-body;
@@ -485,10 +507,10 @@ body.handout .reveal aside.notes {
     font-weight: 700;
     line-height: 1.05;
     letter-spacing: -0.02em;
+    margin: 0;
   }
 
   .subtitle {
-    order: 3;
     align-self: center;
     text-align: center;
     color: $text-subheading;
@@ -496,8 +518,7 @@ body.handout .reveal aside.notes {
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    margin-top: 6px;
-    margin-bottom: auto;
+    margin: 6px 0 0 0;
   }
 
   .quarto-title-authors,
@@ -507,16 +528,12 @@ body.handout .reveal aside.notes {
 }
 
 // ── Section dividers ───────────────────────────────────────
-// H1 sections (level1) get dark background; text forced white.
 .reveal .slides section.level1 {
   background: $bg-divider;
-
-  h1, h2, h3, p, li, span {
-    color: white !important;
-  }
 }
 
-// Legacy: any slide with explicit data-background-color
+// Force white text on dark-background slides
+.reveal .slides section.level1,
 section[data-background-color] {
   h1, h2, h3, p, li, span {
     color: white !important;
@@ -524,12 +541,14 @@ section[data-background-color] {
 }
 
 // ── TOC / Agenda slides ──────────────────────────────────
-// Auto-agenda plugin creates slides with .agenda-slide class.
-// Muted accent background, no bullet markers, marker-colored text.
+// auto-agenda.lua creates slides with .agenda-slide class.
+// Full-bleed primary background, no bullet markers, muted text
+// with the active section highlighted in white.
 .reveal .slides section.agenda-slide {
-  // Full-slide primary background (box-shadow extends beyond section padding)
   background: $bg-toc !important;
-  box-shadow: 0 0 0 100vmax $bg-toc !important;
+
+  // Hide the H1 header text (the agenda list replaces it)
+  h1 { display: none; }
 
   ul, .agenda {
     list-style: none !important;
@@ -540,13 +559,15 @@ section[data-background-color] {
   li::marker { color: transparent !important; }
 
   // Secondary-colored text on primary background
-  h1, h2, h3, p, li, span {
+  h2, h3, p, li, span {
     color: rgba($secondary, 0.6) !important;
   }
 
   .agenda-heading {
     color: $secondary !important;
+    font-size: 1.25em;
     font-weight: 600;
+    margin-bottom: 0.5em;
   }
 
   .agenda-active {
@@ -557,6 +578,12 @@ section[data-background-color] {
   .agenda-inactive {
     opacity: 0.5;
   }
+}
+
+// box-shadow extends agenda background past section padding.
+// Disabled in overview mode where it bleeds into neighboring slides.
+.reveal:not(.overview) .slides section.agenda-slide {
+  box-shadow: 0 0 0 100vmax $bg-toc !important;
 }
 
 // ── Cell output styling ────────────────────────────────────
