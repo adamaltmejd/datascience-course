@@ -1,6 +1,6 @@
 ---
 title: "Lecture 1: Introduction"
-subtitle: "TESTING"
+subtitle: "EC7422: Data Science for Economic Analysis"
 date: 2026-03-24
 ---
 
@@ -46,7 +46,7 @@ The course is not econometrics in disguise. The value added is everything that h
 
 :::: {.columns}
 ::: {.column width="30%"}
-![](workflow_diagram.svg){fig-align="center" width="100%"}
+![Empirical research process](workflow_diagram.svg){fig-align="center" width="100%"}
 :::
 ::: {.column width="70%" .fragment}
 - Most economics training focuses on step 4, and sometimes step 5.
@@ -237,7 +237,6 @@ Standardizing on one editor reduces setup friction and makes troubleshooting eas
 
 ```{r}
 #| echo: false
-#| output-location: default
 library(data.table)
 library(tinytable)
 
@@ -262,7 +261,6 @@ tt(preview)
 
 ```{r}
 #| echo: false
-#| output-location: default
 library(data.table)
 library(ggplot2)
 
@@ -295,7 +293,6 @@ ggplot(unemployment_summary, aes(x = year, y = unemployment_rate)) +
 
 ```{r}
 #| echo: false
-#| output-location: default
 library(data.table)
 library(ggplot2)
 

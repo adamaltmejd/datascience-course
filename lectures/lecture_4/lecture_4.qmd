@@ -8,7 +8,6 @@ engine: knitr
 
 ```{r}
 #| echo: false
-#| output-location: default
 options(width = 70)
 ```
 
@@ -364,9 +363,7 @@ typeof(as.matrix(table_df))
 A matrix is closer to one atomic vector with dimensions than to a list of column vectors. That is why matrices are useful for numeric linear algebra.
 :::
 
-## A first data set example
-
-Let's work with the municipal panel data from lecture 1:
+## The municipal panel from Lecture 1
 
 ```{r}
 #| output-location: default
@@ -374,23 +371,23 @@ panel_df <- read.csv("../lecture_1/lecture_1_demo_panel.csv")
 head(panel_df)
 ```
 
-## Inspect first
+## Inspect before doing anything else
 
 ```{r}
 #| output-location: default
 str(panel_df)
 ```
 
-Try `View(panel_df)` in VS Code / Positron for an interactive viewer.
+Also try `View(panel_df)` in VsCode for an interactive viewer.
 
 ::: notes
 The first step with a new table should be inspection rather than immediate filtering or plotting. Printing a few rows, checking structure, and looking at variable names usually reveals the row meaning, key candidates, and suspicious column types quickly.
 :::
 
-## Ask five questions to understand the data
+## Ask five questions first
 
 - What is one observation/row?
-- What variables define the key?
+- What is the key?
 - Which columns:
   - identify?
   - measure?
@@ -408,19 +405,23 @@ nrow(panel_df)
 ncol(panel_df)
 ```
 
-## Get variable names
+## Check the variable names
 
 ```{r}
 #| output-location: default
 names(panel_df)
 ```
 
-## Data key
+## What is the key?
 
-The key is a set of columns that **uniquely** identifies one observation
+A database concept: the key is a set of columns that **uniquely** identifies one observation
 
 - `municipality_code + year`
-- Not municipality name (a label)
+- Not municipality name, that is a label
+
+::: notes
+The key is the combination of columns that uniquely identifies one observation. Here that combination is municipality code and year.
+:::
 
 ## Identifier versus label
 
@@ -428,10 +429,6 @@ The key is a set of columns that **uniquely** identifies one observation
 - Name = label
 - Identifier for matching
 - Label for humans
-
-::: notes
-It can be the same column. We could also use `factor()` to assign human-readable labels to the stored identifier codes. The key point is to not rely on labels as identifiers. They could be duplicated, misspelled, or changed over time. Categories should use underlying codes as identifiers.
-:::
 
 ## Leading zeroes matter
 
@@ -475,7 +472,7 @@ This is the key bridge. After a column has been extracted from the table, subset
 
 ## On data.frame: `[]` keeps table, `[[]]`, `$` pulls vector
 
-`[]` returns a one-column `data.frame`
+`[]` returns a one-column table
 
 ```{r}
 head(panel_df["year"])
@@ -532,7 +529,7 @@ panel_df[
 
 ## Assigning to a new column
 
-We can create a new column by assigning to a column name that doesn't exist yet:
+We can create a new column by assigning to a name that doesn't exist yet:
 
 ```{r}
 #| output-location: default
