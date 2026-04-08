@@ -18,7 +18,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--glob", default="lectures/**/lecture_*.html")
-    parser.add_argument("--size", default="1600x900")
+    parser.add_argument("--size", default="1920x1400")
     parser.add_argument("--pause", type=int, default=1000)
     parser.add_argument("--load-pause", type=int, default=2000)
     return parser.parse_args()
