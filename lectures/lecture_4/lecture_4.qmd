@@ -677,7 +677,7 @@ tidy_rates[tidy_rates$year == 2023, c("municipality_code", "unemployment_rate")]
 
 ## Check names and types
 
-Before filtering or plotting, check the boring structure first:
+Before filtering or plotting, check the structure:
 
 ```{r}
 #| output-location: default
