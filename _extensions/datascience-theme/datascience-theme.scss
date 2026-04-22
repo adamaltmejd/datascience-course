@@ -272,6 +272,16 @@ $code-block-border-color:          $border-default !default;
     color: $text-body; // block code keeps dark text regardless of parent
   }
 
+  // Quarto's reveal line-highlight CSS sets code blocks to min-height: 100%,
+  // and Quarto's default sourceCode CSS adds a max-height to the inner <code>.
+  // Together they truncate tall blocks when the outer <pre> has max-height.
+  // Let the inner code element grow to its full content height so <pre> owns scrolling.
+  div.sourceCode pre code {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
   pre code a {
     pointer-events: none;
     cursor: default;
@@ -361,6 +371,14 @@ $code-block-border-color:          $border-default !default;
 .reveal video,
 .reveal iframe {
   border-radius: 3px;
+}
+
+// Standalone `![](…)` images (Pandoc emits them as direct children of
+// `<section>`, unwrapped). Without this, reveal's `ul { display: inline-block }`
+// lets a preceding list flow beside the image.
+.reveal section > img {
+  display: block;
+  margin-inline: auto;
 }
 
 // ── Asides ─────────────────────────────────────────────────
