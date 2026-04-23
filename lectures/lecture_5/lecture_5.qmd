@@ -153,6 +153,10 @@ run_bad_file <- function(path, echo = FALSE, output = TRUE, traceback = FALSE) {
 - This is where people start wasting hours
 - Good workflow habits are cheap
 
+::: notes
+Once a project is more than a few expressions long, most of the time goes into understanding what is happening rather than writing new code. The tools and habits in this lecture are what make that time shorter and the surprises smaller.
+:::
+
 ## Positron
 
 - We will be using [Positron](https://positron.posit.co/) today, because of its built-in debugger.
@@ -164,6 +168,10 @@ run_bad_file <- function(path, echo = FALSE, output = TRUE, traceback = FALSE) {
 ## Errors everywhere
 
 Programming is a process of constant errors.
+
+::: notes
+Errors are not a sign that something is off about how the code was written. They are the normal feedback loop. The question is how quickly they can be located and understood.
+:::
 
 ## Getting unstuck
 
@@ -185,12 +193,20 @@ Error in [ : subscript out of bounds
 
 Your job: debug the code and find the *bad assumption*.
 
+::: notes
+Error messages usually name two things: what went wrong, and where. Reading them in that order is the first step. The *bad assumption* is whatever the code took for granted that turned out not to hold — a missing object, a wrong type, a file that is not where it used to be.
+:::
+
 ## *Running* code is not necessarily *working* code
 
 - Errors stop the script (good!)
 - But bad assumptions do not always cause errors
 - A silent bug is much worse
 - In data work, incorrect output can still look great
+
+::: notes
+Errors are the easy case. A silent bug passes every check, produces a clean-looking table, and often only surfaces later when someone else tries to reuse the output. Much of the rest of this lecture is about making bugs loud.
+:::
 
 ## Debugging is a loop
 
@@ -201,6 +217,10 @@ Your job: debug the code and find the *bad assumption*.
 5. Change one thing
 6. Retry
 
+::: notes
+The common mistake is to change several things at once when frustrated. Changing one thing per iteration keeps the signal clean: if behavior changes, the last edit caused it; if not, undo and try something else.
+:::
+
 ## Make it repeatable and small
 
 - Get to one command or one script that fails every time
@@ -209,6 +229,10 @@ Your job: debug the code and find the *bad assumption*.
 - Pay attention to inputs that fail and inputs that do not
 - Small, repeatable bugs are much easier to debug and share
 
+::: notes
+A minimal reproducible example is worth the time it takes to build. Stripping away unrelated code often reveals the bug on its own, and a small example is easy to share — with a colleague or with a language model.
+:::
+
 ## What to inspect first
 
 - What file or object is this line using?
@@ -216,6 +240,10 @@ Your job: debug the code and find the *bad assumption*.
 - What values do I actually have?
 - Which line first creates something surprising?
 - What changed since the last time this worked?
+
+::: notes
+The shift from "what is the code supposed to do" to "what does the data actually look like right now" is where most bugs get caught. The commands on the next slide are how to answer these questions in R.
+:::
 
 ## Useful inspection commands
 
@@ -238,6 +266,10 @@ When inspecting large objects with `str()` use its second argument `max.level` t
 - Restart R to clean the slate
 - Rerun the script from the top
 - If it works in a clean session, it is more likely to be truly fixed
+
+::: notes
+Hidden state from an earlier session is the single most common cause of scripts that seem to work and then do not. A restart forces the script to stand on its own, which is also the condition under which any collaborator — human or otherwise — will run it.
+:::
 
 ## Don't use `.RData`
 
@@ -279,6 +311,10 @@ str(col_subset)
 - Selecting a single column returns a vector
 - An issue if you expected a data frame
 
+::: notes
+The `[` operator on a data frame drops to a vector when exactly one column is selected, and stays a data frame when two or more are. That default saves a few keystrokes in interactive use but regularly surprises downstream code that expected a table.
+:::
+
 ## Example 1: Selecting a data frame column (cont.)
 
 `drop = FALSE` forces R to keep the data frame structure:
@@ -317,6 +353,10 @@ Just ask an LLM instead - I'll teach you how in a few slides!
 https://blog.pragmaticengineer.com/stack-overflow-is-almost-dead/
 :::
 
+::: notes
+Stack Overflow's question volume has fallen sharply since capable LLMs became widely available. The same community of answers now lives inside the model, and asking a language model directly is often faster and more specific to the exact code at hand.
+:::
+
 # Debugging
 
 ## Debugging tools
@@ -350,6 +390,10 @@ run_bad_file(
 
 The error message tells you **what** went wrong; the traceback helps you locate **where** the error occurred.
 
+::: notes
+The bottom of the trace is the top-level call from the script; the top is where the error actually surfaced. Reading upward from the bottom shows the path of calls; reading downward from the top points to where to look first.
+:::
+
 ## Example 2: A simple `traceback()` (cont.)
 
 ```{r}
@@ -375,7 +419,7 @@ run_bad_file(
 ```
 
 ::: notes
-I'll go through the code and error live in class. This example shows how traceback() can actually help finding the bad assumption when the error message in itself it not informative enough.
+This example shows how `traceback()` helps find the bad assumption when the error message alone is uninformative. The failing call sits near the top of the stack; tracing back through its callers is what reveals where the surprising value first came from.
 :::
 
 ## Example 3:  A more realistic `traceback()` (cont.)
@@ -426,6 +470,10 @@ Notice anything wrong?
 Silent bugs are much harder to detect. Most bugs are silent, but in a few slides we will talk about fail loudly to catch them.
 :::
 
+::: notes
+The comparison is inverted: rates at or below the threshold are labelled `"high"`, so municipalities with *low* unemployment end up flagged as the high-risk group. The code runs, the output looks clean, and nothing warns that the labels are swapped. This is the prototype of a silent bug.
+:::
+
 ## Use `browser()` to step through the code interactively
 
 Drop a call to `browser()` into the function where things look suspicious. When R hits it, execution pauses and the prompt changes to `Browse[1]>`. From there:
@@ -439,7 +487,7 @@ Drop a call to `browser()` into the function where things look suspicious. When 
 ![](browser.png){.r-stretch}
 
 ::: notes
-I'll show how to use `browser()` in class, to step through the code and inspect variables. Try it on your own. You see that you are in the browser because the prompt changes to `Browse[1]>`. When it does, you can use the commands above, e.g. writing `n` and pressing enter to execute the next line of code. You can also inspect variables by just typing their name and pressing enter, e.g. `latest_year` to see its value.
+The prompt changes to `Browse[1]>` whenever R enters the browser. At that prompt, typing a variable name prints its current value; the letter commands above move execution one step at a time. The same shortcuts drive the GUI debugger on the next slide.
 :::
 
 ## Enter the browser on a function call: `debug()`
@@ -464,7 +512,7 @@ Positron and RStudio come with built-in R debugging. To get debugging in VS Code
 :::
 
 ::: notes
-The debugger interface might feel intimidating at first, but once you are used to it it is really helpful!
+The GUI debugger uses the same underlying engine as `browser()`, with breakpoints placed by clicking the editor gutter instead of editing the source. Breakpoints persist across reruns, which becomes convenient once the same bug has been chased more than once.
 :::
 
 ## A useful fallback: `recover`
@@ -576,6 +624,10 @@ Issue `stop()` or `warning()` when:
 - Row counts collapse or explode
 - Input file paths are wrong
 
+::: notes
+Each item on this list corresponds to a mistake that is easy to make and hard to spot after the fact. Writing the checks directly into the script — rather than remembering to run them by hand — makes a pipeline that keeps working as the input data changes over time.
+:::
+
 ## Municipality panel checks
 
 - Municipality code should not disappear
@@ -607,6 +659,10 @@ Issue `stop()` or `warning()` when:
 ::::
 
 After a bug fix, add the smallest check that would have caught it earlier.
+
+::: notes
+The two activities are complementary, not alternatives. Debugging catches a bug the first time; a test captures the fix so the same bug cannot come back quietly. Together they bound both ends of the feedback loop.
+:::
 
 # IDE code assistance
 
@@ -661,6 +717,10 @@ gives you a suggestion like:
 read.csv("raw_data/your_file.csv")
 ```
 
+::: notes
+Completions are graded autocomplete: the suggestion updates as the next few characters are typed, and the surrounding file shapes what gets offered. That makes small, descriptive comments effective as a steering signal — the comment is not just documentation, it is part of the prompt.
+:::
+
 ## Inline Copilot interactions
 
 - Highlight code and click the `💡` (or press `Cmd/Ctrl + I`) to ask Copilot to **modify** or **review**
@@ -673,6 +733,10 @@ read.csv("raw_data/your_file.csv")
 - **Completions** suggest the next line. You stay in control of every keystroke.
 - **Agents** run multi-step tasks: read files, write files, run commands, loop until done.
 - Same underlying models — the difference is how much rope you give them.
+
+::: notes
+The tradeoff scales with the amount of rope. Autocomplete is cheap to review one line at a time; an agent session can touch many files at once and needs a correspondingly larger review effort on the diff it produces.
+:::
 
 # Agentic development
 
@@ -727,6 +791,10 @@ Good context has four parts:
 
 Under the hood, agents are just LLMs in a loop — their reasoning is only as good as the context you give them.
 
+::: notes
+Agents can only act on what the context contains. Stating the file, the error, the expected output, and where to stop turns a vague request into something with a concrete success criterion — closer to writing a well-formed issue for a colleague than to giving a command.
+:::
+
 ## `AGENTS.md`: house rules for the repo
 
 Agents read instruction files before acting. Tell them which packages you prefer, how the code is structured, how to run the tests.
@@ -736,6 +804,10 @@ Agents read instruction files before acting. Tell them which packages you prefer
 #| results: asis
 show_file(file.path(lecture_example_dir, "agent-example", "AGENTS.md"), lang = "md")
 ```
+
+::: notes
+`AGENTS.md` at the repo root is the emerging convention — different tools read slightly different filenames (Claude uses `CLAUDE.md`), but the shape is the same. Short and opinionated works better than exhaustive: the file is read on every turn, so length competes with the actual task for model attention.
+:::
 
 ## Point the agent at the right files
 
@@ -785,6 +857,10 @@ Copilot and Codex both support putting skills in a `.agents/skills` folder in th
 
 Assume anything you paste may be logged or used for training.
 
+::: notes
+Some tools claim to redact sensitive values, but none make firm guarantees about training or logging. Treating anything pasted into an AI product as potentially public is the only rule that stays safe as terms of service change.
+:::
+
 ## Before you accept the diff
 
 1. Commit your own work first — cheap rollback
@@ -796,6 +872,10 @@ Assume anything you paste may be logged or used for training.
 
 ::: aside
 A reviewable diff beats a vague memory of what changed, even when you're working alone.
+:::
+
+::: notes
+Working alone with an agent is the situation where review is easiest to skip and hardest to recover from. Every accepted change eventually becomes code that has to be read anyway when something breaks — reviewing upfront is the cheaper version of that reading.
 :::
 
 ## Live AI demo
