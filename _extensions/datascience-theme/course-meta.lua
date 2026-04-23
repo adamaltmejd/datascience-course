@@ -82,6 +82,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // Tag pre blocks whose content overflows — CSS styles .is-overflowing
+  // with a dashed bottom border + "continues below" badge so the truncation
+  // is visible in static decktape PDFs, where scrollbars don't render.
+  // Reveal hides non-current slides with display:none, zeroing scrollHeight,
+  // so we re-check per slide on activation.
+  function markOverflowingPre(slide) {
+    if (!slide) return;
+    slide.querySelectorAll('pre').forEach(function(pre) {
+      pre.classList.toggle('is-overflowing', pre.scrollHeight > pre.clientHeight + 1);
+    });
+  }
+
   // ?handout=true: stack aside + notes boxes so they don't overlap
   if (new URLSearchParams(location.search).has('handout')) {
     document.body.classList.add('handout');
@@ -101,6 +113,15 @@ document.addEventListener('DOMContentLoaded', function() {
       Reveal.on('ready', function(e) { stackNotes(e.currentSlide); });
     }
     Reveal.on('slidechanged', function(e) { stackNotes(e.currentSlide); });
+  }
+
+  if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
+    markOverflowingPre(Reveal.getCurrentSlide());
+  } else if (typeof Reveal !== 'undefined') {
+    Reveal.on('ready', function(e) { markOverflowingPre(e.currentSlide); });
+  }
+  if (typeof Reveal !== 'undefined') {
+    Reveal.on('slidechanged', function(e) { markOverflowingPre(e.currentSlide); });
   }
 });
 </script>

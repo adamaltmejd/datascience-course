@@ -231,22 +231,9 @@ $code-block-border-color:          $border-default !default;
 }
 
 // Block code: visual box on pre, code element is transparent
-// Scroll-shadows: radial "shadow" gradients at top/bottom of the pre box,
-// with matching "cover" gradients anchored to the content (background-attachment: local).
-// When content overflows, the cover scrolls away from the edge and the shadow shows
-// through — a pure-CSS "more above/below" cue that also renders in decktape PDFs.
 .reveal pre {
   --pre-bg: #{$bg-code};
-  background-color: var(--pre-bg);
-  background-image:
-    linear-gradient(var(--pre-bg) 30%, transparent),
-    linear-gradient(transparent, var(--pre-bg) 70%),
-    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.25), transparent),
-    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.25), transparent);
-  background-position: 0 0, 0 100%, 0 0, 0 100%;
-  background-repeat: no-repeat;
-  background-size: 100% 30px, 100% 30px, 100% 12px, 100% 12px;
-  background-attachment: local, local, scroll, scroll;
+  background: var(--pre-bg);
   border: 1px solid $border-default;
   border-left: 3px solid $border-code;
   border-radius: 5px;
@@ -255,6 +242,29 @@ $code-block-border-color:          $border-default !default;
   padding: 10px 13px;
   max-height: 480px; // safety net — tall code blocks scroll instead of overflowing
   overflow-y: auto;
+  position: relative; // anchor .is-overflowing::after badge
+}
+
+// JS (course-meta.lua) tags overflowing pre blocks with this class so the
+// truncation is visible in static decktape PDFs, where scrollbars don't render.
+.reveal pre.is-overflowing {
+  border-bottom: 2px dashed $text-muted;
+}
+
+.reveal pre.is-overflowing::after {
+  content: "⋯ continues below";
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  padding: 1px 6px;
+  background: $text-muted;
+  color: white;
+  font-family: $font-family-monospace;
+  font-size: 0.55em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border-radius: 3px;
+  pointer-events: none;
 }
 
 // ── Pandoc/Quarto code-block resets ────────────────────────
