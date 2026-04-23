@@ -14,8 +14,9 @@ on:
       - index.qmd
       - lectures/**
       - problem_sets/**
-      - renv.lock
-      - renv/**
+      - rproject.toml
+      - rv.lock
+      - rv/scripts/**
   workflow_dispatch:
 
 permissions:
@@ -28,7 +29,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  RENV_CONFIG_REPOS_OVERRIDE: CRAN=https://packagemanager.posit.co/cran/latest
   QUARTO_VERSION: "1.9.36"
   DECKTAPE_VERSION: "3.15.0"
 
@@ -48,11 +48,16 @@ jobs:
         with:
           version: ${{ env.QUARTO_VERSION }}
 
+      - name: Read R version from rproject.toml
+        id: rproject
+        run: |
+          r_version=$(sed -nE 's/^r_version[[:space:]]*=[[:space:]]*"([0-9.]+)".*/\1/p' rproject.toml)
+          echo "r_version=$r_version" >> "$GITHUB_OUTPUT"
+
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: renv
-          use-public-rspm: true
+          r-version: ${{ steps.rproject.outputs.r_version }}
 
       - name: Install Linux system dependencies
         run: |
@@ -67,10 +72,26 @@ jobs:
             libfribidi-dev \
             librsvg2-dev
 
-      - name: Restore renv library
-        uses: r-lib/actions/setup-renv@v2
+      - name: Install rv
+        run: |
+          curl -sSL https://raw.githubusercontent.com/A2-ai/rv/refs/heads/main/scripts/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Swap the CRAN repo for PPM's Linux binaries on CI. rproject.toml keeps
+      # cloud.r-project.org for macOS, where PPM's binary mirror is unreliable.
+      - name: Use PPM Linux binaries for rv
+        run: rv configure repository replace CRAN --url 'https://packagemanager.posit.co/cran/__linux__/noble/latest'
+
+      - name: Cache rv library
+        uses: actions/cache@v4
         with:
-          cache-version: 5
+          path: rv/library
+          key: rv-library-${{ runner.os }}-R${{ steps.rproject.outputs.r_version }}-ppm-${{ hashFiles('rv.lock') }}
+          restore-keys: |
+            rv-library-${{ runner.os }}-R${{ steps.rproject.outputs.r_version }}-ppm-
+
+      - name: Sync rv library
+        run: rv sync
 
       - name: Set up Python
         uses: actions/setup-python@v6
