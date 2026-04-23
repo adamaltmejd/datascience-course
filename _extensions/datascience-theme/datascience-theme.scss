@@ -434,10 +434,15 @@ $code-block-border-color:          $border-default !default;
 }
 
 // Notes: hidden in presentation, visible in handout mode (?handout=true)
+// box-shadow paints a 12px band of slide-bg color directly above the note,
+// inheriting the note's z-index (10 from %bottom-box). In-flow content
+// (cell outputs, paragraphs) that would otherwise butt against the note's
+// top edge gets occluded by this band, producing a visible gap.
 body.handout .reveal aside.notes {
   @extend %bottom-box;
   display: block !important;
   border-left: 3px solid $border-note;
+  box-shadow: 0 -12px 0 $bg-slide;
 }
 
 // ── Attribution ────────────────────────────────────────────

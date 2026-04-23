@@ -98,23 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Reserve in-flow vertical space for the abs-positioned note, so normal
-    // content (cell outputs, paragraphs) doesn't butt up against its top edge.
-    function reserveNoteSpace(slide) {
-      var note = slide && slide.querySelector(':scope > aside.notes');
-      if (!note) return;
-      var spacer = slide.querySelector(':scope > .note-spacer');
-      if (!spacer) {
-        spacer = document.createElement('div');
-        spacer.className = 'note-spacer';
-        spacer.setAttribute('aria-hidden', 'true');
-        slide.insertBefore(spacer, note);
-      }
-      requestAnimationFrame(function() {
-        spacer.style.height = (note.offsetHeight + 12) + 'px';
-      });
-    }
-
     // Mark overflowing pre blocks so CSS can render an explicit "continues
     // below" cue. Scrollbars don't render in static decktape PDFs, and
     // reveal hides non-current slides with display:none (scrollHeight=0),
@@ -128,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function runHandoutFixups(slide) {
-      reserveNoteSpace(slide);
       stackNotes(slide);
       markOverflowingPre(slide);
     }
