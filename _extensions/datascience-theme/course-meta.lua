@@ -82,21 +82,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Tag pre blocks whose content overflows — CSS styles .is-overflowing
-  // with a dashed bottom border + "continues below" badge so the truncation
-  // is visible in static decktape PDFs, where scrollbars don't render.
-  // Reveal hides non-current slides with display:none, zeroing scrollHeight,
-  // so we re-check per slide on activation.
-  function markOverflowingPre(slide) {
-    if (!slide) return;
-    slide.querySelectorAll('pre').forEach(function(pre) {
-      pre.classList.toggle('is-overflowing', pre.scrollHeight > pre.clientHeight + 1);
-    });
-  }
-
-  // ?handout=true: stack aside + notes boxes so they don't overlap
+  // ?handout=true: the rest of this block is handout-only layout fixups
   if (new URLSearchParams(location.search).has('handout')) {
     document.body.classList.add('handout');
+
+    // Push abs-positioned .aside up so it doesn't overlap abs-positioned note.
     function stackNotes(slide) {
       var note = slide.querySelector(':scope > aside.notes');
       var aside = slide.querySelector(':scope > aside:not(.notes)');
@@ -107,21 +97,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
     }
-    if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
-      stackNotes(Reveal.getCurrentSlide());
-    } else {
-      Reveal.on('ready', function(e) { stackNotes(e.currentSlide); });
-    }
-    Reveal.on('slidechanged', function(e) { stackNotes(e.currentSlide); });
-  }
 
-  if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
-    markOverflowingPre(Reveal.getCurrentSlide());
-  } else if (typeof Reveal !== 'undefined') {
-    Reveal.on('ready', function(e) { markOverflowingPre(e.currentSlide); });
-  }
-  if (typeof Reveal !== 'undefined') {
-    Reveal.on('slidechanged', function(e) { markOverflowingPre(e.currentSlide); });
+    // Reserve in-flow vertical space for the abs-positioned note, so normal
+    // content (cell outputs, paragraphs) doesn't butt up against its top edge.
+    function reserveNoteSpace(slide) {
+      var note = slide && slide.querySelector(':scope > aside.notes');
+      if (!note) return;
+      var spacer = slide.querySelector(':scope > .note-spacer');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.className = 'note-spacer';
+        spacer.setAttribute('aria-hidden', 'true');
+        slide.insertBefore(spacer, note);
+      }
+      requestAnimationFrame(function() {
+        spacer.style.height = (note.offsetHeight + 12) + 'px';
+      });
+    }
+
+    // Mark overflowing pre blocks so CSS can render an explicit "continues
+    // below" cue. Scrollbars don't render in static decktape PDFs, and
+    // reveal hides non-current slides with display:none (scrollHeight=0),
+    // so we re-check per slide on activation. Tolerance absorbs subpixel
+    // rounding where clientHeight and scrollHeight disagree by 1-2px.
+    function markOverflowingPre(slide) {
+      if (!slide) return;
+      slide.querySelectorAll('pre').forEach(function(pre) {
+        pre.classList.toggle('is-overflowing', pre.scrollHeight > pre.clientHeight + 4);
+      });
+    }
+
+    function runHandoutFixups(slide) {
+      reserveNoteSpace(slide);
+      stackNotes(slide);
+      markOverflowingPre(slide);
+    }
+
+    if (typeof Reveal !== 'undefined' && Reveal.isReady && Reveal.isReady()) {
+      runHandoutFixups(Reveal.getCurrentSlide());
+    } else if (typeof Reveal !== 'undefined') {
+      Reveal.on('ready', function(e) { runHandoutFixups(e.currentSlide); });
+    }
+    if (typeof Reveal !== 'undefined') {
+      Reveal.on('slidechanged', function(e) { runHandoutFixups(e.currentSlide); });
+    }
   }
 });
 </script>
