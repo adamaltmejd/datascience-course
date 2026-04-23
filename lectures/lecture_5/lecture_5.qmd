@@ -144,7 +144,7 @@ run_bad_file <- function(path, echo = FALSE, output = TRUE, traceback = FALSE) {
 
 - Why code breaks and what to do about it
 - How to fail early
-- Getting coding assistance from your IDE and Agents
+- Getting coding assistance from your IDE and agents
 
 ## Why this lecture now
 
@@ -158,7 +158,7 @@ run_bad_file <- function(path, echo = FALSE, output = TRUE, traceback = FALSE) {
 - We will be using [Positron](https://positron.posit.co/) today, because of its built-in debugger.
 - Positron is a VS Code fork, so it will look familiar.
 - If you prefer to stay with VS Code you can use the [R Debugger extension](https://marketplace.visualstudio.com/items?itemName=RDebugger.r-debugger) but it can be a bit finicky to get going.
- 
+
 # Errors everywhere
 
 ## Errors everywhere
@@ -168,19 +168,19 @@ Programming is a process of constant errors.
 ## Getting unstuck
 
 ```
-`Error in if (x) { : missing value where TRUE/FALSE needed`
+Error in if (x) { : missing value where TRUE/FALSE needed
 ```
 
 ```
-`Error: object 'panel_2023' not found`
+Error: object 'panel_2023' not found
 ```
 
 ```
-`Error in library(httr2) : there is no package called 'httr2'`
+Error in library(httr2) : there is no package called 'httr2'
 ```
 
 ```
-`Error in [ : subscript out of bounds`
+Error in [ : subscript out of bounds
 ```
 
 Your job: debug the code and find the *bad assumption*.
@@ -227,7 +227,7 @@ names(x)             # column names
 dim(x)               # rows × columns
 ```
 
-`str()` is the probably the most useful inspection command in R
+`str()` is probably the most useful inspection command in R.
 
 ::: aside
 When inspecting large objects with `str()` use its second argument `max.level` to control how deep it goes. For example, `str(x, max.level = 1)` will show the top-level structure without going into nested details.
@@ -249,13 +249,13 @@ R offers to save your workspace on exit and reload it on startup
 **Turn it off.**
 
 ::: {.aside}
-In RStudio, go to Tools → Global Options → General, and set "Save workspace to .RData on exit" to "Never". Positron already defaults to off. To disable globally (including in VSCode), you could replace `q()` in your `.Rprofile` with:
+In RStudio, go to Tools → Global Options → General, and set "Save workspace to .RData on exit" to "Never". Positron already defaults to off. To disable globally (including in VS Code), you could replace `q()` in your `.Rprofile` with:
 ```r
 q <- function(save = "no", ...) quit(save = save, ...)
 ```
 :::
 
-## Example 1: Selecting a `df` column
+## Example 1: Selecting a data frame column
 
 ```{r}
 #| output-location: default
@@ -279,7 +279,7 @@ str(col_subset)
 - Selecting a single column returns a vector
 - An issue if you expected a data frame
 
-## Example 1: Selecting a `df` column (cont.)
+## Example 1: Selecting a data frame column (cont.)
 
 `drop = FALSE` forces R to keep the data frame structure:
 
@@ -292,7 +292,7 @@ col_subset_df <- mini_panel[
 ```
 
 ```{r}
-names(col_subset)
+names(col_subset_df)
 ```
 ```{r}
 is.data.frame(col_subset)
@@ -343,6 +343,13 @@ run_bad_file(
 )
 ```
 
+## Reading a traceback
+
+- `traceback()` prints the *call stack*
+- One row per function call, starting with the most recent
+
+The error message tells you **what** went wrong; the traceback helps you locate **where** the error occurred.
+
 ## Example 2: A simple `traceback()` (cont.)
 
 ```{r}
@@ -354,14 +361,6 @@ run_bad_file(
   traceback = TRUE
 )
 ```
-
-## Reading a traceback
-
-- `traceback()` prints the *call stack*
-- One row per function call, starting with the most recent
-
-The error message tells you **what** went wrong; the traceback helps you locate **where** the error occurred.
-
 
 ## Example 3: A more realistic `traceback()`
 
@@ -429,7 +428,9 @@ Silent bugs are much harder to detect. Most bugs are silent, but in a few slides
 
 ## Use `browser()` to step through the code interactively
 
-- `n`: next
+Drop a call to `browser()` into the function where things look suspicious. When R hits it, execution pauses and the prompt changes to `Browse[1]>`. From there:
+
+- `n`: next expression
 - `s`: step into (function)
 - `f`: finish current function
 - `c`: continue until the end or the next breakpoint
@@ -441,11 +442,11 @@ Silent bugs are much harder to detect. Most bugs are silent, but in a few slides
 I'll show how to use `browser()` in class, to step through the code and inspect variables. Try it on your own. You see that you are in the browser because the prompt changes to `Browse[1]>`. When it does, you can use the commands above, e.g. writing `n` and pressing enter to execute the next line of code. You can also inspect variables by just typing their name and pressing enter, e.g. `latest_year` to see its value.
 :::
 
-## Enter Browser on function call: `debug()`
+## Enter the browser on a function call: `debug()`
 
-- `debug(<function_name>)` browses function when its called
-- `debugonce(<function_name>)` enters `browser()` only on the next `<function_name>` call
-- Use `undebug(<function_name>)` to turn off debugging
+- `debug(<function_name>)` browses the function every time it's called
+- `debugonce(<function_name>)` enters `browser()` only on the next call
+- `undebug(<function_name>)` turns debugging off
 
 ::: aside
 Forgetting `undebug()` is a common footgun, default to `debugonce()` if you just want an interactive pass through the function.
@@ -453,13 +454,13 @@ Forgetting `undebug()` is a common footgun, default to `debugonce()` if you just
 
 ## IDE debugger
 
-- VSCode, Positron, and RStudio all have built-in debuggers
-- GUI+breakpoints instead of browser() calls. Same underlying tools.
+- VS Code, Positron, and RStudio all have built-in debuggers
+- GUI + breakpoints instead of `browser()` calls. Same underlying tools.
 
 ![](ide-debugger.png){.r-stretch}
 
 ::: aside
-Positron and Rstudio come with built-in R debugging. To get debugging in VS Code, you need to install the [R Debugger extension](https://marketplace.visualstudio.com/items?itemName=RDebugger.r-debugger). It can be a bit finicky which is why I recommend you use Positron for this lecture.
+Positron and RStudio come with built-in R debugging. To get debugging in VS Code, you need to install the [R Debugger extension](https://marketplace.visualstudio.com/items?itemName=RDebugger.r-debugger). It can be a bit finicky which is why I recommend you use Positron for this lecture.
 :::
 
 ::: notes
@@ -479,11 +480,11 @@ options(error = recover)
 When you are done, set `options(error = NULL)` to reset the error behavior to the default.
 :::
 
-# Pre-empt the bugs: Fail Usefully
+# Pre-empt the bugs: fail usefully
 
 ## Fail early and loudly
 
-Do you know what the code is supposed to do? Why not verify that is what it is actually doing? 
+Do you know what the code is supposed to do? Why not verify that it actually does?
 
 - Adding checks, errors, messages, assertions, and tests is a cheap way to catch problems early.
 
@@ -607,7 +608,7 @@ Issue `stop()` or `warning()` when:
 
 After a bug fix, add the smallest check that would have caught it earlier.
 
-# IDE Code Assistance
+# IDE code assistance
 
 ## Code formatting with Air
 
@@ -631,8 +632,8 @@ summary(df[, c("x", "y")])
 ## Code linting with Jarl
 
 - Flags suspicious patterns *before* you run the code.
-- Catches things errors and tests won't:
-  - `any(is.na(x))` → suggests `anyNA(x)`
+- Catches what errors and tests won't:
+  - `any(is.na(x))` → suggests the faster `anyNA(x)`
   - Unreachable code after `return()`, `stop()`, or `break`
 - Jarl extension in Positron or VS Code
 - Air makes code *look* consistent, Jarl makes it *behave* better
@@ -645,10 +646,10 @@ Jarl is even newer, and in active development. If you want a more robust option 
 
 ## AI-assisted code completions
 
-- Start writing code and `Copilot` will start suggesting
-- `Tab` to accept, or keep writing to get a different one
-- Suggestions are based on file context, not just the current line
-- Write comments to guide the suggestions:
+- Start writing code and `Copilot` suggests the rest in grey
+- `Tab` to accept, `Esc` to dismiss, or keep typing and the suggestion adapts
+- Suggestions use the whole file as context, not just the current line
+- Comments steer what you get:
 
 ```r
 # read your_file.csv from raw_data
@@ -662,8 +663,8 @@ read.csv("raw_data/your_file.csv")
 
 ## Inline Copilot interactions
 
-- Highlight code and press `💡` to ask Copilot to **modify** or **review**
-- On R console errors, Positron assistant can help:
+- Highlight code and click the `💡` (or press `Cmd/Ctrl + I`) to ask Copilot to **modify** or **review**
+- On R console errors, the Positron assistant can suggest a fix:
 
 ![](ai-explain-error.png){.r-stretch}
 
@@ -673,7 +674,7 @@ read.csv("raw_data/your_file.csv")
 - **Agents** run multi-step tasks: read files, write files, run commands, loop until done.
 - Same underlying models — the difference is how much rope you give them.
 
-# Agentic Development
+# Agentic development
 
 ## What is an AI agent?
 
@@ -708,10 +709,11 @@ Fix this traceback.
 **Scoped**
 
 ```text
-In 01_traceback_test.R, explain why
-check_reference_row() fails and propose
-the smallest fix. Don't rewrite the
-script or add packages.
+In 02_traceback_realistic.R, explain
+why get_reference_rate() fails for
+reference_year = 2020 and propose the
+smallest fix. Don't rewrite the script
+or add packages.
 ```
 :::
 ::::
@@ -723,7 +725,7 @@ Good context has four parts:
 - the expected output
 - a stop point
 
-Agents are LLM text completion engines. Their reasoning process is only as good as the input you give them.
+Under the hood, agents are just LLMs in a loop — their reasoning is only as good as the context you give them.
 
 ## `AGENTS.md`: house rules for the repo
 
@@ -734,6 +736,41 @@ Agents read instruction files before acting. Tell them which packages you prefer
 #| results: asis
 show_file(file.path(lecture_example_dir, "agent-example", "AGENTS.md"), lang = "md")
 ```
+
+## Point the agent at the right files
+
+`AGENTS.md` doesn't have to say everything — it can point.
+
+```md
+- Data dictionary: `data/README.md`
+- Style conventions: `docs/style.md`
+- Run the full pipeline: see `Makefile`
+```
+
+- Keeps the root file short and scannable
+- Agent loads detail only when the task needs it
+- Think of it as a table of contents for the repo
+
+## Agents read text like humans do
+
+- No special format required — READMEs, source, CSV headers, `.Rprofile`
+- A good comment or docstring helps both your teammate *and* the agent
+- The flip side: outdated or misleading docs mislead the agent too
+- Write for humans first; agents come along for free
+
+## Skills: packaging repeatable tasks
+
+A **skill** is a reusable bundle of instructions (± helper scripts) for a specific workflow the agent should run the same way every time.
+
+- "Open a PR the way we like it"
+- "Check register metadata before writing a query"
+- "Format, lint, run tests, then commit"
+
+The agent picks up the skill when the task matches — you stop re-explaining the same workflow in every prompt.
+
+::: aside
+Copilot and Codex both support putting skills in a `.agents/skills` folder in the project repo; Claude requires `.claude/skills/`. The structure follows an [open standard](https://github.com/agentskills/agentskills) with a subfolder for each skill, at least containing a `SKILL.md` witht basic instructions.
+:::
 
 ## GitHub Issues and PRs: a systematic review surface
 
