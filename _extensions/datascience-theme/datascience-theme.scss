@@ -231,8 +231,22 @@ $code-block-border-color:          $border-default !default;
 }
 
 // Block code: visual box on pre, code element is transparent
+// Scroll-shadows: radial "shadow" gradients at top/bottom of the pre box,
+// with matching "cover" gradients anchored to the content (background-attachment: local).
+// When content overflows, the cover scrolls away from the edge and the shadow shows
+// through — a pure-CSS "more above/below" cue that also renders in decktape PDFs.
 .reveal pre {
-  background: $bg-code;
+  --pre-bg: #{$bg-code};
+  background-color: var(--pre-bg);
+  background-image:
+    linear-gradient(var(--pre-bg) 30%, transparent),
+    linear-gradient(transparent, var(--pre-bg) 70%),
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.25), transparent),
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.25), transparent);
+  background-position: 0 0, 0 100%, 0 0, 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 30px, 100% 30px, 100% 12px, 100% 12px;
+  background-attachment: local, local, scroll, scroll;
   border: 1px solid $border-default;
   border-left: 3px solid $border-code;
   border-radius: 5px;
@@ -606,7 +620,7 @@ section[data-background-color] {
 
 // ── Cell output styling ────────────────────────────────────
 .reveal .cell-output pre {
-  background: $bg-output;
+  --pre-bg: #{$bg-output};
   border-left-color: $border-output;
 }
 
