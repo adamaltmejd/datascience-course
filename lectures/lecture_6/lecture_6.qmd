@@ -1,0 +1,895 @@
+---
+title: "Lecture 6: Data Wrangling I"
+lecture-number: 6
+date: 2026-04-28
+engine: knitr
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+options(width = 90)
+options(datatable.print.nrows = 8)
+options(datatable.print.topn = 3)
+knitr::opts_knit$set(root.dir = here::here())
+library(data.table)
+```
+
+## Today
+
+- Importing real files
+- First-pass inspection before touching the data
+- Core `data.table` grammar: `DT[i, j, by]`
+- Missing-values and type repair
+- Writing a cleaned file back to disk
+
+::: notes
+This lecture is about the first half of ordinary wrangling work: getting a table into `R`, checking what arrived, and making the first targeted fixes.
+:::
+
+## Importing: Raw data is not always easy to read
+
+:::: {.columns}
+::: {.column width="55%"}
+- A file is just bytes
+- Import decides:
+  - delimiter
+  - types
+  - encoding
+  - missing-values
+- Inspection checks whether those choices were sensible
+:::
+::: {.column width="45%"}
+![](workflow_diagram.png){fig-align="center" width="100%"}
+:::
+::::
+
+::: notes
+Students often blur together "I have a CSV" and "I have usable data". Those are different states.
+:::
+
+## Wrangling: Make data usable for analysis
+
+:::: {.columns}
+::: {.column width="55%"}
+- Clean inconsistencies
+- Tidy data
+- Transform data, create variables
+:::
+::: {.column width="45%"}
+![](workflow_diagram_final.png){fig-align="center" width="100%"}
+:::
+::::
+
+# Importing Data
+
+## Repeating the import checklist
+
+Before doing any real work, ask:
+
+- Where is the file, and what produced it?
+- Are identifiers read with the right type?
+- Are missing values coded as blanks, `NA`, or fake numbers?
+- Do names need repair?
+- What is the intended key?
+
+::: notes
+This is intentionally repetitive with the debugging lecture. The recurring theme is to inspect assumptions early. If students build this checklist into habit, many later errors become obvious immediately.
+:::
+
+## `data.table::fread()` for text files
+
+- `fread()` is fast and flexible for delimited text (CSV, TSV)
+- Automatically solves many possible data issues
+
+## Let's import data from an AI-generated kennel
+
+:::: {.columns}
+::: {.column width="45%"}
+- `dog_inventory.csv` our inventory
+- `dog_breeds.csv` a lookup-table of information
+- `dog_sales.csv` "market research"
+:::
+::: {.column width="55%"}
+![](dog_dataset_intro.png){fig-align="center" width="100%"}
+:::
+::::
+
+```{r}
+#| output-location: default
+dog_path <- here::here(
+  "data-sources", "data", "dogs", "dog_inventory.csv"
+)
+list.files(
+  dirname(dog_path),
+  pattern = "^dog_.*\\.csv$"
+)
+```
+
+## View your raw data
+
+```{r}
+#| output-location: default
+readLines(dog_path, n = 6)
+```
+
+::: notes
+I'm using `readLines()` just to show the raw data on the slide. You could view it directly in your IDE. A messy file often reveals problems before `R` even parses it: metadata lines above the header, unusual date formats, spaces in variable names, and suspicious codes that probably mean "missing". Looking at a few raw lines is often faster than guessing from memory.
+:::
+
+## `fread()` is forgiving, but can't solve all issues
+
+```{r}
+#| warning: true
+#| output-location: default
+fread(dog_path)[3:4]
+```
+
+- Good news: `fread()` found the real header
+- Less good: that still does **not** mean the import is correct
+
+::: notes
+`fread()` is often great at skipping junk and guessing delimiters. That is helpful, but it can also tempt people into overconfidence. A successful import call is not evidence that the types, encodings, or missing-value rules are correct.
+:::
+
+## Encoding problems show up in the values
+
+```{r}
+#| warning: true
+#| output-location: default
+fread(dog_path)[c(4, 6), .(name, `new owner`)]
+```
+
+- Computers need to encode characters to store them
+- Unfortunately there are tons of different encodings
+- A-Z, 0-9 is usually the same, but code for e.g. å can vary
+- Can create a real mess...
+
+::: notes
+This is a realistic symptom of encoding trouble: the table loaded, but names with accented characters became broken text. These bugs often go unnoticed until much later, for example during joins, filtering, or plotting.
+:::
+
+## Tell `fread` what you know
+
+```{r}
+#| warning: true
+#| output-location: default
+fread(
+  dog_path,
+  skip = 3,
+  encoding = "Latin-1"
+)[c(4, 6), .(name, `new owner`)]
+```
+
+- `skip = 3` removes the preamble explicitly
+- `encoding = "Latin-1"` sets Windows encoding explicitly
+
+::: notes
+The general rule is simple: if you know something important about the file, encode that knowledge in the import call. This is more robust than hoping future guesses will land the same way.
+:::
+
+## Repairing names
+
+```{r}
+#| output-location: default
+names(fread(dog_path, skip = 3, encoding = "Latin-1"))[9:10]
+names(fread(dog_path, skip = 3, encoding = "Latin-1", check.names = TRUE))[9:10]
+```
+
+`check.names = TRUE` converts spaces into syntactic names
+
+::: aside
+To refer to a name with a space we need to enclose it with backticks (\`\`), like in `dogs$`new owner`[5]`. Easier to fix at import so we can use `dogs$new.owner[5]` instead.
+:::
+
+::: notes
+Name repair is useful when import is messy, but it should be done thoughtfully. The goal is not to let the computer rename things without inspection. The goal is to get names into a form that is easy to reference and unlikely to break code.
+:::
+
+## Protect identifiers at import time
+
+```{r}
+#| output-location: default
+dogs_bad <- fread(dog_path, skip = 3, encoding = "Latin-1")
+dogs_good <- fread(
+  dog_path,
+  skip = 3,
+  encoding = "Latin-1",
+  colClasses = list(character = "dog_id")
+)
+
+dogs_bad[1:5, dog_id]
+dogs_good[1:5, dog_id]
+```
+
+::: aside
+Just like with the municipal data, `dog_id` is an identifier, not a quantity. If the leading zero disappears, later joins, filters, and duplicate checks will silently become less reliable.
+:::
+
+## A good import call is explicit
+
+```{r}
+#| warning: false
+#| output-location: default
+dogs <- fread(
+  dog_path,
+  skip = 3,
+  encoding = "Latin-1",
+  check.names = TRUE,
+  na.strings = c("", "-99"),
+  colClasses = list(character = "dog_id")
+)
+
+dogs[1:3, .(dog_id, name, intake_date, sale_date, new.owner)]
+```
+
+::: notes
+This is not "verbose for the sake of verbosity". It is a compact contract with the future reader, including yourself next week. The ugly details of this file are now visible in one place: skip the preamble, fix the encoding, protect the identifier, repair the names, and treat the fake missing code as missing.
+:::
+
+## `select` the columns you use
+
+```{r}
+#| output-location: default
+fread(
+  dog_path,
+  skip = 3,
+  encoding = "Latin-1",
+  select = c(
+    "dog_id",
+    "name",
+    "breed",
+    "intake_date",
+    "sale_date"
+  ),
+  colClasses = list(character = "dog_id")
+)[1:5]
+```
+
+::: notes
+Selective import is useful when a file is wide and the first job is just inspection or a focused task. It also reduces noise on slides and in exploratory work. The important thing is to avoid pretending that unused columns are part of the current task.
+:::
+
+## Importing Stata `.dta` files with `haven`
+
+- Use `haven::read_dta()`. Preserves Stata labels.
+- Convert to `data.table` with `as.data.table()`,
+- Set value labels with `as_factors()`
+
+```r
+library(haven)
+
+stata_dt = read_dta("path/to/stata_file.dta") |>
+  as.data.table()
+
+stata_dt[, factor_variable := as_factor(labelled_variable)]
+```
+
+::: {.aside}
+Similarly, we would use `haven::write_dta()` to save a data frame as a Stata dta file.
+:::
+
+## Reading excel files with `readxl`
+
+```r
+library(readxl)
+excel_dt = read_excel("path/to/spreadsheet.xlsx")
+```
+
+`readxl` supports selecting sheets:
+
+```r
+excel_sheets("path/to/spreadsheet.xlsx")
+read_excel("spreadsheet.xlsx", sheet = "Sheet2")
+```
+
+and even specific ranges:
+
+```r
+read_excel("spreadsheet.xlsx", range = "A1:D10", skip = 2)
+```
+
+# Core data.table Grammar
+
+## `data.table` and `dplyr`
+
+- Two dominant paradigms for data manipulation in R
+- Both are powerful and widely used, but with different syntax
+- We will focus on `data.table`, because it is much faster
+
+## `data.table`: Core concept
+
+- An **enhancement** of base R's `data.frame`
+- **Fast:** Operations implemented in C
+- **Memory efficient:** Modifies *by reference* using `:=`
+- **Indexing:** Automatic indexing speeds up subsets and joins
+- **Concise syntax:** Combines operations efficiently
+
+## Read `DT[i, j, by]` as a sentence
+
+![](datatable_ijby.png){fig-align="center" width="100%"}
+
+"from this table, keep these rows (`i`), then return (and compute) these columns (`j`), grouped by these variables (`by`)"
+
+::: notes
+The small diagram previews the full `DT[i, j, by]` logic, but the key point on this slide is still the basic `i` and `j` split. Once those feel concrete, later grouped work and joins become much easier to understand.
+:::
+
+## `i` filters rows
+
+```{r}
+#| output-location: default
+dogs[
+  age >= 5 & price > 500,
+  .(dog_id, name, breed, age, price)
+]
+```
+
+::: notes
+This is the direct analogue of row filtering: define a logical condition, keep the matching rows, and optionally return only the columns you care about.
+:::
+
+## `i` can use membership too
+
+```{r}
+#| output-location: default
+dogs[
+  breed %in% c("Pug", "Boxer", "Border Collie") & insured == 1,
+  .(dog_id, name, breed, insured)
+]
+```
+
+::: notes
+`%in%` is usually clearer than a long chain of `|` comparisons. It is especially useful for filtering on lists of categories, codes, or allowed values.
+:::
+
+## `j` selects columns
+
+```{r}
+#| output-location: default
+dogs[
+  ,
+  .(dog_id, name, breed, age, price, insured)
+]
+```
+
+::: aside
+The `.()` notation is just a convenient shorthand for `list()`. In `data.table`, that list of columns becomes a table again.
+:::
+
+## `j` can compute new outputs
+
+```{r}
+#| output-location: default
+dogs[
+  age > 0,
+  .(
+    dog_id,
+    name,
+    breed,
+    price_per_year = round(price / age, 1)
+  )
+][1:8]
+```
+
+::: notes
+This is a good example of why `j` is more than "select columns". It is the place where you can create new columns or summaries from the existing ones.
+:::
+
+
+## `:=` modifies **by reference**
+
+```{r}
+#| output-location: default
+dogs_work <- copy(dogs)
+
+dogs_work[, price_per_year := fifelse(
+  age > 0,
+  round(price / age, 1),
+  NA_real_
+)]
+
+dogs_work[
+  1:5,
+  .(dog_id, name, age, price, price_per_year)
+]
+```
+
+::: notes
+This is one of the most important `data.table` differences from copy-heavy workflows. `:=` changes the existing object in memory. That is powerful and efficient, but it means you must be deliberate about when you want a separate copy. If one new column depends on another new column, do that in two steps or chain the operations instead of trying to create both at once and hoping the evaluation order matches your intent.
+:::
+
+## Use `copy()` when you need separation
+
+```{r}
+#| output-location: default
+"price_per_year" %in% names(dogs)
+"price_per_year" %in% names(dogs_work)
+```
+
+::: notes
+This small check makes the point visible. We created `dogs_work` from `copy(dogs)`, so the new column appears only in the copy. Without `copy()`, the original object would also have been changed.
+:::
+
+## Add `by` to repeat `j` within groups
+
+- `i` chooses rows
+- `j` says what to return or compute
+- `by` says which groups should get separate answers
+
+## `by` gives one result per group
+
+```{r}
+#| output-location: default
+dogs[, .(
+  dogs = .N,
+  mean_price = round(mean(price, na.rm = TRUE), 1)
+), by = breed][order(-dogs)][1:10]
+```
+
+::: notes
+This is the grouped equivalent of the earlier `j` work. The same calculation is repeated for each breed, and the result is one row per group instead of one row for the whole table.
+:::
+
+## Grouped counts are basic diagnostics
+
+```{r}
+#| output-location: default
+dogs[, .(
+  rows = .N,
+  missing_sale_date = sum(is.na(sale_date)),
+  insured_share = round(mean(insured == 1, na.rm = TRUE), 2)
+), by = breed][order(-rows)][1:10]
+```
+
+::: notes
+Grouped summaries are not just for presentation. They are also diagnostic tools. A quick count by category can reveal sparse groups, missing values concentrated in one group, or unexpected coding patterns.
+:::
+
+## Order rows deliberately
+
+```{r}
+#| output-location: default
+dogs[
+  age > 0,
+  .(name, breed, age, price)
+][order(-price)]
+```
+
+::: notes
+A table with no explicit ordering rule should not be assumed to be meaningfully ordered. Sort on purpose when you want "highest", "lowest", or "latest". `order()` is good when you want one ordered result. `setorder()` changes the table in place when that ordering should persist.
+:::
+
+## Comparison to `dplyr`
+
+- Part of the **Tidyverse** collection of packages
+- Focuses on **readability** and **consistency**
+- Uses distinct "verbs" for common operations
+
+:::: {.columns}
+::: {.column width="50%"}
+`data.table`
+```r
+data[condition,
+     .(new_var = mean(old_var)),
+     by = "group_var"]
+```
+:::
+::: {.column width="50%"}
+`dplyr`
+```r
+data |>
+  filter(condition) |>
+  group_by(group_var) |>
+  summarise(new_var = mean(old_var))
+```
+:::
+::::
+
+::: {.aside}
+If you really like the `dplyr` syntax but want to take advantage of `data.table` speeds, there is the [dtplyr](https://dtplyr.tidyverse.org/) package which uses data.table as a backend for dplyr-syntax operations.
+:::
+
+## `data.table` vs. `dplyr` - key differences
+
+**`data.table`**
+
+- **Pros:** Speed, memory efficiency, concise syntax, powerful indexing/joins. Ideal for large data.
+- **Cons:** Steeper learning curve, syntax less "English-like", modify-by-reference needs care.
+
+**`dplyr`**
+
+- **Pros:** Highly readable verbs, Tidyverse integration (ggplot2, etc.).
+- **Cons:** Slower, uses more memory, especially on large data or complex groups.
+
+# Useful data.table Tooling
+
+## Setting a key creates an index for faster operations
+
+```{r}
+dogs[, .(dog_id, name, breed)][1:2]
+```
+
+```{r}
+setkey(dogs, dog_id, breed)
+dogs[, .(dog_id, name, breed)][1:2]
+```
+
+::: aside
+`setkey()` automatically sorts the data table by the key. 
+:::
+
+::: notes
+Setting a key is useful for large datasets when you will be doing many subsets or joins on the same variable(s). It creates an index that speeds up those operations. The first time you set the key, it may take a moment to sort the data, but subsequent subsets on that key will be much faster.
+:::
+
+## Removing columns by reference with `:= NULL`
+
+```{r}
+#| output-location: default
+dogs_work[, price_per_year := NULL]
+"price_per_year" %in% names(dogs_work)
+```
+
+::: notes
+Because `:=` changes the table by reference, deletion is also explicit. This is useful when a temporary helper column did its job and should not leak into later analysis.
+:::
+
+## `fcase()` is cleaner than nested `ifelse()`
+
+```{r}
+#| output-location: default
+dogs_work[, fee_group := fcase(
+  price < 400, "low",
+  price < 700, "middle",
+  default = "high"
+)]
+
+dogs_work[, .(dog_id, name, price, fee_group)]
+```
+
+::: notes
+This is one of the practical `data.table` conveniences worth teaching early. Nested `ifelse()` calls become unreadable quickly. `fcase()` makes mutually exclusive categories much easier to inspect.
+:::
+
+## Piping with `data.table`
+
+- Piping improves readability when chaining multiple operations
+- `data.table` supports the native pipe `|>`
+- Use `_` as a placeholder for the output of the previous step
+
+```{r}
+#| output-location: default
+dogs |>
+  _[age > 0] |>
+  _[, price_per_year := round(price / age, 1)] |>
+  _[order(-price_per_year)] |>
+  _[, .(dog_id, name, price_per_year)]
+```
+
+# Grouping and Summarizing
+
+## Grouping and summarizing with `by=`
+
+![](summary.png){fig-align="center"}
+
+## Grouping and summarizing with `by=` (cont.)
+
+Evaluate `j` separately for each group:
+
+```{r}
+dogs[, mean(price), by = .(insured)]
+```
+
+Can group by multiple variables, and by conditions:
+
+```{r}
+dogs[, mean(price), by = .(insured, color == "White")]
+```
+
+## Grouping and summarizing with `by=` (cont.)
+
+Find cheapest dog by breed, ordered by how frequent the breed is
+
+```{r}
+#| output-location: default
+dogs[, .(.N, min(price)), by = "breed"] |>
+  _[order(-N)]
+```
+
+## Transforming with `:=` and `by=`
+
+![](transform.png){fig-align="center"}
+
+## Transforming with `:=` and `by=`
+
+Saving the average price by age to a new column, repeating the summary for each row in group:
+
+```{r}
+dogs[, avg_price_by_age := mean(price),
+     by = .(age)]
+
+dogs[order(age),
+     .(age, avg_price_by_age)]
+```
+
+```{r}
+#| echo: false
+#| output-location: default
+dogs[, avg_price_by_age := NULL]
+```
+
+## Grouped transformations create new columns
+
+```{r}
+#| output-location: default
+copy(dogs) |>
+  _[, price_gap_from_breed_mean :=
+    price - mean(price, na.rm = TRUE),
+    by = breed] |>
+  _[breed %in% c("Pug", "Boxer"),
+    .(dog_id, name, breed, price, price_gap_from_breed_mean)]
+```
+
+::: aside
+The grouped mean is repeated within each group because this is a grouped transformation, not a grouped collapse. That distinction matters. Summaries reduce rows; transformations keep the original rows.
+:::
+
+## `.SD`
+
+Inside a `data.table`, `.SD` refers to the **S**ubset of **D**ata for each group.
+
+We can use this to run more complex operations, like
+
+```r
+dogs[, lapply(.SD, func), by = ...]
+```
+
+applying a custom function `func` to each `.SD` group.
+
+::: {.aside}
+`.SD` is also a data.table
+:::
+
+## `.SDcols`
+
+Specifies the columns included in `.SD`. Can be used to select columns in smart ways.
+
+```{r}
+#| output-location: default
+dogs[, c(
+  list(dogs = .N),
+  lapply(.SD, function(x) round(mean(x, na.rm = TRUE), 2))
+), by = breed, .SDcols = c("age", "price")]
+```
+
+# Missing Values And Repair
+
+## Missing values are a workflow issue
+
+- Some missings are genuine unknowns
+- Some are fake codes like `-99`
+- Some are actually impossible values that should become `NA`
+
+::: notes
+It is useful to separate three ideas: a value that is truly unavailable, a code that means unavailable, and a recorded value that is simply wrong. They should not all be treated the same way.
+:::
+
+## Code fake missings at read time when you can
+
+```{r}
+#| warning: false
+#| output-location: default
+dogs_raw <- fread(dog_path, skip = 3, encoding = "Latin-1")
+dogs <- fread(
+  dog_path,
+  skip = 3,
+  encoding = "Latin-1",
+  check.names = TRUE,
+  na.strings = c("", "-99"),
+  colClasses = list(character = "dog_id")
+)
+
+unique(dogs_raw$insured)
+unique(dogs$insured)
+```
+
+::: notes
+This is a clean example of a rule that should live in the import step. If `-99` means missing, it is better to say so once while reading the file than to remember that fact in three later scripts.
+:::
+
+## Use `is.na()` explicitly
+
+```{r}
+#| output-location: default
+dogs[is.na(insured), .(dog_id, name, insured)]
+```
+
+::: notes
+Comparisons like `x == NA` do not work the way beginners expect. Missingness should be checked with `is.na()` so the intention is explicit and correct.
+:::
+
+## Some values are not missing, just wrong
+
+```{r}
+#| output-location: default
+dogs[age < 0, .(dog_id, name, age)]
+```
+
+::: notes
+Negative ages are not a plausible substantive value here. They should not stay in the data as if they were meaningful. This is a good example of an "impossible value" rather than a pre-coded missing.
+:::
+
+## Repair obvious problems explicitly
+
+```{r}
+#| output-location: default
+dogs_fixed <- copy(dogs)
+dogs_fixed[age < 0, age := NA_integer_]
+
+dogs_fixed[, .(
+  missing_age = sum(is.na(age)),
+  missing_sale_date = sum(is.na(sale_date)),
+  missing_insured = sum(is.na(insured))
+)]
+```
+
+::: notes
+The pattern matters more than this specific example: identify the impossible condition, change only the affected rows, and then verify the result with a small count.
+:::
+
+## Date parsing is a type problem too
+
+```{r}
+#| output-location: default
+sapply(dogs[, .(intake_date, sale_date)], class)
+```
+
+- `intake_date` is already a date type
+- `sale_date` is still text
+
+::: notes
+This is intentionally a bridge to lecture 7. Date handling is not a separate universe; it is a special case of getting types right. If a date is still a character string, date arithmetic will not work reliably.
+:::
+
+# Writing Clean Data
+
+## Separate raw, processed, and analysis steps
+
+- Raw files are inputs
+- Processed files are reproducible intermediate outputs
+- Analysis starts from processed data, not from manual edits
+
+::: notes
+This mirrors the project-workflow lecture. A processed file is useful when the cleaning work is non-trivial and should not be repeated interactively from memory. It also creates a clear surface for version control and debugging.
+:::
+
+## Write a cleaned file with `fwrite()`
+
+```{r}
+#| output-location: default
+dogs_clean <- copy(dogs_fixed)
+dogs_clean[, sale_date := as.IDate(sale_date, format = "%m/%d-%Y")]
+
+out_dir <- file.path(tempdir(), "ec7422-wrangling")
+dir.create(out_dir, showWarnings = FALSE)
+
+out_path <- file.path(out_dir, "dogs_clean.csv")
+fwrite(dogs_clean, out_path)
+```
+
+## Read it back and verify
+
+```{r}
+#| output-location: default
+dogs_roundtrip <- fread(
+  out_path,
+  colClasses = list(character = "dog_id")
+)
+dogs_roundtrip[1:3, .(dog_id, name, age, sale_date)]
+```
+
+::: aside
+Note how we still need be explicit about some types when re-importing. The information is not stored in the CSV.
+:::
+
+# Using Functions when Wrangling
+
+## Repetition is the best reason to write a function
+
+- repeated import rules
+- repeated validation checks
+- repeated cleaning with one file path changed
+- repeated summaries that should agree exactly
+
+::: notes
+This is the practical reason to care about functions in a wrangling workflow. The gain is not elegance for its own sake. The gain is one stable place for logic that would otherwise get copied, edited, and slowly broken.
+:::
+
+## A wrangling function should show its contract
+
+- explicit arguments
+- one clear output
+- no hidden dependence on objects in the global environment
+- one place to store the weird file-specific rules
+
+::: notes
+This is the level of functions that matters most in applied data work. A small explicit function is easier to inspect than a long script with near-duplicate code blocks scattered through it.
+:::
+
+## Put the dog import rules in one place
+
+```{r}
+#| output-location: default
+read_dogs <- function(path) {
+  fread(
+    path,
+    skip = 3,
+    encoding = "Latin-1",
+    check.names = TRUE,
+    na.strings = c("", "-99"),
+    colClasses = list(character = "dog_id")
+  )
+}
+
+read_dogs(dog_path)[
+  1:3,
+  .(dog_id, name, intake_date, sale_date)
+]
+```
+
+::: notes
+This is already useful even before any advanced programming ideas show up. The messy import rules now live in one place, and future code can call the function without retyping them.
+:::
+
+## Hidden globals make even simple functions misleading
+
+```{r}
+#| output-location: default
+bad_oldest <- function(dt) dogs[which.max(age), .(dog_id, name, age)]
+oldest_dog <- function(dt) dt[which.max(age), .(dog_id, name, age)]
+
+puppies <- dogs[age <= 2]
+
+bad_oldest(puppies)
+oldest_dog(puppies)
+```
+
+## Returning a table keeps the effect visible
+
+```{r}
+#| output-location: default
+add_senior_flag <- function(dt, age_cutoff = 7L) {
+  out <- copy(dt)
+  out[, senior := age >= age_cutoff]
+  out
+}
+
+add_senior_flag(dogs)[, .(dog_id, age, senior)]
+```
+
+::: aside
+When using data.tables as arguments we need to take extra care with the editing copy-vs-reference issue. If we want the function to return a modified table without changing the original, we need to make a copy inside the function and return that copy.
+:::
+
+## Default arguments keep small helpers flexible
+
+```{r}
+#| output-location: default
+add_senior_flag(dogs)[, .N, by = senior]
+add_senior_flag(dogs, age_cutoff = 9L)[, .N, by = senior]
+```
+
+::: notes
+Default arguments are useful when one rule is common but not universal. Most calls can use the default, while the rare special case can still be handled without copying the function body and editing it by hand.
+:::
+
+## Main takeaways
+
+- A successful import is not the same as a correct import
+- Inspect names, types, keys, and missingness immediately
+- Read `DT[i, j, by]` as "i=rows, j=columns/calculations, by=groups"
+- Use `:=` deliberately and `copy()` when you need separation
+
+## Next lecture: grouped data, joins, dates, strings, and batch wrangling
