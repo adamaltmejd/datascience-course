@@ -13,3 +13,12 @@ format:
     mermaid:
       theme: forest
     html-math-method: katex
+    revealjs-plugins:
+      - slide-remote
+    filters:
+      - slide-remote
+
+slide-remote:
+  worker-url: https://slide-remote.adamaltmejd.workers.dev
+  show-button: false
+  disable-on-params: [handout]
