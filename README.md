@@ -9,7 +9,7 @@ Course website: <https://adamaltmejd.github.io/datascience-course/>.
 3. R Basics I. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_3/lecture_3.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_3/lecture_3.pdf)]
 4. R Basics II: Vectors, Tables, and Tidy Thinking. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_4/lecture_4.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_4/lecture_4.pdf)]
 5. Independent Workflows, Debugging, and AI Support. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_5/lecture_5.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_5/lecture_5.pdf)]
-6. Data Wrangling I.
+6. Data Wrangling I. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_6/lecture_6.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_6/lecture_6.pdf)]
 7. Data Wrangling II.
 8. APIs and External Data.
 9. LLMs for Data Processing.
@@ -28,3 +28,11 @@ The courses by Grant McDermott ([EC 607](https://github.com/uo-ec607/)) and Matt
 # Building the repo
 
 The [course repository](https://github.com/adamaltmejd/datascience-course) uses [Quarto](https://quarto.org) and `R` to build the slides and documents. To build it locally, install Quarto, R, and the [rv](https://github.com/a2-ai/rv) CLI (on macOS: `brew install a2-ai/homebrew-tap/rv`), then clone the repository and run `rv sync` from the project root to install all required R packages. This might take a while. Afterwards, `quarto render` will build all documents into `_site/`.
+
+If Quarto cannot write under `~/Library/Caches/quarto` or `~/Library/Application Support/quarto` in a restricted environment, use `scripts/quarto.sh` instead. It gives Quarto a repo-local home under `.quarto-home/` for that command only.
+
+Examples:
+
+- `scripts/quarto.sh render`
+- `scripts/quarto.sh render lectures/lecture_7/lecture_7.qmd`
+- `scripts/quarto.sh preview`
