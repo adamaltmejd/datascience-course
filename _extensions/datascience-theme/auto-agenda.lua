@@ -16,12 +16,6 @@ local options_bullets = "bullet"
 local options_heading = nil
 local options_clickable = false
 
-local function is_truthy(val)
-  if val == nil then return false end
-  local s = stringify(val):lower()
-  return s == "true" or s == "1" or s == "yes" or s == "on"
-end
-
 local function read_meta(meta)
   local options = meta["auto-agenda"]
   if options == nil then return end
@@ -31,8 +25,14 @@ local function read_meta(meta)
   if options.heading ~= nil then
     options_heading = options.heading
   end
-  options_clickable = is_truthy(options.clickable)
+  options_clickable = options.clickable == true
 end
+
+local bullet_classes = {
+  none     = function(x) return x end,
+  numbered = pandoc.OrderedList,
+  bullet   = pandoc.BulletList,
+}
 
 local function scan_headers(el)
   if el.level == 1 then
@@ -43,13 +43,7 @@ end
 local function scan_blocks(blocks)
   local new = pandoc.List()
   local header_n = 0
-
-  local bullet_class = pandoc.BulletList
-  if options_bullets == "none" then
-    bullet_class = function(x) return x end
-  elseif options_bullets == "numbered" then
-    bullet_class = pandoc.OrderedList
-  end
+  local bullet_class = bullet_classes[options_bullets] or pandoc.BulletList
 
   for _, block in ipairs(blocks) do
     if block.t == "Header"
@@ -69,15 +63,7 @@ local function scan_blocks(blocks)
 
       local items = pandoc.List()
       for i = 1, #sections do
-        local cls
-        if i == header_n then
-          cls = {"agenda-active"}
-        elseif i < header_n then
-          cls = {"agenda-inactive", "agenda-pre-active"}
-        else
-          cls = {"agenda-inactive", "agenda-post-active"}
-        end
-
+        local cls = i == header_n and {"agenda-active"} or {"agenda-inactive"}
         local el
         if options_clickable then
           table.insert(cls, "agenda-clickable")

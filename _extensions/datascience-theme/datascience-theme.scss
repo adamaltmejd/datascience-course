@@ -800,11 +800,7 @@ td > img { margin: 0 !important; }
 }
 
 // Column width variants for output-location: column
-.reveal .columns3070 > div.column:first-child { width: 30%; }
-.reveal .columns3070 div.column:not(:first-child) { width: 70%; }
-.reveal .columns7030 > div.column:first-child { width: 70%; }
-.reveal .columns7030 div.column:not(:first-child) { width: 30%; }
-.reveal .columns4060 > div.column:first-child { width: 40%; }
-.reveal .columns4060 div.column:not(:first-child) { width: 60%; }
-.reveal .columns6040 > div.column:first-child { width: 60%; }
-.reveal .columns6040 div.column:not(:first-child) { width: 40%; }
+@each $a, $b in (30 70), (40 60), (60 40), (70 30) {
+  .reveal .columns#{$a}#{$b} > div.column:first-child { width: $a * 1%; }
+  .reveal .columns#{$a}#{$b} div.column:not(:first-child) { width: $b * 1%; }
+}

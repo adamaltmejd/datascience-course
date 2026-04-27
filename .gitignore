@@ -24,7 +24,3 @@ problem_sets/**/*_files
 
 screenshots/
 /.luarc.json
-
-# slide-remote extension is dev-installed from ~/Code/quarto-slide-remote.
-# Remove this line and run `quarto add adamaltmejd/quarto-slide-remote` once the upstream is published.
-/_extensions/slide-remote/
