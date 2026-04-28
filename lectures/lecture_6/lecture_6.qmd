@@ -45,6 +45,10 @@ This lecture is about the first half of ordinary wrangling work: getting a table
 :::
 ::::
 
+::: aside
+It is often worthwhile to spend some time on the import step to make sure wranling starts from a data set that is as clean and usable as possible. Import tools are often better at dealing with raw file issues than later code.
+:::
+
 ::: notes
 "I have a CSV" and "I have usable data" are different states. The file format, encoding, and type guesses are part of the wrangling problem, not a prelude to it.
 :::
@@ -344,6 +348,23 @@ dogs[
 `%in%` is usually clearer than a long chain of `|` comparisons. It is especially useful for filtering on lists of categories, codes, or allowed values.
 :::
 
+## `%between%` filters ranges
+
+```{r}
+#| output-location: default
+dogs[
+  price %between% c(400, 700) & age %between% c(2, 5),
+  .(dog_id, name, age, price)
+]
+```
+
+- Shorthand for `x >= a & x <= b`, both endpoints included
+- Reads closer to intent than a chained comparison
+
+::: notes
+A small piece of syntax, but range filters appear constantly in wrangling. The inclusive-on-both-ends behaviour matches the usual reading of "between 400 and 700".
+:::
+
 ## `j` selects columns
 
 ```{r}
@@ -487,6 +508,26 @@ dogs_work[, price_per_year := NULL]
 Because `:=` changes the table by reference, deletion is also explicit. This is useful when a temporary helper column did its job and should not leak into later analysis.
 :::
 
+## Renaming and reordering by reference
+
+```{r}
+#| output-location: default
+dogs_demo <- copy(dogs)
+
+setnames(dogs_demo, c("new.owner", "intake_date"), c("owner", "intake"))
+setcolorder(dogs_demo, c("dog_id", "name", "breed", "owner"))
+
+names(dogs_demo)
+```
+
+- `:= NULL` deletes
+- `setnames()` renames
+- `setcolorder()` reorders
+
+::: notes
+Like `:=`, both functions change the table in place without making a copy. That makes them fast on large tables, but the same caveat applies: they mutate the object passed in. Use `copy()` first when separation matters.
+:::
+
 ## `fcase()` is cleaner than nested `ifelse()`
 
 ```{r}
@@ -504,36 +545,62 @@ dogs_work[, .(dog_id, name, price, fee_group)]
 This is one of the practical `data.table` conveniences worth teaching early. Nested `ifelse()` calls become unreadable quickly. `fcase()` makes mutually exclusive categories much easier to inspect.
 :::
 
+## Diagnose distinct values and duplicates
+
+```{r}
+dogs[, .(
+  rows = .N,
+  distinct_ids = uniqueN(dog_id),
+  distinct_breeds = uniqueN(breed)
+)]
+```
+
+```{r}
+dogs[duplicated(dogs, by = "dog_id"), .(dog_id, name)]
+```
+
+```{r}
+dim(unique(dogs, by = "dog_id"))
+```
+
+- `uniqueN()` counts distinct values; `unique()` returns them
+- `uniqueN(key) == nrow(dt)` is a one-line uniqueness test
+- `duplicated(dt, by = ...)` lists offending rows
+- `unique(dt, by = ...)` keeps one row per key
+
+::: notes
+A duplicated identifier is a quiet bug. It will not stop the script, but it will silently inflate joins and break aggregations. Pairing `.N` with `uniqueN()` is one of the most useful first-look diagnostics after import, and `unique(dt, by = key)` is the matching fix when duplicates appear. This sets up the join-key checks that lecture 7 leans on.
+:::
+
 ## Piping with `data.table`
 
-- Piping improves readability when chaining multiple operations
 - `data.table` supports the native pipe `|>`
 - Use `_` as a placeholder for the output of the previous step
 
 ```{r}
-#| output-location: default
 dogs |>
   _[age > 0] |>
-  _[, price_per_year := round(price / age, 1)] |>
-  _[order(-price_per_year)] |>
-  _[, .(dog_id, name, price_per_year)]
+  _[, price_per_yr := round(price / age)] |>
+  _[order(-price_per_yr)] |>
+  _[, .(dog_id, name, price_per_yr)]
 ```
 
 ::: aside
 The first `_[age > 0]` returns a new filtered table, so the later `:=` modifies *that* table, not `dogs`. Skipping the filter step (`dogs |> _[, := ...]`) would have written the new column straight into `dogs`. Mixing `:=` into a pipe is fine, but the upstream step has to actually produce a copy.
 :::
 
+
 # Grouping and Summarizing
 
-## Add `by` to repeat `j` within groups
+## 
+
+![](summary.png){fig-align="center"}
+
+## Grouping and summarizing with `by=` 
 
 - `i` chooses rows
 - `j` says what to return or compute
 - `by` says which groups should get separate answers
-
-## Grouping and summarizing with `by=`
-
-![](summary.png){fig-align="center"}
 
 ## Grouping and summarizing with `by=` (cont.)
 
@@ -574,8 +641,7 @@ dogs[, .(
 Grouped summaries are not just for presentation. They are also diagnostic tools. A quick count by category can reveal sparse groups, missing values concentrated in one group, or unexpected coding patterns.
 :::
 
-
-## Transforming with `:=` and `by=`
+## 
 
 ![](transform.png){fig-align="center"}
 
@@ -713,6 +779,26 @@ dogs_fixed[, .(
 
 ::: notes
 The pattern matters more than this specific example: identify the impossible condition, change only the affected rows, and then verify the result with a small count.
+:::
+
+## `fcoalesce()` fills missings with a default
+
+```{r}
+#| output-location: default
+dogs_fixed[, owner_label := fcoalesce(new.owner, "not yet sold")]
+
+dogs_fixed[
+  is.na(new.owner),
+  .(dog_id, name, new.owner, owner_label)
+][1:5]
+```
+
+- Returns the first non-`NA` value, argument by argument
+- Replaces nested `ifelse(is.na(x), y, x)` patterns
+- Accepts more than two arguments: `fcoalesce(a, b, c)`
+
+::: notes
+`fcoalesce()` is the SQL `COALESCE` idea. The multi-argument form is useful when several columns hold the same logical value and the goal is the first that is actually populated, for example `fcoalesce(reported_date, recorded_date, intake_date)`.
 :::
 
 ## Date parsing is a type problem too

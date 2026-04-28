@@ -153,7 +153,7 @@ $code-block-border-color:          $border-default !default;
   padding-bottom: 6px;
 }
 
-.reveal .slides section.level2 {
+.reveal .slides section.level2:not(:has(> h2:empty)) {
   &::before { @extend %gradient-line; }
 }
 

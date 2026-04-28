@@ -87,6 +87,7 @@ dog_id,name,breed,age,color,price,insured,intake_date,sale_date,new owner
 3805,Xena,Dachshund,4,Cream,760.00,1,2023-10-23,01/25-2024,Stéphanie Laurent
 4764,Yoshi,German Shepherd,6,Blue Gray,860.50,0,2023-11-06,02/08-2024,Félix Gómez
 5876,Zeke,Whippet,8,Cream,640.00,1,2023-12-18,03/17-2024,Renée Moreau
+4200,Max,Golden Retriever,8,Golden,500.00,1,2024-01-15,,
 1761,Aspen,Afghan Hound,5,Black,1050.75,1,2024-01-30,,
 8383,Bruno,Afghan Hound,3,Brown Roan,700.00,0,2024-02-03,,
 3735,Cinnamon,Afghan Hound,4,Black,800.25,1,2024-03-16,,
