@@ -613,7 +613,9 @@ dogs[, mean(price), by = .(insured)]
 Can group by multiple variables, and by conditions:
 
 ```{r}
-dogs[, mean(price), by = .(insured, white = color == "White")]
+dogs[, mean(price), 
+     by = .(insured, 
+            white = color == "White")]
 ```
 
 ## Grouping and summarizing with `by=` (cont.)
