@@ -230,7 +230,9 @@ $code-block-border-color:          $border-default !default;
   padding: 1px 4px;
 }
 
-// Block code: visual box on pre, code element is transparent
+// Block code: visual box on pre; padding lives on <code> so Quarto's
+// line-highlight clones (position:absolute; top:0; left:0) overlay the
+// in-flow original byte-for-byte regardless of reveal's transform-scale.
 .reveal pre {
   --pre-bg: #{$bg-code};
   --pre-pad-y: 10px;
@@ -241,7 +243,7 @@ $code-block-border-color:          $border-default !default;
   border-radius: 5px;
   box-sizing: border-box;
   box-shadow: none;
-  padding: var(--pre-pad-y) var(--pre-pad-x);
+  padding: 0;
   max-height: 480px; // safety net — tall code blocks scroll instead of overflowing
   overflow-y: auto;
   position: relative; // anchor .is-overflowing::after badge
@@ -288,7 +290,8 @@ $code-block-border-color:          $border-default !default;
 
   pre code {
     display: block;
-    padding: 0 !important;
+    padding: var(--pre-pad-y) var(--pre-pad-x) !important;
+    box-sizing: border-box;
     background: transparent !important;
     border: none !important;
     border-radius: 0 !important;
@@ -316,19 +319,31 @@ $code-block-border-color:          $border-default !default;
 
   pre.numberSource {
     margin-left: 0 !important;
-    padding-left: var(--pre-pad-x) !important;
+    padding-left: 0 !important;
   }
 
-  // Quarto's line-highlight plugin clones <code> per highlight step and pins
-  // each clone with `position:absolute; top:0; left:0; width:100%`. That
-  // anchors to <pre>'s padding edge, but the original <code> is in normal
-  // flow inside the padding — so the clone sits offset by the padding amount.
-  // Re-anchor clones to the content edge so they overlay the original cleanly.
-  pre > code:not(:first-child).fragment {
-    top: var(--pre-pad-y) !important;
-    left: var(--pre-pad-x) !important;
-    right: var(--pre-pad-x) !important;
-    width: auto !important;
+  // Reveal's default fragment behavior accumulates: every activated step keeps
+  // `.fragment.visible`, so highlight clones pile up over the original. Each
+  // clone's non-highlighted spans sit at opacity 0.25 — stacking N layers makes
+  // dimmed lines progressively brighter (1 - 0.75^N). Show only the current
+  // step instead; the original underneath always supplies the base layer.
+  pre > code.fragment:not(.current-fragment) {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  // Fragment clones must opaquely cover the original beneath — otherwise the
+  // original's first-step highlight bleeds through the current clone's dimmed
+  // (opacity 0.25) spans on the same line. Snap rather than crossfade so
+  // mid-transition translucency doesn't leak the original's highlight either.
+  pre > code.fragment {
+    background: var(--pre-bg) !important;
+    transition: none !important;
+  }
+
+  // Dim non-highlighted lines more aggressively than the plugin default (0.4).
+  div.sourceCode pre code.has-line-highlights > span:not(.highlight-line) {
+    opacity: 0.25 !important;
   }
 
   pre.numberSource code > span {
