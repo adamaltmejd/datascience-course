@@ -63,7 +63,7 @@ Lecture 6 established the core `data.table` grammar and covered ordinary grouped
 
 - `DT[i, j]` to subset and compute
 - add `by=` to summarize and transform by group
-- Today we focus on structure: join
+- Today we focus on structure: join and reshape
 - We will also talk about how to manipulate the data content: strings, regex, and dates
 
 ::: notes
@@ -324,8 +324,8 @@ dogs_join[breed_info, on = .(breed), avg_years_left := i.avg_life_exp - age]
 dogs_join[1:5, .(dog_id, breed, age, avg_years_left)]
 ```
 
-::: notes
-This is a genuinely useful `data.table` feature, not just syntax trivia. The `i.` prefix refers to columns from the incoming table, so the join can directly create a derived column without a separate intermediate object.
+::: aside
+The `i.` prefix refers to columns from the incoming table (the one in `i`), so the join can directly create a derived column without a separate intermediate object. Similarly, we can use `x.` to refer to columns from the outer table (`DT[]`).
 :::
 
 ## `shift()` instead of complex self-joins
@@ -335,16 +335,13 @@ This is a genuinely useful `data.table` feature, not just syntax trivia. The `i.
 ```{r}
 #| output-location: default
 event_order <- copy(events)
-setorder(event_order, dog_id, event_time)
-
+setorder(event_order, dog_id, event_time) # setorder() is crucial!
 event_order[,
   hours_since_previous_event := round(
-    as.numeric(difftime(event_time, shift(event_time), units = "hours")),
-    1
+    as.numeric(difftime(event_time, shift(event_time), units = "hours")), 1
   ),
   by = dog_id
 ]
-
 event_order[
   dog_id %in% c("0013", "3382"),
   .(dog_id, event_time, event_type, hours_since_previous_event)
@@ -365,49 +362,118 @@ These checks are quick and they scale. The habit matters more than memorising a 
 
 # Reshaping
 
-## Wide and long data structures
+## One data set, two shapes
 
 ![](reshape_wide_to_long.png){.r-stretch}
 
-- Wide for side-by-side comparisons
-- Long for summaries and plotting (tidy data!)
+## Pick shape by use case
 
-## `data.table::dcast()` to make a table wider
+- *Wide* is convenient for:
+  - reading side-by-side and comparing values directly
+  - joining the result onto a per-unit table
+- *Long* is convenient for:
+  - grouping or summarising by the "variable" itself
+  - plotting with `ggplot` (one column per aesthetic: x, y, colour)
+  - adding a new variable without changing the schema
+
+::: notes
+The shape is not "more correct" or "less correct" — it depends on the next operation. A common pipeline is wide-for-reading, long-for-computing, then back to wide for the final output.
+:::
+
+## Reshaping in data.table
+
+Base R has `reshape()` but it is clunky. `data.table` has two more intuitive functions:
+
+- `dcast()` for long → wide
+- `melt()` for wide → long
+
+## `dcast()`: long → wide
 
 ```{r}
 #| output-location: default
-wide_events <- dcast(
-  events[, .N, by = .(event_date, event_type)],
-  event_date ~ event_type,
-  value.var = "N",
-  fill = 0
-)
-
-wide_events
+events_long <- events[, .N, by = .(event_date, event_type)]
+events_long
 ```
 
-::: {.aside}
+## `dcast()`: long → wide
+
+```{r}
+#| output-location: default
+#| code-line-numbers: "2|3|4|5|1-7"
+wide_events <- dcast(
+  events_long, # long input
+  event_date ~ event_type, # rows ~ new columns
+  value.var = "N", # what fills each cell
+  fill = 0 # default for empty cells
+)
+wide_events[1:2]
+```
+
+- Left of `~` stays as rows
+- Right of `~` becomes new column names
+- `value.var` says which column's values fill the cells
+
+::: aside
 The data.table [vignette on reshaping](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html) is a good place to learn more.
 :::
 
 ::: notes
-This is a convenient structure when the job is to compare event counts side by side. The event types move into column names.
+The formula is the heart of `dcast`: "rows on the left, new columns on the right". Without `fill = 0`, missing combinations come out as `NA` — usually not what you want when the underlying value is a count.
 :::
 
-## `data.table::melt()` to make a table longer
+## When cell are not unique, `dcast` aggregates
 
 ```{r}
 #| output-location: default
-melt(
-  wide_events,
-  id.vars = "event_date",
-  variable.name = "event_type",
-  value.name = "events"
-)[events > 0]
+breed_events <- events[dogs, on = "dog_id", nomatch = NULL]
+dcast(breed_events, breed ~ event_type, fun.aggregate = length, value.var = "dog_id")[1:3]
 ```
 
+- Many events share each `breed × event_type` combination
+- A cell can only hold one value, so `dcast` *must* aggregate
+- Default is `length` with a warning; better to say what you mean
+  - Pass `fun.aggregate` explicitly: `length`, `sum`, `mean`, `min`, `max`
+
 ::: notes
-Going back to long form is often the right choice before plotting or grouped summaries. A good sign that you need long data is when categories start behaving like variable names instead of values.
+If more than one source row maps to the same output cell, `dcast` cannot produce a single value without aggregating. Explicit beats implicit — say what you want the cell to contain rather than relying on the default.
+:::
+
+## `melt()`: wide → long
+
+```{r}
+#| output-location: default
+#| code-line-numbers: "2|3|4|5|1-7"
+long_events <- melt(
+  wide_events,
+  id.vars = "event_date", # columns to keep as-is
+  variable.name = "event_type", # name for old column names
+  value.name = "N" # name for old cell values
+)
+long_events
+```
+
+- `id.vars` are the columns that identify a row
+- All *other* columns get stacked into one
+- names in one column, values in another
+
+::: notes
+Every column not in `id.vars` is treated as a measurement. Names go into one new column, values into another. The result has more rows and fewer columns — same content, with categories now living as values rather than as a schema.
+:::
+
+## Why long form pays off
+
+```{r}
+#| output-location: default
+long_events[, .(total = sum(N)), by = event_type]
+```
+
+- Group by `event_type` directly
+  - In wide form you'd repeat the calculation for each column
+- `ggplot()` wants the same shape: one column per aesthetic
+- `melt()` first often simplifies summary and plotting
+
+::: notes
+A telling sign that you need long form: you are about to write three almost-identical calls, one per column. That is a workflow pushing you toward `melt`.
 :::
 
 ## A missing row can be hard to notice
@@ -415,36 +481,38 @@ Going back to long form is often the right choice before plotting or grouped sum
 ![](missing_rows.png){.r-stretch}
 
 ::: aside
-A missing cell is an `NA` value, but a missing row is an entire expected combination that is absent. The former is usually visible in the output; the latter needs a skeleton of expected combinations to detect.
+A missing *cell* is an `NA` value — usually visible in the output. A missing *row* is an entire expected combination that is absent — invisible unless you build a list of what you expected to see.
 :::
 
-## Identify missing rows with expected combinations
+## Detect missing combinations: skeleton + anti-join
 
 ```{r}
+#| output-location: default
 small_events <- events[
   dog_id %in% c("0013", "3382"),
   .(dog_id, event_type, event_time)
 ] |>
-  _[
-    !(dog_id == "3382" &
-      event_type == "vet_check")
-  ]
+  _[!(dog_id == "3382" & event_type == "vet_check")]
+
 small_events
 ```
 
 ```{r}
-# All expected dog-event combinations:
+#| output-location: default
 skeleton <- CJ(
   dog_id = unique(small_events$dog_id),
   event_type = c("intake", "vet_check", "adopted")
 )
-```
 
-Anti join shows us whats missing:
-
-```{r}
 skeleton[!small_events, on = .(dog_id, event_type)]
 ```
+
+- `CJ()` cross-joins the levels you *expected* to see
+- Anti-join data against the skeleton: what's left is missing
+
+::: notes
+The pattern is: state what should exist, then ask what's actually present. The diagnostic is the *difference*. Much more reliable than visually scanning a table for gaps.
+:::
 
 
 # Manipulating Strings
@@ -986,35 +1054,86 @@ Subtracting timestamps returns a `difftime`. The default unit can flip from seco
 
 # Functions And Iteration
 
-## Functions become more valuable when the input changes
+## Vectorise or use `by` before you iterate
 
-- lecture 6 covered the basic design rules
-- here the gain is reuse across several files or repeated summaries
-- one checked import function is better than three almost-identical code blocks
+- Same summary by group → `by=`
+- Same rule on several columns → `.SD`
+- Same operation across separate files or objects → iterate
 
 ::: notes
-The function idea is the same as before, but the use case shifts. Once the same logic needs to run over several files, a small helper function stops being a nice extra and starts being the cleanest way to keep the workflow consistent.
+`data.table` already loops for you in the first two cases. Iterate only when the inputs are inherently separate — different files, different objects. The next slides cover the family of R functions that handle that kind of iteration cleanly.
 :::
 
-## A small import function is already useful
+## `lapply()` and relatives
+
+- `lapply(x, f)` calls `f` on each element of `x` — returns a *list*, one result per input
+- Predictable shape: `length(input) == length(output)`
+- The wider family differs in how the output is shaped:
+  - `sapply(x, f)` — simplify to a vector or matrix when possible
+  - `vapply(x, f, FUN.VALUE)` — like `sapply` with a type contract
+  - `mapply(f, x, y)` — parallel iteration over several vectors
+  - `apply(M, MARGIN, f)` — over rows or columns of a matrix
+
+## Counting the number of characters in each word
 
 ```{r}
 #| output-location: default
-read_dog_events <- function(
-  path,
-  required = c("dog_id", "event_time", "event_type")
-) {
+words <- c("Buddy", "Lucy", "Rex")
+```
+
+```{r}
+# list of results
+lapply(words, nchar)
+```
+
+```{r}
+# simplified to a named vector
+sapply(words, nchar)
+```
+
+::: notes
+The whole family applies a function elementwise over a vector or list. They differ mainly in the output shape. For data wrangling we usually want `lapply`: a predictable list of one result per input pairs cleanly with `rbindlist`. Prefer `lapply` over a `for` loop because the return value *is* the point — you want one object containing all results, not side effects.
+:::
+
+## Example: reading many files at once
+
+```{r}
+#| echo: false
+event_dir <- file.path(tempdir(), "ec7422-dog-event-files")
+dir.create(event_dir, showWarnings = FALSE)
+for (shelter in unique(events_raw$shelter_name)) {
+  file_stub <- gsub("[^a-z0-9]+", "_", tolower(shelter))
+  fwrite(
+    events_raw[shelter_name == shelter],
+    file.path(event_dir, sprintf("%s_events.csv", file_stub))
+  )
+}
+event_paths <- list.files(event_dir, pattern = "csv$", full.names = TRUE)
+```
+
+```{r}
+#| output-location: default
+event_paths
+```
+
+- One CSV per shelter, dropped in a folder
+- Read them all with the right types, stacked into one table
+- Keep track of which row came from which file
+
+::: notes
+A realistic reason to iterate: the inputs live in separate files, but the same reading logic should apply to all of them. In a project, these files would already exist; here they are written from `events_raw` in a hidden setup chunk.
+:::
+
+## Write a reusable reader function
+
+```{r}
+#| output-location: default
+read_dog_events <- function(path) {
   if (!file.exists(path)) {
-    stop("Missing file: ", path)
+    warning("File not found, skipping: ", path)
+    return(NULL)
   }
-
   dt <- fread(path, colClasses = list(character = c("dog_id", "event_time")))
-  missing_cols <- setdiff(required, names(dt))
-
-  if (length(missing_cols) > 0) {
-    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
-  }
-
   dt[,
     event_time := as.POSIXct(
       event_time,
@@ -1023,152 +1142,44 @@ read_dog_events <- function(
     )
   ]
   dt[, event_date := as.IDate(event_time, tz = "Europe/Stockholm")]
-
   dt
 }
-
-read_dog_events(file.path(dog_path, "dog_events.csv"))[
-  1:3,
-  .(dog_id, event_time, event_type)
-]
 ```
 
-::: notes
-The function is small on purpose. It captures the two special rules that matter for this file: dog IDs must stay character, and timestamps are Swedish local clock time. Those details are exactly the sort of thing students otherwise forget in the second or third script.
-:::
-
-## Vectorise or use `by` before you iterate
-
-- If the operation is "same summary by group", use `by`
-- If the operation is "same rule on several columns", use `.SD`
-- Iterate when the inputs are separate files or separate objects
+- Pin down the format quirks: character IDs, Swedish local time
+- `warning()` flags a problem without aborting the batch
+- Returning `NULL` lets `rbindlist()` skip the file silently
 
 ::: notes
-This is the core lesson from the iteration material adapted to `data.table`. Do not write loops just because you can. First ask whether the table grammar already expresses the task directly.
+The function captures the rules that a future you, or another student, will otherwise forget by the third script. The missing-file branch uses `warning()` instead of `stop()` so a single bad path does not kill a 50-file run; `rbindlist()` drops `NULL` list elements automatically.
 :::
 
-## Iterate when the inputs are separate files
+## Workhorse pattern: `lapply()` + `rbindlist(idcol = ...)`
 
 ```{r}
 #| output-location: default
-event_dir <- file.path(tempdir(), "ec7422-dog-event-files")
-dir.create(event_dir, showWarnings = FALSE)
+event_list <- lapply(event_paths, read_dog_events)
+names(event_list) <- basename(event_paths)
 
-for (shelter in unique(events_raw$shelter_name)) {
-  file_stub <- gsub("[^a-z0-9]+", "_", tolower(shelter))
-  fwrite(
-    events_raw[shelter_name == shelter],
-    file.path(event_dir, sprintf("%s_events.csv", file_stub))
-  )
-}
-
-event_paths <- list.files(event_dir, pattern = "csv$", full.names = TRUE)
-event_paths
+all_events <- rbindlist(event_list, idcol = "source_file")
+all_events[, .(rows = .N, dogs = uniqueN(dog_id)), by = source_file]
 ```
 
-::: notes
-This is a realistic reason to iterate: the inputs live in separate files, but the same reading and checking logic should apply to all of them. In a project, these files would usually already exist rather than being written in the lecture.
-:::
-
-## `lapply()` returns a list of results
-
-```{r}
-#| output-location: default
-summarise_event_file <- function(path) {
-  dt <- read_dog_events(path)
-
-  data.table(
-    file = basename(path),
-    rows = nrow(dt),
-    dogs = uniqueN(dt$dog_id),
-    first_event = min(dt$event_date),
-    adoptions = sum(dt$event_type == "adopted")
-  )
-}
-
-event_summaries <- lapply(event_paths, summarise_event_file)
-
-class(event_summaries)
-event_summaries[[1]]
-```
+- `lapply()` returns one list element per file
+- Naming the list lets `rbindlist(idcol = ...)` keep provenance
+- `rbindlist` silently drops `NULL` entries
+  - A missing file just doesn't contribute rows
 
 ::: notes
-This is the first useful shape rule: `lapply()` returns a list. Each file gives one small result, and then those results can be combined in a second step.
-:::
-
-## `rbindlist()` turns equally shaped results into one table
-
-```{r}
-#| output-location: default
-rbindlist(event_summaries)
-```
-
-::: notes
-This is often the next step after `lapply()`: first collect a list of per-file results, then bind them into one summary table. The separation is useful because it makes the intermediate result shape explicit.
-:::
-
-## Stack files and keep provenance
-
-```{r}
-#| output-location: default
-stack_events <- function(paths) {
-  rbindlist(
-    lapply(paths, function(path) {
-      dt <- read_dog_events(path)
-      dt[, source_file := basename(path)]
-      dt
-    }),
-    use.names = TRUE,
-    fill = TRUE
-  )
-}
-
-stack_events(event_paths)[, .(rows = .N), by = source_file]
-```
-
-::: notes
-This is the multi-file import pattern worth remembering: read each file with one helper, attach its source name, then bind the results into one table. If one bad file should not kill the whole run, wrap the helper in `tryCatch()` and return a small status table instead of stopping immediately.
-:::
-
-## Protect longer batch runs from one bad file
-
-```{r}
-#| output-location: default
-safe_summary <- function(path) {
-  tryCatch(
-    {
-      dt <- read_dog_events(path)
-      data.table(
-        file = basename(path),
-        status = "ok",
-        rows = nrow(dt),
-        dogs = uniqueN(dt$dog_id)
-      )
-    },
-    error = function(e) {
-      data.table(
-        file = basename(path),
-        status = "error",
-        message = conditionMessage(e)
-      )
-    }
-  )
-}
-
-bad_paths <- c(event_paths, file.path(event_dir, "missing.csv"))
-rbindlist(lapply(bad_paths, safe_summary), fill = TRUE)
-```
-
-::: notes
-This is the practical `tryCatch()` pattern that matters for workflow code. A single bad file is recorded as a bad file instead of killing the whole batch and forcing a full rerun before anything can be inspected.
+This is the entire multi-file import pattern in three lines. The names on the list become the values in the `source_file` column, so you can always see which row came from which file. If `read_dog_events` returned `NULL` for a missing file, that element is dropped from the bind without complaint — combined with the `warning()` in the reader, the batch reports the problem and keeps going.
 :::
 
 ## Main takeaways
 
-- Grouped work changes the meaning of a calculation, so inspect it carefully
 - Join problems are usually key problems
+- Wide vs long is a question about what each row represents — pick the shape that fits the use case
 - String and date cleaning are often prerequisites for correct joins and summaries
-- Validate after import, after joins, and after reshaping
+- Keep validating: row counts, unit of observation, and unmatched rows are cheap to re-check after every join, reshape, or type change
 - Small functions help keep wrangling logic explicit and reusable
 
 ## Next lecture: APIs and external data
