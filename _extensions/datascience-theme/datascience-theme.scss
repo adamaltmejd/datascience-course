@@ -233,13 +233,15 @@ $code-block-border-color:          $border-default !default;
 // Block code: visual box on pre, code element is transparent
 .reveal pre {
   --pre-bg: #{$bg-code};
+  --pre-pad-y: 10px;
+  --pre-pad-x: 13px;
   background: var(--pre-bg);
   border: 1px solid $border-default;
   border-left: 3px solid $border-code;
   border-radius: 5px;
   box-sizing: border-box;
   box-shadow: none;
-  padding: 10px 13px;
+  padding: var(--pre-pad-y) var(--pre-pad-x);
   max-height: 480px; // safety net — tall code blocks scroll instead of overflowing
   overflow-y: auto;
   position: relative; // anchor .is-overflowing::after badge
@@ -314,7 +316,19 @@ $code-block-border-color:          $border-default !default;
 
   pre.numberSource {
     margin-left: 0 !important;
-    padding-left: 13px !important;
+    padding-left: var(--pre-pad-x) !important;
+  }
+
+  // Quarto's line-highlight plugin clones <code> per highlight step and pins
+  // each clone with `position:absolute; top:0; left:0; width:100%`. That
+  // anchors to <pre>'s padding edge, but the original <code> is in normal
+  // flow inside the padding — so the clone sits offset by the padding amount.
+  // Re-anchor clones to the content edge so they overlay the original cleanly.
+  pre > code:not(:first-child).fragment {
+    top: var(--pre-pad-y) !important;
+    left: var(--pre-pad-x) !important;
+    right: var(--pre-pad-x) !important;
+    width: auto !important;
   }
 
   pre.numberSource code > span {
