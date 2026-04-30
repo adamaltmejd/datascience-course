@@ -46,7 +46,7 @@ This lecture is about the first half of ordinary wrangling work: getting a table
 ::::
 
 ::: aside
-It is often worthwhile to spend some time on the import step to make sure wranling starts from a data set that is as clean and usable as possible. Import tools are often better at dealing with raw file issues than later code.
+It is often worthwhile to spend some time on the import step to make sure wrangling starts from a data set that is as clean and usable as possible. Import tools are often better at dealing with raw file issues than later code.
 :::
 
 ::: notes
@@ -93,6 +93,7 @@ This is intentionally repetitive with the debugging lecture. The recurring theme
 ::: {.column width="45%"}
 - `dog_inventory.csv` our inventory
 - `dog_breeds.csv` a lookup-table of information
+- `dog_events.csv` event history for each dog
 - `dog_sales.csv` "market research"
 :::
 ::: {.column width="55%"}

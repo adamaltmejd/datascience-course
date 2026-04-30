@@ -401,6 +401,16 @@ dependencies = [
 ]
 
 [[packages]]
+name = "lubridate"
+version = "1.9.5"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    "generics",
+    { name = "timechange", requirement = "(>= 0.4.0)" },
+]
+
+[[packages]]
 name = "magrittr"
 version = "2.0.5"
 source = { repository = "https://cloud.r-project.org/" }
@@ -761,6 +771,15 @@ dependencies = [
     "pkgconfig",
     { name = "rlang", requirement = "(>= 1.0.2)" },
     { name = "vctrs", requirement = "(>= 0.5.0)" },
+]
+
+[[packages]]
+name = "timechange"
+version = "0.4.0"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    { name = "cpp11", requirement = "(>= 0.2.7)" },
 ]
 
 [[packages]]

@@ -1,0 +1,1279 @@
+---
+title: "Lecture 7: Data Wrangling II"
+lecture-number: 7
+date: 2026-05-05
+engine: knitr
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+options(width = 90)
+options(datatable.print.nrows = 8)
+options(datatable.print.topn = 3)
+knitr::opts_knit$set(root.dir = here::here())
+library(data.table)
+library(ggplot2)
+library(lubridate)
+
+dog_path <- here::here("data-sources", "data", "dogs")
+dogs <- fread(
+  file.path(dog_path, "dog_inventory.csv"),
+  skip = 3,
+  encoding = "Latin-1",
+  check.names = TRUE,
+  na.strings = c("", "-99"),
+  colClasses = list(character = "dog_id")
+)
+# Lecture 6 detected a duplicate dog_id (a re-intake row);
+# keep one row per dog before any join work.
+dogs <- unique(dogs, by = "dog_id")
+
+breed_info <- fread(file.path(dog_path, "dog_breeds.csv"))
+sales <- fread(file.path(dog_path, "dog_sales.csv"))
+events_raw <- fread(
+  file.path(dog_path, "dog_events.csv"),
+  colClasses = list(character = c("dog_id", "event_time"))
+)
+
+events <- copy(events_raw)
+events[,
+  event_time := as.POSIXct(
+    event_time,
+    format = "%Y-%m-%d %H:%M:%S",
+    tz = "Europe/Stockholm"
+  )
+]
+events[, event_date := as.IDate(event_time, tz = "Europe/Stockholm")]
+```
+
+## Today
+
+- Joins / merges
+- Reshaping wide <-> long
+- Manipulating strings and date time objects
+- Applying functions to vectors
+
+::: notes
+Lecture 6 established the core `data.table` grammar and covered ordinary grouped summaries and grouped transformations. Lecture 7 builds on that foundation by focusing on data table operations restructuring our data.
+:::
+
+## Lecture 6 gave us the basic grammar
+
+- `DT[i, j]` to subset and compute
+- add `by=` to summarize and transform by group
+- Today we focus on structure: join
+- We will also talk about how to manipulate the data content: strings, regex, and dates
+
+::: notes
+The main shift today is that the data structure becomes less forgiving: rows may need to be ordered within units, keys must identify the right thing, and reshaping can hide missing combinations.
+:::
+
+# Joining
+
+## Joining: matching rows across tables
+
+- Two tables share one or more key columns
+- A join uses those keys to line up matching rows
+- The usual goal is to add columns from one table to another
+
+::: notes
+Joining and merging are the same core idea in this course: combine tables by matching identifiers. The syntax matters, but the structural question matters more. What counts as the key, and what should happen when no match exists?
+:::
+
+## 
+
+![](join_types.png){.r-stretch}
+
+## SQL join types
+
+**Inner Join:** Keep only rows with matching keys in *both* tables
+
+**Left (outer) join:** Keep left table, add matches from the right
+
+**Full outer join:** Keep *all rows from both* tables
+
+**Anti join:** Keep rows from left table that have *no match* in the right
+
+::: aside
+The right (outer) join instead keeps the right table, adding matches from the left. But it is rarely used and it is usually better to just swap table places and do a left join.
+:::
+
+::: notes
+Even outside SQL, these names are useful shorthand. They describe what should happen to the row count and to unmatched observations. The diagram also previews the `data.table` rule that the object inside the brackets is the row source you keep. Full outer joins are useful for reconciliation tasks, but anti joins are usually the sharper first diagnostic because they isolate exactly which rows failed to match.
+:::
+
+
+## Primary key vs foreign key
+
+- A (primary) key: uniquely identifies rows
+- A **foreign key**: another table's primary key
+- `breed_info$breed` should be unique
+- `dogs$breed` is allowed to repeat
+
+::: notes
+This vocabulary clarifies what kind of duplication is normal and what kind is dangerous. Repeated foreign keys are ordinary. Repeated primary keys are often a join bug waiting to happen.
+:::
+
+## Most join bugs are key bugs
+
+- A join matches rows using key columns
+- If the key is wrong, the join is wrong
+- If a key is duplicated unexpectedly, rows can multiply
+- If keys do not match, rows can silently pick up `NA`
+
+::: notes
+Joins are mainly data-structure problems not syntax problems. The first question should be about keys and units of observation, not about which join verb to type.
+:::
+
+## Joining in data.table
+
+`data.table` has two alternatives:
+
+- `merge(x, y, by = "key")`
+- `Y[X, on = "key"]` more efficient, allows calculations during join
+  - `breed_info[dogs, on = .(breed)]` is like the SQL command:
+  - `dogs LEFT JOIN breed_info ON breed`
+
+
+::: notes
+This is the `data.table` join rule worth memorising: the object inside the brackets determines the rows you keep. Here we keep the dog inventory rows and add matching breed information from `breed_info`.
+:::
+
+## Left join: unmatched foreign keys get missing values
+
+```{r}
+#| output-location: default
+breed_info[dogs, on = .(breed)] |>
+  _[, .(dog_id, name, breed, avg_life_exp, origin)]
+```
+
+::: aside
+Left join with merge syntax: `merge(dogs, breed_info, by = "breed", all.x = TRUE, sort = FALSE)`
+:::
+
+::: notes
+This is a crucial interpretation habit. Missing values after a join often mean "no key match", not "true missing information in the source table". Those are different diagnoses and need different fixes.
+:::
+
+## Inner join: unmatched rows are dropped
+
+```{r}
+#| output-location: default
+breed_info[dogs, on = .(breed), nomatch = NULL] |>
+  _[, .(dog_id, name, breed, avg_life_exp, origin)]
+```
+
+::: aside
+Inner join with merge syntax: `merge(dogs, breed_info, by = "breed", all = FALSE, sort = FALSE)`. `all = FALSE` is the default, but it is good to be explicit about the intended join type.
+:::
+
+::: notes
+The difference is conceptual: do you want to preserve the main table and flag failures, or do you want to drop failures immediately?
+:::
+
+## Anti join: list failed matches
+
+```{r}
+#| output-location: default
+dogs[!breed_info, on = .(breed), .(dog_id, breed)]
+```
+
+::: notes
+This is essentially an anti-join style diagnostic: show the rows from `dogs` that did not find a match in `breed_info`. It is often a much better debugging surface than staring at a large joined table full of `NA`.
+:::
+
+## Check the key before trusting the join
+
+Keys should not have duplicates:
+
+```{r}
+anyDuplicated(breed_info, by = "breed")
+```
+
+```{r}
+anyDuplicated(events, by = c("dog_id", "event_time"))
+```
+
+Or missing values:
+
+```{r}
+dogs[, .(missing_breed = sum(is.na(breed)))]
+```
+
+```{r}
+events[, .(
+  NA_dog_id = sum(is.na(dog_id)),
+  NA_event_time = sum(is.na(event_time))
+)]
+```
+
+## Duplicate keys can explode the row count
+
+```{r}
+#| output-location: default
+bad_lookup <- rbind(
+  breed_info[breed == "Labrador Retriever"],
+  breed_info[breed == "Labrador Retriever"]
+)
+
+nrow(dogs[breed == "Labrador Retriever"])
+nrow(bad_lookup[
+  dogs[breed == "Labrador Retriever"],
+  on = .(breed),
+  allow.cartesian = TRUE
+])
+```
+
+::: notes
+This is a deliberately broken lookup table. The dog inventory contains one row per dog, but the duplicated lookup table turns each Labrador row into two rows. Thankfully, data.table refuses duplicate key joins by default, which is why we needed to set `allow.cartesian = TRUE`.
+:::
+
+## Joining tables with different units of observation
+
+```{r}
+#| output-location: default
+nrow(dogs)
+nrow(sales[dogs, on = .(breed), allow.cartesian = TRUE])
+```
+
+- `dogs` has one row per dog
+- `sales` has many rows per breed over time
+- Problem is that the tables do not share the same unit of observation
+
+## Build a lookup table at the right unit
+
+```{r}
+#| output-location: default
+sales_by_breed <- sales[,
+  .(
+    sales_n = .N,
+    mean_sale_price = round(mean(price_usd), 1),
+    last_sale = max(date)
+  ),
+  by = breed
+]
+
+sales_by_breed
+```
+
+::: notes
+This is the fix: decide what information should be attached to each dog, then aggregate the sales table to exactly that unit. Once the sales data become one row per breed, they can behave like a lookup table.
+:::
+
+## Validate the lookup before you join
+
+```{r}
+#| output-location: default
+anyDuplicated(sales_by_breed, by = "breed")
+nrow(sales_by_breed)
+```
+
+::: notes
+This is the minimum validation before the repaired join. The lookup key should now be unique. A quick row count also helps with interpretation: the table is now a summary over breeds, not a transaction-level sales table.
+:::
+
+## Join again and inspect what is still unmatched
+
+```{r}
+#| output-location: default
+dogs_sales <- sales_by_breed[dogs, on = .(breed)]
+
+nrow(dogs_sales)
+dogs_sales[is.na(mean_sale_price), unique(breed)]
+```
+
+::: notes
+Now the row count is back where it should be: one row per dog. That does not mean the join is perfect, though. Unmatched breeds still need inspection, because they may reflect coverage limits in the sales data rather than random missingness.
+:::
+
+## Composite keys are common in event logs
+
+```{r}
+#| output-location: default
+event_timing <- events[, .(
+  dog_id,
+  event_time,
+  event_type,
+  event_date
+)]
+
+event_staff <- events[, .(
+  dog_id,
+  event_time,
+  shelter_name,
+  staff_id
+)]
+
+event_staff[event_timing, on = .(dog_id, event_time)][1:6]
+```
+
+::: notes
+This example is intentionally simple because the structure matters more than the novelty. One dog can have several events, so `dog_id` alone is not enough. The event time is part of the identity of the observation.
+:::
+
+## `i.` lets `data.table` compute during the join
+
+```{r}
+#| output-location: default
+dogs_join <- copy(dogs)
+
+dogs_join[breed_info, on = .(breed), avg_years_left := i.avg_life_exp - age]
+
+dogs_join[1:5, .(dog_id, breed, age, avg_years_left)]
+```
+
+::: notes
+This is a genuinely useful `data.table` feature, not just syntax trivia. The `i.` prefix refers to columns from the incoming table, so the join can directly create a derived column without a separate intermediate object.
+:::
+
+## `shift()` instead of complex self-joins
+
+`shift()` creates a lagged vector within groups, so we can easily compute time since previous event
+
+```{r}
+#| output-location: default
+event_order <- copy(events)
+setorder(event_order, dog_id, event_time)
+
+event_order[,
+  hours_since_previous_event := round(
+    as.numeric(difftime(event_time, shift(event_time), units = "hours")),
+    1
+  ),
+  by = dog_id
+]
+
+event_order[
+  dog_id %in% c("0013", "3382"),
+  .(dog_id, event_time, event_type, hours_since_previous_event)
+]
+```
+
+
+## Join diagnostics should be routine
+
+- Compare row counts before and after the join
+- Check duplicates in the lookup key
+- Inspect unmatched rows explicitly
+- Re-state the intended unit of observation
+
+::: notes
+These checks are quick and they scale. The habit matters more than memorising a specific join taxonomy.
+:::
+
+# Reshaping
+
+## Wide and long data structures
+
+![](reshape_wide_to_long.png){.r-stretch}
+
+- Wide for side-by-side comparisons
+- Long for summaries and plotting (tidy data!)
+
+## `data.table::dcast()` to make a table wider
+
+```{r}
+#| output-location: default
+wide_events <- dcast(
+  events[, .N, by = .(event_date, event_type)],
+  event_date ~ event_type,
+  value.var = "N",
+  fill = 0
+)
+
+wide_events
+```
+
+::: {.aside}
+The data.table [vignette on reshaping](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html) is a good place to learn more.
+:::
+
+::: notes
+This is a convenient structure when the job is to compare event counts side by side. The event types move into column names.
+:::
+
+## `data.table::melt()` to make a table longer
+
+```{r}
+#| output-location: default
+melt(
+  wide_events,
+  id.vars = "event_date",
+  variable.name = "event_type",
+  value.name = "events"
+)[events > 0]
+```
+
+::: notes
+Going back to long form is often the right choice before plotting or grouped summaries. A good sign that you need long data is when categories start behaving like variable names instead of values.
+:::
+
+## A missing row can be hard to notice
+
+![](missing_rows.png){.r-stretch}
+
+::: aside
+A missing cell is an `NA` value, but a missing row is an entire expected combination that is absent. The former is usually visible in the output; the latter needs a skeleton of expected combinations to detect.
+:::
+
+## Identify missing rows with expected combinations
+
+```{r}
+small_events <- events[
+  dog_id %in% c("0013", "3382"),
+  .(dog_id, event_type, event_time)
+] |>
+  _[
+    !(dog_id == "3382" &
+      event_type == "vet_check")
+  ]
+small_events
+```
+
+```{r}
+# All expected dog-event combinations:
+skeleton <- CJ(
+  dog_id = unique(small_events$dog_id),
+  event_type = c("intake", "vet_check", "adopted")
+)
+```
+
+Anti join shows us whats missing:
+
+```{r}
+skeleton[!small_events, on = .(dog_id, event_type)]
+```
+
+
+# Manipulating Strings
+
+## What is a string?
+
+- A character vector of length one or more
+- Each element is text wrapped in quotes
+- Most string functions are vectorised, so they apply elementwise to a column
+
+```{r}
+#| output-location: default
+typeof(c("Buddy", "Lucy"))
+length(c("Buddy", "Lucy"))
+nchar(c("Buddy", "Lucy"))
+```
+
+::: notes
+Strings in R are character vectors. Operations apply elementwise, which is why they slot into `data.table` columns directly without an explicit loop.
+:::
+
+## String problems show up everywhere
+
+- Inconsistent case and whitespace: `"Corgi"`, `" corgi"`, `"CORGI "`
+- Typos that drift over time: `"Russel"` vs `"Russell"`
+- The same concept under different labels: `"Corgi"` vs `"Pembroke Welsh Corgi"`
+- Several variables jammed into one column: `"03/20-2023"`
+- Encoding artifacts on imported data
+
+::: notes
+These are not stylistic concerns. They are joins waiting to break. Almost every string job in a wrangling pipeline traces back to one of these patterns.
+:::
+
+## Most string problems are join problems
+
+```{r}
+#| output-location: default
+breed_info[dogs, on = .(breed)][
+  is.na(avg_life_exp),
+  unique(breed)
+]
+```
+
+::: notes
+A breed label that almost matches another breed label still fails the equality test the join uses. The visible symptom is missing values after the join, not a string error.
+:::
+
+## Toolkit for strings
+
+- Normalise: `tolower()`, `toupper()`, `trimws()`
+- Detect: `grepl(pattern, x)` — returns `TRUE`/`FALSE`
+- Replace first match: `sub(pattern, replacement, x)`
+- Replace all matches: `gsub(pattern, replacement, x)`
+- Split on a separator: `tstrsplit(x, sep)`
+- Reach for regex only when literal text is not enough
+
+::: notes
+A typical workflow goes normalise → detect → replace → split. Regex is a tool used inside `grepl`/`sub`/`gsub`, not a separate workflow.
+:::
+
+## Encoding is set at import (recap from L6)
+
+```{r}
+#| output-location: default
+fread(file.path(dog_path, "dog_inventory.csv"))[4:6, .(name, `new owner`)]
+```
+
+- For dogs we need to set: `fread(..., encoding = "Latin-1")`
+
+```{r}
+#| output-location: default
+dogs[grepl("é|í|ö|å", name), unique(name)][1:5]
+```
+
+- Once imported correctly, treat the column as ordinary text
+- Mangled accents usually mean the encoding was wrong **at import**
+
+::: notes
+Encoding lives at the import boundary. If accents look right just after import, treat the column as plain text from there on.
+:::
+
+## Normalise before reaching for regex
+
+```{r}
+#| output-location: default
+dogs_norm <- copy(dogs)
+dogs_norm[, breed_clean := tolower(trimws(breed))]
+
+unique(dogs_norm[grepl("jack russel|corgi", breed_clean), breed_clean])
+```
+
+::: notes
+Trim whitespace, standardise case, then apply regex. Half the cleaning work disappears once you stop fighting capitalisation and trailing spaces.
+:::
+
+## A small regex vocabulary covers most cases
+
+- `[abc]` matches one of `a`, `b`, `c`
+- `[a-z]` matches any lowercase letter
+- `.` matches any single character
+- `*` zero or more of the previous pattern
+- `+` one or more of the previous pattern
+- `\\s` whitespace; `\\d` a digit
+- `^` and `$` anchor start and end
+- `|` matches either pattern
+
+::: notes
+This is enough vocabulary for most cleaning. Anything more elaborate is usually a sign that the problem should be solved at import.
+:::
+
+## Detect with `grepl`
+
+```{r}
+#| output-location: default
+dogs[grepl("Russel|Corgi", breed), unique(breed)]
+```
+
+::: notes
+Detection does not change anything; it returns which rows match. Run it before the replacement so you know exactly what is about to change.
+:::
+
+## Replace with `sub` and `gsub`
+
+```{r}
+#| output-location: default
+dogs[grepl("Jack Russel", breed), breed := sub("Russel", "Russell", breed)]
+dogs[breed == "Corgi", breed := "Pembroke Welsh Corgi"]
+
+breed_info[dogs, on = .(breed)][
+  is.na(avg_life_exp),
+  unique(breed)
+]
+```
+
+::: aside
+`sub()` replaces the first match per element; `gsub()` replaces all matches.
+:::
+
+::: notes
+Detect, replace, then re-run the join check. Repairing labels in place is much better than pretending the mismatch was random missingness.
+:::
+
+## Split with `tstrsplit`
+
+```{r}
+#| output-location: default
+sale_parts <- dogs[!is.na(sale_date), .(sale_date)]
+sale_parts[,
+  c("sale_month", "sale_day", "sale_year") := tstrsplit(sale_date, "[/-]")
+]
+
+sale_parts[1:5]
+```
+
+::: notes
+Useful when one column hides several variables. If the goal is a date type, parse the date directly instead of keeping the parts as character columns — that is the bridge to the next section.
+:::
+
+## `stringr` offers a more consistent grammar
+
+- All functions start with `str_` and take the string first
+- `str_detect(x, pattern)` for `grepl`
+- `str_replace_all(x, pattern, replacement)` for `gsub`
+- `str_to_lower(x)`, `str_squish(x)`, `str_split_fixed(x, sep, n)`
+- Named vectors handle multiple replacements at once
+
+```r
+library(stringr)
+dogs[, breed := str_replace_all(breed, c(
+    "Russel"  = "Russell",
+    "^Corgi$" = "Pembroke Welsh Corgi"
+))]
+```
+
+::: notes
+Either toolkit is fine. Function names are more consistent in `stringr`, and the named-vector form is convenient for batched replacements. The thing to avoid is mixing both inside one project.
+:::
+
+# Manipulating Dates and Timestamps
+
+
+## What is a date object?
+
+- A `Date` stores a calendar day with no time of day
+- Internally it is a number: days since 1970-01-01
+- Arithmetic and comparisons work on that number
+- Printing formats the number back as a calendar string
+
+```{r}
+#| output-location: default
+d <- as.Date("2024-02-28")
+```
+
+```{r}
+class(d)
+```
+
+```{r}
+unclass(d)
+```
+
+```{r}
+d + 3
+```
+
+```{r}
+d - as.Date("2022-02-28")
+```
+
+
+::: notes
+Dates are numbers underneath. That is what makes addition, subtraction, sorting, and grouping behave sensibly. The string we see is just a formatted view of the number.
+:::
+
+## What is a timestamp object?
+
+- A `POSIXct` stores an instant in time, accurate to seconds
+- Internally it is a number: seconds since 1970-01-01 UTC
+- It carries a timezone attribute that controls how it prints
+
+```{r}
+#| output-location: default
+t <- as.POSIXct("2024-03-20 23:40:00", tz = "Europe/Stockholm")
+```
+
+```{r}
+class(t)
+```
+
+```{r}
+unclass(t)
+```
+
+```{r}
+format(t, tz = "UTC", usetz = TRUE)
+```
+
+::: aside
+Base R also has `POSIXlt`, which stores the same instant as a list of components (year, month, day, hour, …). Prefer `POSIXct` for stored data; `POSIXlt` is mostly useful when you want direct component access without `format()`.
+:::
+
+::: notes
+A timestamp is an instant plus a way of displaying it. The timezone is metadata for the display, not part of the underlying number.
+:::
+
+## `Date` vs `data.table::IDate`
+
+- `IDate` is `data.table`'s calendar-date type — integer-backed, ~half the memory of base R `Date`
+- `IDate` inherits from `Date`, so the two are interchangeable in almost all operations
+- `Date` / `IDate`: **day only** — no time of day, no timezone
+- Don't record time if you don't need it — it's a common source of problems
+
+::: aside
+`data.table` also provides `ITime` for time-of-day (seconds since midnight, no date or timezone). Useful when only the clock time matters — e.g., "events by hour of day across all days".
+:::
+
+::: notes
+Picking the right type prevents a common overcomplication. Calendar dates are enough for intake and sale days. `POSIXct` is needed for events, logs, appointment times — anything where time of day and timezone change the meaning.
+:::
+
+## Strings that look like dates are not dates
+
+```{r}
+#| error: true
+#| output-location: default
+dogs[, sale_date - intake_date]
+```
+
+```{r}
+#| output-location: default
+sapply(dogs[, .(intake_date, sale_date)], class)
+```
+
+::: notes
+The error is the symptom; the class output is the diagnosis. `sale_date` is still character, so date arithmetic has no sensible type to operate on. Looking like a date and being a date are different things.
+:::
+
+## Parsing strings into dates
+
+- Same idea for both: tell R the format, get a real type back
+- `as.IDate(x, format = ...)` for calendar dates
+- `as.POSIXct(x, format = ..., tz = ...)` for timestamps
+- `fread()` parses common formats automatically — flag suspect columns and re-parse
+- The format string describes the *input*, not the output
+
+::: notes
+Parsing is a contract: the strings on disk look like X, so R should produce a date or a timestamp. Once that contract is met, every later operation gets simpler.
+:::
+
+## `strptime` format codes
+
+:::: {.columns}
+::: {.column width="50%"}
+| Code | Meaning           |
+|------|-------------------|
+| `%Y` | year, 4-digit     |
+| `%y` | year, 2-digit     |
+| `%m` | month number      |
+| `%B` | month name        |
+| `%b` | month abbreviated |
+| `%d` | day of month      |
+:::
+
+::: {.column width="50%"}
+| Code | Meaning              |
+|------|----------------------|
+| `%H` | hour (24h)           |
+| `%M` | minute               |
+| `%S` | second               |
+| `%F` | `%Y-%m-%d` shortcut  |
+| `%T` | `%H:%M:%S` shortcut  |
+:::
+::::
+
+```{r}
+#| output-location: default
+as.IDate("13 March 2024", format = "%d %B %Y")
+```
+
+::: aside
+`%B` and `%b` depend on the locale — in a non-English session, "March" may not parse.
+:::
+
+::: notes
+R uses the same POSIX codes as most other languages. Once you can read these codes, the format string for any input becomes mechanical to write.
+:::
+
+## Parse explicitly when the format is unusual
+
+```{r}
+str(dogs$sale_date)
+```
+
+```{r}
+#| output-location: default
+dogs[, sale_date := as.IDate(sale_date, format = "%m/%d-%Y")]
+dogs[1:5, .(dog_id, intake_date, sale_date)]
+```
+
+::: notes
+Non-standard formats need an explicit format string. The format is part of the cleaning contract, not a detail to keep in your head.
+:::
+
+## Avoid format codes with `lubridate` 
+
+- Function names spell out component order: `ymd`, `mdy`, `dmy`
+- `ymd_hms("2024-03-20 23:40:00")` for timestamps
+- Optional `tz =` argument; otherwise UTC
+
+```{r}
+#| output-location: default
+mdy("03/20-2023")
+ymd_hms("2024-03-20 23:40:00", tz = "Europe/Stockholm")
+```
+
+::: aside
+Cheat sheet: <https://github.com/rstudio/cheatsheets/blob/main/lubridate.pdf>. Fall back to `as.IDate(x, format = ...)` for genuinely unusual formats or when an `IDate` is needed directly.
+:::
+
+::: notes
+`lubridate` removes the format-string burden for common cases. The function name encodes the component order, so guessing the format is rarely necessary.
+:::
+
+## `fread()` may recognise timestamps automatically
+
+```{r}
+#| output-location: default
+events_auto <- fread(
+  file.path(dog_path, "dog_events.csv"),
+  colClasses = list(character = "dog_id")
+)
+
+class(events_auto$event_time)
+attr(events_auto$event_time, "tzone")
+```
+
+::: notes
+Automatic parsing is convenient, but it still needs inspection. The CSV here records local Swedish clock time, but the file does not store a timezone — so `fread()` has to guess on UTC which is wrong.
+:::
+
+## A wrong timezone can change the date
+
+```{r}
+#| output-location: default
+events_auto[
+  dog_id == "0013" & event_type == "adopted",
+  .(
+    parsed_as_utc = format(event_time, usetz = TRUE),
+    shown_in_stockholm = format(
+      event_time,
+      tz = "Europe/Stockholm",
+      usetz = TRUE
+    ),
+    stockholm_date = as.IDate(event_time, tz = "Europe/Stockholm")
+  )
+]
+```
+
+::: notes
+This row is intentionally close to midnight. If the timestamp is wrongly treated as UTC, displaying or aggregating it in Swedish time moves it to the next calendar date. That is not a formatting detail — it changes daily counts.
+:::
+
+## Parse naive local timestamps with the intended timezone
+
+```{r}
+#| output-location: default
+events_local <- fread(
+  file.path(dog_path, "dog_events.csv"),
+  colClasses = list(character = c("dog_id", "event_time"))
+)
+events_local[,
+  event_time := as.POSIXct(
+    event_time,
+    format = "%Y-%m-%d %H:%M:%S",
+    tz = "Europe/Stockholm"
+  )
+]
+events_local[, event_date := as.IDate(event_time, tz = "Europe/Stockholm")]
+```
+
+```{r}
+events_local[
+  dog_id == "0013" & event_type == "adopted",
+  .(event_time, event_date)
+]
+```
+
+::: notes
+The timezone comes from metadata or domain knowledge, not from the column itself. Reading the timestamp as text first prevents the parser from silently assigning the wrong instant before the code has a chance to say what the clock time meant.
+:::
+
+## `lubridate` `with_tz` displays, `force_tz` reinterprets
+
+- `with_tz(t, "Europe/Stockholm")` keeps the instant, changes the display
+- `force_tz(t, "Europe/Stockholm")` keeps the clock time, changes the instant
+- Different questions; using the wrong one silently shifts data
+
+```{r}
+#| output-location: default
+t <- as.POSIXct("2024-03-20 23:40:00", tz = "UTC")
+with_tz(t, "Europe/Stockholm")
+force_tz(t, "Europe/Stockholm")
+```
+
+::: notes
+The same input can produce two different timestamps depending on which function you reach for. Choose by asking: did the source already record the right instant, or did it record clock time without a timezone?
+:::
+
+## Date arithmetic and comparison
+
+```{r}
+#| output-location: default
+dogs[, stay_days := sale_date - intake_date]
+
+dogs[
+  !is.na(stay_days),
+  .(
+    average_stay_days = mean(stay_days),
+    longest_stay = max(stay_days)
+  )
+]
+```
+
+```{r}
+#| output-location: default
+dogs[sale_date > as.IDate("2024-01-01"), .N]
+```
+
+::: notes
+Subtraction returns a difference in days. Comparison and sorting work the way you expect once the type is right.
+:::
+
+## Extract date components (with `lubridate`)
+
+```{r}
+#| output-location: default
+dogs[
+  !is.na(sale_date),
+  .(
+    sale_date,
+    year = year(sale_date),
+    month = month(sale_date),
+    day = mday(sale_date),
+    weekday = wday(sale_date)
+  )
+][1:5]
+```
+
+::: aside
+Component accessors `year()`, `month()`, `mday()`, `wday()`, `quarter()`, `yday()` come from `lubridate` (already loaded) and also work on `IDate`. `wday()` returns 1 for Sunday by default — pass `week_start = 1` for Monday.
+:::
+
+::: notes
+Component accessors are cleaner than reformatting the date as text and re-parsing the parts. The `wday()` convention is a footgun: depending on the package and locale defaults, the week may start on Sunday or Monday.
+:::
+
+## Round dates and month-safe arithmetic
+
+```{r}
+#| output-location: default
+floor_date(as.Date("2024-03-20"), unit = "month")
+ceiling_date(as.Date("2024-03-20"), unit = "week")
+
+as.Date("2024-01-31") + months(1) # NA — Feb 31 does not exist
+as.Date("2024-01-31") %m+% months(1) # 2024-02-29 — clamps to month end
+```
+
+::: notes
+`floor_date()` and `ceiling_date()` truncate or extend a date to a calendar boundary, keeping it as a date — much cleaner than the `format(..., "%Y-%m-01")` trick. Plain `+ months(1)` is strict: if the target day does not exist (Feb 31), it returns `NA`. `%m+%` and `%m-%` clamp to the last day of the target month, which is usually what you want.
+:::
+
+## Using `floor_date` in `by=` for monthly aggregation
+
+```{r}
+#| output-location: default
+# Aggregate sales by month
+dogs[!is.na(sale_date), .N, by = .(month = floor_date(sale_date, "month"))][1:6]
+```
+
+## Time differences with `difftime`
+
+```{r}
+#| output-location: default
+t1 <- as.POSIXct("2024-03-20 23:40:00", tz = "Europe/Stockholm")
+t2 <- as.POSIXct("2024-03-21 09:15:00", tz = "Europe/Stockholm")
+
+t2 - t1
+difftime(t2, t1, units = "hours")
+as.numeric(difftime(t2, t1, units = "hours"))
+```
+
+::: aside
+The default unit chosen by `-` and by `difftime()` depends on the magnitude. Pass `units = ` explicitly when the result feeds into arithmetic.
+:::
+
+::: notes
+Subtracting timestamps returns a `difftime`. The default unit can flip from seconds to minutes to days depending on the gap, which is a quiet source of bugs. Forcing the unit and converting to numeric makes downstream arithmetic predictable.
+:::
+
+# Functions And Iteration
+
+## Functions become more valuable when the input changes
+
+- lecture 6 covered the basic design rules
+- here the gain is reuse across several files or repeated summaries
+- one checked import function is better than three almost-identical code blocks
+
+::: notes
+The function idea is the same as before, but the use case shifts. Once the same logic needs to run over several files, a small helper function stops being a nice extra and starts being the cleanest way to keep the workflow consistent.
+:::
+
+## A small import function is already useful
+
+```{r}
+#| output-location: default
+read_dog_events <- function(
+  path,
+  required = c("dog_id", "event_time", "event_type")
+) {
+  if (!file.exists(path)) {
+    stop("Missing file: ", path)
+  }
+
+  dt <- fread(path, colClasses = list(character = c("dog_id", "event_time")))
+  missing_cols <- setdiff(required, names(dt))
+
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
+
+  dt[,
+    event_time := as.POSIXct(
+      event_time,
+      format = "%Y-%m-%d %H:%M:%S",
+      tz = "Europe/Stockholm"
+    )
+  ]
+  dt[, event_date := as.IDate(event_time, tz = "Europe/Stockholm")]
+
+  dt
+}
+
+read_dog_events(file.path(dog_path, "dog_events.csv"))[
+  1:3,
+  .(dog_id, event_time, event_type)
+]
+```
+
+::: notes
+The function is small on purpose. It captures the two special rules that matter for this file: dog IDs must stay character, and timestamps are Swedish local clock time. Those details are exactly the sort of thing students otherwise forget in the second or third script.
+:::
+
+## Vectorise or use `by` before you iterate
+
+- If the operation is "same summary by group", use `by`
+- If the operation is "same rule on several columns", use `.SD`
+- Iterate when the inputs are separate files or separate objects
+
+::: notes
+This is the core lesson from the iteration material adapted to `data.table`. Do not write loops just because you can. First ask whether the table grammar already expresses the task directly.
+:::
+
+## Iterate when the inputs are separate files
+
+```{r}
+#| output-location: default
+event_dir <- file.path(tempdir(), "ec7422-dog-event-files")
+dir.create(event_dir, showWarnings = FALSE)
+
+for (shelter in unique(events_raw$shelter_name)) {
+  file_stub <- gsub("[^a-z0-9]+", "_", tolower(shelter))
+  fwrite(
+    events_raw[shelter_name == shelter],
+    file.path(event_dir, sprintf("%s_events.csv", file_stub))
+  )
+}
+
+event_paths <- list.files(event_dir, pattern = "csv$", full.names = TRUE)
+event_paths
+```
+
+::: notes
+This is a realistic reason to iterate: the inputs live in separate files, but the same reading and checking logic should apply to all of them. In a project, these files would usually already exist rather than being written in the lecture.
+:::
+
+## `lapply()` returns a list of results
+
+```{r}
+#| output-location: default
+summarise_event_file <- function(path) {
+  dt <- read_dog_events(path)
+
+  data.table(
+    file = basename(path),
+    rows = nrow(dt),
+    dogs = uniqueN(dt$dog_id),
+    first_event = min(dt$event_date),
+    adoptions = sum(dt$event_type == "adopted")
+  )
+}
+
+event_summaries <- lapply(event_paths, summarise_event_file)
+
+class(event_summaries)
+event_summaries[[1]]
+```
+
+::: notes
+This is the first useful shape rule: `lapply()` returns a list. Each file gives one small result, and then those results can be combined in a second step.
+:::
+
+## `rbindlist()` turns equally shaped results into one table
+
+```{r}
+#| output-location: default
+rbindlist(event_summaries)
+```
+
+::: notes
+This is often the next step after `lapply()`: first collect a list of per-file results, then bind them into one summary table. The separation is useful because it makes the intermediate result shape explicit.
+:::
+
+## Stack files and keep provenance
+
+```{r}
+#| output-location: default
+stack_events <- function(paths) {
+  rbindlist(
+    lapply(paths, function(path) {
+      dt <- read_dog_events(path)
+      dt[, source_file := basename(path)]
+      dt
+    }),
+    use.names = TRUE,
+    fill = TRUE
+  )
+}
+
+stack_events(event_paths)[, .(rows = .N), by = source_file]
+```
+
+::: notes
+This is the multi-file import pattern worth remembering: read each file with one helper, attach its source name, then bind the results into one table. If one bad file should not kill the whole run, wrap the helper in `tryCatch()` and return a small status table instead of stopping immediately.
+:::
+
+## Protect longer batch runs from one bad file
+
+```{r}
+#| output-location: default
+safe_summary <- function(path) {
+  tryCatch(
+    {
+      dt <- read_dog_events(path)
+      data.table(
+        file = basename(path),
+        status = "ok",
+        rows = nrow(dt),
+        dogs = uniqueN(dt$dog_id)
+      )
+    },
+    error = function(e) {
+      data.table(
+        file = basename(path),
+        status = "error",
+        message = conditionMessage(e)
+      )
+    }
+  )
+}
+
+bad_paths <- c(event_paths, file.path(event_dir, "missing.csv"))
+rbindlist(lapply(bad_paths, safe_summary), fill = TRUE)
+```
+
+::: notes
+This is the practical `tryCatch()` pattern that matters for workflow code. A single bad file is recorded as a bad file instead of killing the whole batch and forcing a full rerun before anything can be inspected.
+:::
+
+## Main takeaways
+
+- Grouped work changes the meaning of a calculation, so inspect it carefully
+- Join problems are usually key problems
+- String and date cleaning are often prerequisites for correct joins and summaries
+- Validate after import, after joins, and after reshaping
+- Small functions help keep wrangling logic explicit and reusable
+
+## Next lecture: APIs and external data
+
+# Extra: More on strings and dates
+
+## ISO 8601 week convention
+
+- Plain "week of the year" is ambiguous — does week 1 start Sun or Mon? Does it start in the old or new year?
+- ISO 8601 fixes a convention: 
+  - weeks run Mon–Sun
+  - week 1 is the one containing the year's first Thursday
+- Standard in business, public-health, and official statistics reporting (Eurostat, ECDC, retail) — needed if your data must line up with those sources
+
+## ISO week footgun
+
+ISO weeks have their *own* year. Dec 30, 2024 is ISO week 1 of 2025; pair `isoyear()` with `isoweek()`, never `year()`
+
+```{r}
+#| output-location: default
+dogs[
+  !is.na(sale_date),
+  .N,
+  by = .(
+    iso_year = isoyear(sale_date),
+    iso_week = isoweek(sale_date)
+  )
+][order(iso_year, iso_week)][1:8]
+```
+
+# Extra: DT non-equi joins and rolling joins
+
+## Data table magic
+
+I'm a bit of a `data.table` nerd though, so here is a cool examples of advanced operation.
+
+Let's calculate the average price during two months around each sale:
+
+```{r}
+#| output-location: default
+#| code-line-numbers: "3-6|7-9|1-12"
+dogs[
+  sales[
+    dogs[
+      !is.na(sale_date),
+      .(
+        dog_id,
+        breed,
+        date1 = as.Date(sale_date) %m-% months(2),
+        date2 = as.Date(sale_date) %m+% months(2)
+      )
+    ],
+    on = c("breed", "date >= date1", "date < date2"),
+    by = .EACHI,
+    .(dog_id, mean_price = mean(price_usd, na.rm = TRUE))
+  ],
+  on = "dog_id",
+  avg_price_2months := i.mean_price
+]
+```
+
+
+## Data table magic (cont.)
+
+Let's verify it worked
+
+```{r}
+#| output-location: default
+dogs[dog_id == 9367, .(breed, sale_date, avg_price_2months)]
+```
+
+```{r}
+#| output-location: default
+sales[
+  breed == "Border Collie" &
+    date %between%
+      list(
+        as.Date("2024-01-12") - months(2),
+        as.Date("2024-01-12") + months(2)
+      ),
+  mean(price_usd)
+]
+```
+
+## Data table magic (cont.)
+
+- `data.table` also supports rolling joins, where we find the *closest* match
+- `roll` can go forward, backward or to nearest match
+- Let's find the sale price closest to `sale_date`
+
+```{r}
+#| output-location: default
+dogs[
+  sales[
+    dogs,
+    on = c("breed", "date == sale_date"),
+    roll = "nearest",
+    .(dog_id, price_usd)
+  ],
+  on = "dog_id",
+  nearest_price := i.price_usd
+]
+dogs[dog_id == "0013", .(breed, sale_date, nearest_price)]
+sales[
+  breed == "Labrador Retriever" &
+    date %between% list(as.Date("2023-03-01"), as.Date("2023-04-01"))
+]
+```

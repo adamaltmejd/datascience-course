@@ -7,6 +7,7 @@ Small dog-shelter files used in the wrangling lectures.
 - `dog_inventory.csv`: intentionally messy intake file used for import checks
 - `dog_breeds.csv`: breed lookup table used for joins
 - `dog_sales.csv`: transaction-style table used for join and date practice
+- `dog_events.csv`: timestamped intake, vet-check, and adoption log used for time and composite-key practice
 
 ## Teaching Purpose
 
@@ -18,6 +19,7 @@ The files are small enough to inspect by hand but messy enough to teach real imp
 - identifier columns that must stay character
 - fake missing-value codes such as `-99`
 - multiple related tables for join checks
+- local timestamps without an explicit timezone column
 
 ## Reading Notes
 
@@ -34,4 +36,17 @@ dogs <- data.table::fread(
 )
 ```
 
-`dog_breeds.csv` and `dog_sales.csv` are ordinary CSV files and can be read directly with `data.table::fread()`.
+`dog_events.csv` stores `event_time` as Swedish local clock time, but the timezone is not written in the file. For timestamp work, read the timestamp as text first and then parse it with the intended timezone:
+
+```r
+events <- data.table::fread(
+  "data-sources/data/dogs/dog_events.csv",
+  colClasses = list(character = c("dog_id", "event_time"))
+)
+
+events[, event_time := as.POSIXct(
+  event_time,
+  format = "%Y-%m-%d %H:%M:%S",
+  tz = "Europe/Stockholm"
+)]
+```

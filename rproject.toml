@@ -28,4 +28,5 @@ dependencies = [
   "rmarkdown",
     { name = "cannonball", git = "https://github.com/janhove/cannonball", branch = "master" },
     "testthat",
+    "lubridate",
 ]
