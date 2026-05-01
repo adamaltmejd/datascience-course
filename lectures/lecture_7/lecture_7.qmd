@@ -3,6 +3,11 @@ title: "Lecture 7: Data Wrangling II"
 lecture-number: 7
 date: 2026-05-05
 engine: knitr
+knitr:
+  opts_chunk:
+    dev: ragg_png
+    dpi: 150
+    dev.args: {bg: "transparent"}
 ---
 
 ```{r}
@@ -16,6 +21,12 @@ knitr::opts_knit$set(root.dir = here::here())
 library(data.table)
 library(ggplot2)
 library(lubridate)
+theme_set(
+  theme_bw() %+replace%
+    theme(
+      plot.background = element_rect(fill='transparent', color=NA)
+    )
+)
 
 dog_path <- here::here("data-sources", "data", "dogs")
 dogs <- fread(
@@ -330,7 +341,7 @@ The `i.` prefix refers to columns from the incoming table (the one in `i`), so t
 
 ## `shift()` instead of complex self-joins
 
-`shift()` creates a lagged vector within groups, so we can easily compute time since previous event
+`shift()` returns a lagged vector within groups
 
 ```{r}
 #| output-location: default
@@ -347,6 +358,10 @@ event_order[
   .(dog_id, event_time, event_type, hours_since_previous_event)
 ]
 ```
+
+::: notes
+The honest comparison: a non-equi self-join (see "extra" section) on `event_time < event_time` would also produce this column, but it is much harder to read and slower to run. `shift()` solves the within-group lag case directly. The first row per dog gets `NA` because there is nothing to lag against.
+:::
 
 
 ## Join diagnostics should be routine
@@ -421,7 +436,7 @@ The data.table [vignette on reshaping](https://cran.r-project.org/web/packages/d
 The formula is the heart of `dcast`: "rows on the left, new columns on the right". Without `fill = 0`, missing combinations come out as `NA` — usually not what you want when the underlying value is a count.
 :::
 
-## When cell are not unique, `dcast` aggregates
+## When cells are not unique, `dcast` aggregates
 
 ```{r}
 #| output-location: default
@@ -487,13 +502,12 @@ A missing *cell* is an `NA` value — usually visible in the output. A missing *
 ## Detect missing combinations: skeleton + anti-join
 
 ```{r}
-#| output-location: default
 small_events <- events[
   dog_id %in% c("0013", "3382"),
   .(dog_id, event_type, event_time)
 ] |>
-  _[!(dog_id == "3382" & event_type == "vet_check")]
-
+  _[!(dog_id == "3382" & 
+      event_type == "vet_check")]
 small_events
 ```
 
@@ -503,7 +517,6 @@ skeleton <- CJ(
   dog_id = unique(small_events$dog_id),
   event_type = c("intake", "vet_check", "adopted")
 )
-
 skeleton[!small_events, on = .(dog_id, event_type)]
 ```
 
@@ -514,14 +527,29 @@ skeleton[!small_events, on = .(dog_id, event_type)]
 The pattern is: state what should exist, then ask what's actually present. The diagnostic is the *difference*. Much more reliable than visually scanning a table for gaps.
 :::
 
+## A quick plot catches what tabular checks miss
+
+```{r}
+#| output-location: default
+#| fig-width: 8
+#| fig-height: 2.6
+events[, .N, by = event_date] |>
+  ggplot(aes(x=event_date, y=N)) +
+  geom_col() +
+  labs(x = NULL, y = "events per day")
+```
+
+::: notes
+Tabular validation catches duplicates and `NA`s but tends to miss visible patterns: a week of zeros, a sudden 10× jump, a gap that lines up with a date-format change. A single one-line plot of counts over time or by group is usually enough as a first check after a join or reshape.
+:::
+
 
 # Manipulating Strings
 
-## What is a string?
+## String = character vector
 
-- A character vector of length one or more
 - Each element is text wrapped in quotes
-- Most string functions are vectorised, so they apply elementwise to a column
+- Most string functions apply to each element
 
 ```{r}
 #| output-location: default
@@ -546,33 +574,6 @@ Strings in R are character vectors. Operations apply elementwise, which is why t
 These are not stylistic concerns. They are joins waiting to break. Almost every string job in a wrangling pipeline traces back to one of these patterns.
 :::
 
-## Most string problems are join problems
-
-```{r}
-#| output-location: default
-breed_info[dogs, on = .(breed)][
-  is.na(avg_life_exp),
-  unique(breed)
-]
-```
-
-::: notes
-A breed label that almost matches another breed label still fails the equality test the join uses. The visible symptom is missing values after the join, not a string error.
-:::
-
-## Toolkit for strings
-
-- Normalise: `tolower()`, `toupper()`, `trimws()`
-- Detect: `grepl(pattern, x)` — returns `TRUE`/`FALSE`
-- Replace first match: `sub(pattern, replacement, x)`
-- Replace all matches: `gsub(pattern, replacement, x)`
-- Split on a separator: `tstrsplit(x, sep)`
-- Reach for regex only when literal text is not enough
-
-::: notes
-A typical workflow goes normalise → detect → replace → split. Regex is a tool used inside `grepl`/`sub`/`gsub`, not a separate workflow.
-:::
-
 ## Encoding is set at import (recap from L6)
 
 ```{r}
@@ -594,52 +595,193 @@ dogs[grepl("é|í|ö|å", name), unique(name)][1:5]
 Encoding lives at the import boundary. If accents look right just after import, treat the column as plain text from there on.
 :::
 
-## Normalise before reaching for regex
+## String problems cause join problems
 
 ```{r}
 #| output-location: default
-dogs_norm <- copy(dogs)
-dogs_norm[, breed_clean := tolower(trimws(breed))]
+breed_info[dogs, on = .(breed)][
+  is.na(avg_life_exp),
+  unique(breed)
+]
+```
 
-unique(dogs_norm[grepl("jack russel|corgi", breed_clean), breed_clean])
+```{r}
+#| output-location: default
+breed_info[, unique(grepv("corgi|jack", breed, ignore.case = TRUE))]
 ```
 
 ::: notes
-Trim whitespace, standardise case, then apply regex. Half the cleaning work disappears once you stop fighting capitalisation and trailing spaces.
+A breed label that almost matches another breed label still fails the equality test the join uses. The visible symptom is missing values after the join, not a string error.
 :::
 
-## A small regex vocabulary covers most cases
+## Case and whitespace
 
-- `[abc]` matches one of `a`, `b`, `c`
-- `[a-z]` matches any lowercase letter
-- `.` matches any single character
-- `*` zero or more of the previous pattern
-- `+` one or more of the previous pattern
-- `\\s` whitespace; `\\d` a digit
-- `^` and `$` anchor start and end
-- `|` matches either pattern
+```{r}
+#| output-location: default
+sample <- c("Buddy ", "  lucy", "REX", "  Corgi  ")
+```
+
+`tolower()` / `toupper()` standardise case
+
+```{r}
+#| output-location: default
+tolower(sample)
+```
+
+::: fragment
+
+
+`trimws()` removes leading and trailing whitespace
+
+```{r}
+trimws(sample)
+```
+
+::: fragment
+
+`nchar()` returns each string's length
+
+```{r}
+nchar(sample)
+```
+
+:::
+
+:::
+
 
 ::: notes
-This is enough vocabulary for most cleaning. Anything more elaborate is usually a sign that the problem should be solved at import.
+A lot of "string cleaning" in practice is just casing differences and stray whitespace. These three functions fix the bulk of "almost equal" string problems before any pattern matching is needed.
+:::
+
+## Building and slicing strings
+
+`paste(a, b, sep = " ")` and `paste0(a, b)` glue vectors elementwise
+
+```{r}
+#| output-location: default
+dogs[1:3, paste(name, "the", breed)]
+```
+
+::: fragment
+
+`sprintf("%s ... %d", ...)` for templated output:
+- `%s` strings, `%d` integers, `%f` doubles
+
+```{r}
+dogs[1:3, sprintf("%s (%d years old)", name, age)]
+```
+
+::: fragment
+
+`substr(x, start, stop)` extracts characters by position
+
+```{r}
+dogs[1:3, substr(name, 1, 3)]
+```
+
+:::
+
+:::
+
+::: notes
+Position-based extraction is fine when the format is rigid — for example, the first three letters of a fixed-width code. When the position varies, that is where regex enters.
+:::
+
+
+## Regex: a pattern language
+
+When equality is not enough:
+
+- Find every breed *starting with* "Lab"
+- Find typos: "Russel" *or* "Russell"
+- Split `"03/20-2023"` on either `/` or `-`
+
+A *regular expression* (regex) describes a pattern of text:
+
+- Built into `grepl()`, `sub()`, `gsub()`, `tstrsplit()`, ...
+- Same syntax across R, Python, JavaScript, `grep`, `sed`
+- A plain string is already a valid regex — `"Corgi"` matches `"Corgi"`
+- The power comes from *metacharacters*: `^`, `$`, `.`, `*`, `+`, `[...]`, `|`
+
+::: notes
+Regex pays back the small learning curve many times over. Once these patterns are readable, parsing odd column shapes stops being a custom job each time.
+:::
+
+## Reading a regex
+
+`^[A-Z][a-z]+ Russel+$` reads left-to-right as:
+
+1. `^` — start of string
+2. `[A-Z]` — one uppercase letter
+3. `[a-z]+` — one or more lowercase letters
+4. ` Russe` — a space, then literal text
+5. `l+` — one or more `l`s (matches "Russel" *and* "Russell")
+6. `$` — end of string
+
+## Reading a regex
+
+| Symbol | Meaning |
+|---|---|
+| `[abc]` | one of `a`, `b`, `c` |
+| `[a-z]` | any lowercase letter |
+| `.` | any single character |
+| `*` / `+` / `?` | zero+, one+, or zero-or-one of the previous |
+| `\\s` / `\\d` | whitespace / digit |
+| `^` / `$` | start / end of string |
+| `|` | OR — either pattern |
+
+::: aside
+`\` is special in R strings, so regex backslashes are doubled (escaped): `\\s`, `\\d`, `\\.`.
 :::
 
 ## Detect with `grepl`
 
 ```{r}
 #| output-location: default
+# literal: contains "Corgi"
+dogs[grepl("Corgi", breed), unique(breed)]
+
+# alternation: either "Russel" or "Corgi"
 dogs[grepl("Russel|Corgi", breed), unique(breed)]
+
+# case-insensitive
+dogs[grepl("corgi", breed, ignore.case = TRUE), unique(breed)]
+```
+
+- `grepl(pattern, x)` returns `TRUE`/`FALSE` per element
+- `grepv`() returns the matching values
+
+::: aside
+Plain text is the simplest possible "pattern": it just matches itself. Alternation with `|` checks several variants in one call. `ignore.case = TRUE` is the regex-aware shortcut for "lowercase both sides before matching". `grepv()` is shorthand for `grep(pattern, x, value = TRUE)`.
+:::
+
+
+## Anchors
+
+`^` matches the start of the string
+
+```{r}
+#| output-location: default
+breed_info[, grepv("^Lab", breed)]
+```
+
+`$` matches the end of the string
+
+```{r}
+breed_info[, grepv("ver$", breed)]
 ```
 
 ::: notes
-Detection does not change anything; it returns which rows match. Run it before the replacement so you know exactly what is about to change.
+Anchors and quantifiers cover the bulk of pattern-matching needs in data wrangling. Collapsing repeated whitespace is a common preprocessing step on free-text fields.
 :::
 
 ## Replace with `sub` and `gsub`
 
 ```{r}
 #| output-location: default
-dogs[grepl("Jack Russel", breed), breed := sub("Russel", "Russell", breed)]
-dogs[breed == "Corgi", breed := "Pembroke Welsh Corgi"]
+dogs[, breed := gsub("Rus+el+", "Russell", breed)]
+dogs[breed == "[Cc]orgi", breed := "Pembroke Welsh Corgi"]
 
 breed_info[dogs, on = .(breed)][
   is.na(avg_life_exp),
@@ -647,48 +789,18 @@ breed_info[dogs, on = .(breed)][
 ]
 ```
 
-::: aside
-`sub()` replaces the first match per element; `gsub()` replaces all matches.
-:::
-
-::: notes
-Detect, replace, then re-run the join check. Repairing labels in place is much better than pretending the mismatch was random missingness.
-:::
-
-## Split with `tstrsplit`
+- `sub(pat, repl, x)` — replace *first* match per element
+- `gsub(pat, repl, x)` — replace *all* matches per element
 
 ```{r}
 #| output-location: default
-sale_parts <- dogs[!is.na(sale_date), .(sale_date)]
-sale_parts[,
-  c("sale_month", "sale_day", "sale_year") := tstrsplit(sale_date, "[/-]")
-]
-
-sale_parts[1:5]
+gsub("\\s+", " ", c("Border  Collie", "Labrador   Retriever"))
 ```
+- `\\s` for a whitespace character
+- `+` for one or more of the preceding character
 
 ::: notes
-Useful when one column hides several variables. If the goal is a date type, parse the date directly instead of keeping the parts as character columns — that is the bridge to the next section.
-:::
-
-## `stringr` offers a more consistent grammar
-
-- All functions start with `str_` and take the string first
-- `str_detect(x, pattern)` for `grepl`
-- `str_replace_all(x, pattern, replacement)` for `gsub`
-- `str_to_lower(x)`, `str_squish(x)`, `str_split_fixed(x, sep, n)`
-- Named vectors handle multiple replacements at once
-
-```r
-library(stringr)
-dogs[, breed := str_replace_all(breed, c(
-    "Russel"  = "Russell",
-    "^Corgi$" = "Pembroke Welsh Corgi"
-))]
-```
-
-::: notes
-Either toolkit is fine. Function names are more consistent in `stringr`, and the named-vector form is convenient for batched replacements. The thing to avoid is mixing both inside one project.
+Detect, replace, then re-run the join check. Repairing labels in place is much better than pretending the mismatch was random missingness.
 :::
 
 # Manipulating Dates and Timestamps
@@ -856,7 +968,7 @@ dogs[1:5, .(dog_id, intake_date, sale_date)]
 Non-standard formats need an explicit format string. The format is part of the cleaning contract, not a detail to keep in your head.
 :::
 
-## Avoid format codes with `lubridate` 
+## Avoid format codes with `lubridate`
 
 - Function names spell out component order: `ymd`, `mdy`, `dmy`
 - `ymd_hms("2024-03-20 23:40:00")` for timestamps
@@ -944,11 +1056,10 @@ events_local[
 The timezone comes from metadata or domain knowledge, not from the column itself. Reading the timestamp as text first prevents the parser from silently assigning the wrong instant before the code has a chance to say what the clock time meant.
 :::
 
-## `lubridate` `with_tz` displays, `force_tz` reinterprets
+## `lubridate::` `with_tz` displays, `force_tz` reinterprets
 
-- `with_tz(t, "Europe/Stockholm")` keeps the instant, changes the display
-- `force_tz(t, "Europe/Stockholm")` keeps the clock time, changes the instant
-- Different questions; using the wrong one silently shifts data
+- `with_tz(t, "Europe/Stockholm")` keeps instant, changes display
+- `force_tz(t, "Europe/Stockholm")` keeps time, changes instant
 
 ```{r}
 #| output-location: default
@@ -956,6 +1067,8 @@ t <- as.POSIXct("2024-03-20 23:40:00", tz = "UTC")
 with_tz(t, "Europe/Stockholm")
 force_tz(t, "Europe/Stockholm")
 ```
+
+Different questions; using the wrong one silently shifts data.
 
 ::: notes
 The same input can produce two different timestamps depending on which function you reach for. Choose by asking: did the source already record the right instant, or did it record clock time without a timezone?
@@ -1052,9 +1165,9 @@ The default unit chosen by `-` and by `difftime()` depends on the magnitude. Pas
 Subtracting timestamps returns a `difftime`. The default unit can flip from seconds to minutes to days depending on the gap, which is a quiet source of bugs. Forcing the unit and converting to numeric makes downstream arithmetic predictable.
 :::
 
-# Functions And Iteration
+# Iteration
 
-## Vectorise or use `by` before you iterate
+## Vectorise or use `by` before you iterate with loops
 
 - Same summary by group → `by=`
 - Same rule on several columns → `.SD`
@@ -1174,17 +1287,71 @@ all_events[, .(rows = .N, dogs = uniqueN(dog_id)), by = source_file]
 This is the entire multi-file import pattern in three lines. The names on the list become the values in the `source_file` column, so you can always see which row came from which file. If `read_dog_events` returned `NULL` for a missing file, that element is dropped from the bind without complaint — combined with the `warning()` in the reader, the batch reports the problem and keeps going.
 :::
 
+## Validation checklist
+
+After every join, reshape, or type change:
+
+- Row count — did it change as expected?
+- Key uniqueness — duplicates can explode joins
+- Unmatched rows — which ones, and why?
+- Missing combinations — anything absent that should exist?
+- Types — dates are dates, IDs stayed character
+
+::: notes
+Five fast checks. Done individually they are trivial; done as a habit they catch most of the bugs that survive into reports.
+:::
+
 ## Main takeaways
 
 - Join problems are usually key problems
 - Wide vs long is a question about what each row represents — pick the shape that fits the use case
-- String and date cleaning are often prerequisites for correct joins and summaries
-- Keep validating: row counts, unit of observation, and unmatched rows are cheap to re-check after every join, reshape, or type change
-- Small functions help keep wrangling logic explicit and reusable
+- String and date cleaning are often prerequisites for correct joins
+- Keep validating: check row counts, unit of observation, unmatched rows after every join, reshape, or type change
+- Wrap repeated logic in a function, then apply it with `lapply()`
 
 ## Next lecture: APIs and external data
 
 # Extra: More on strings and dates
+
+## Split with `tstrsplit`
+
+```{r}
+#| output-location: default
+sale_parts <- dogs[!is.na(sale_date), .(sale_date)]
+sale_parts[,
+  c("sale_month", "sale_day", "sale_year") := tstrsplit(sale_date, "[/-]")
+]
+
+sale_parts[1:5]
+```
+
+- `[/-]` matches either `/` or `-` — handles inconsistent delimiters in one pass
+- Useful when one column hides several variables
+- For dates specifically, parse to a real type instead — that is the next section
+
+::: notes
+The split character itself is a regex, so `[/-]` handles inconsistent delimiters in a single pass. If the goal is a date, parse it directly rather than keeping the parts as character columns.
+:::
+
+## `stringr` offers a more consistent grammar
+
+- All functions start with `str_` and take the string first
+- `str_detect(x, pattern)` for `grepl`
+- `str_replace_all(x, pattern, replacement)` for `gsub`
+- `str_to_lower(x)`, `str_squish(x)`, `str_split_fixed(x, sep, n)`
+- Named vectors handle multiple replacements at once
+
+```r
+library(stringr)
+dogs[, breed := str_replace_all(breed, c(
+    "Russel"  = "Russell",
+    "^Corgi$" = "Pembroke Welsh Corgi"
+))]
+```
+
+::: notes
+Either toolkit is fine. Function names are more consistent in `stringr`, and the named-vector form is convenient for batched replacements. The thing to avoid is mixing both inside one project.
+:::
 
 ## ISO 8601 week convention
 
@@ -1214,7 +1381,7 @@ dogs[
 
 ## Data table magic
 
-I'm a bit of a `data.table` nerd though, so here is a cool examples of advanced operation.
+I'm a bit of a `data.table` nerd though, so here is a cool example of an advanced operation.
 
 Let's calculate the average price during two months around each sale:
 

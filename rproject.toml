@@ -29,4 +29,7 @@ dependencies = [
     { name = "cannonball", git = "https://github.com/janhove/cannonball", branch = "master" },
     "testthat",
     "lubridate",
+    "gapminder",
+    "ggrepel",
+    "ragg",
 ]
