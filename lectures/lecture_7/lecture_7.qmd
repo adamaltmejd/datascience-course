@@ -1415,15 +1415,48 @@ dogs[
 
 # Extra: DT non-equi joins and rolling joins
 
-## Data table magic
-
-I'm a bit of a `data.table` nerd though, so here is a cool example of an advanced operation.
-
-Let's calculate the average price during two months around each sale:
+## Non-equi joins: match with inequalities
 
 ```{r}
 #| output-location: default
-#| code-line-numbers: "3-6|7-9|1-12"
+window <- data.table(start = as.IDate("2023-06-01"), end = as.IDate("2023-06-15"))
+sales[window,
+  on = .(date >= start, date <= end),
+  .(breed, sale_date = x.date, price_usd),
+  nomatch = NULL]
+```
+
+- `on =` accepts `<`, `<=`, `>`, `>=` instead of `==`
+- Match: rows where `date` falls inside the window
+
+::: notes
+Build a small table whose rows are the windows you care about, then join with inequalities. Generalises to report periods, treatment exposure intervals, billing cycles. `nomatch = NULL` drops query rows that found nothing (inner-join behaviour).
+:::
+
+## Rolling joins: as-of lookup
+
+```{r}
+#| output-location: default
+sales_lab <- sales[breed == "Labrador Retriever", .(date, price_usd)]
+setkey(sales_lab, date)
+queries <- data.table(date = as.IDate(c("2023-01-15", "2023-06-15", "2023-12-08")))
+sales_lab[queries, on = "date", roll = TRUE]
+```
+
+- For each query date, find the most recent earlier observation
+- `roll = TRUE` carries the last prior value forward; `roll = "nearest"` picks closest in either direction
+
+::: notes
+Common in time-series work: "what was the value just before this moment?". `data.table` walks the sorted key once instead of the manual filter-and-take-latest pattern. The lookup table must be sorted on the rolling column — hence `setkey()`.
+:::
+
+## Data table magic
+
+Now combine both ideas. Let's calculate the average price during two months around each sale:
+
+```{r}
+#| output-location: default
+#| code-line-numbers: "3-11|12|13-14|2-15|1-18"
 dogs[
   sales[
     dogs[
@@ -1467,33 +1500,3 @@ sales[
 ]
 ```
 
-## Data table magic (cont.)
-
-- `data.table` supports rolling joins, to find the *closest* match
-- `roll` can go forward, backward or to nearest match
-- Let's find the sale price closest to `sale_date`
-
-```{r}
-#| output-location: default
-dogs[
-  sales[
-    dogs,
-    on = c("breed", "date == sale_date"),
-    roll = "nearest",
-    .(dog_id, price_usd)
-  ],
-  on = "dog_id",
-  nearest_price := i.price_usd
-]
-```
-
-## Data table magic (cont.)
-
-```{r}
-#| output-location: default
-dogs[dog_id == "0013", .(breed, sale_date, nearest_price)]
-sales[
-  breed == "Labrador Retriever" &
-    date %between% list(as.Date("2023-03-01"), as.Date("2023-04-01"))
-]
-```
