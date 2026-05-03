@@ -46,6 +46,17 @@ function Pandoc(doc)
 
   local js = string.format([[
 <script>
+// Handout mode (decktape PDF): strip data-code-line-numbers BEFORE Reveal
+// initializes so the quarto-line-highlight plugin skips fragment-clone
+// generation. Without this, decktape (pdfSeparateFragments=false) captures
+// the slide while only the first highlight step is active, leaving the rest
+// dimmed at opacity 0.25. Runs synchronously at parse time — this script
+// tag is emitted before the Reveal.initialize() call.
+if (new URLSearchParams(location.search).has('handout')) {
+  document.querySelectorAll('div.sourceCode[data-code-line-numbers]')
+    .forEach(function(el) { el.removeAttribute('data-code-line-numbers'); });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var f = document.querySelector('.reveal .footer');
   if (f) {
