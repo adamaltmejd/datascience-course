@@ -10,7 +10,7 @@ Course website: <https://adamaltmejd.github.io/datascience-course/>.
 4. R Basics II: Vectors, Tables, and Tidy Thinking. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_4/lecture_4.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_4/lecture_4.pdf)]
 5. Independent Workflows, Debugging, and AI Support. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_5/lecture_5.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_5/lecture_5.pdf)]
 6. Data Wrangling I. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_6/lecture_6.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_6/lecture_6.pdf)]
-7. Data Wrangling II.
+7. Data Wrangling II. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_7/lecture_7.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_7/lecture_7.pdf)]
 8. APIs and External Data.
 9. LLMs for Data Processing.
 10. Visualization and Communication.
