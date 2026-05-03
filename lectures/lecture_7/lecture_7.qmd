@@ -339,7 +339,7 @@ dogs_join[1:5, .(dog_id, breed, age, avg_years_left)]
 The `i.` prefix refers to columns from the incoming table (the one in `i`), so the join can directly create a derived column without a separate intermediate object. Similarly, we can use `x.` to refer to columns from the outer table (`DT[]`).
 :::
 
-## `shift()` instead of complex self-joins
+## Use `shift()` to create a lagged vector
 
 `shift()` returns a lagged vector within groups
 
@@ -397,7 +397,7 @@ The shape is not "more correct" or "less correct" — it depends on the next ope
 
 ## Reshaping in data.table
 
-Base R has `reshape()` but it is clunky. `data.table` has two more intuitive functions:
+Base R has `reshape()` but it is clunky. `data.table` has two more intuitive (and much faster) functions:
 
 - `dcast()` for long → wide
 - `melt()` for wide → long
@@ -502,22 +502,17 @@ A missing *cell* is an `NA` value — usually visible in the output. A missing *
 ## Detect missing combinations: skeleton + anti-join
 
 ```{r}
-small_events <- events[
-  dog_id %in% c("0013", "3382"),
-  .(dog_id, event_type, event_time)
-] |>
-  _[!(dog_id == "3382" & 
-      event_type == "vet_check")]
-small_events
+events[dog_id %in% c("0013", "3382"),
+  .(dog_id, event_time, event_type)]
 ```
 
 ```{r}
 #| output-location: default
 skeleton <- CJ(
-  dog_id = unique(small_events$dog_id),
+  dog_id = unique(events$dog_id),
   event_type = c("intake", "vet_check", "adopted")
 )
-skeleton[!small_events, on = .(dog_id, event_type)]
+skeleton[!events, on = .(dog_id, event_type)][dog_id %in% c("0013", "3382")]
 ```
 
 - `CJ()` cross-joins the levels you *expected* to see
@@ -527,20 +522,50 @@ skeleton[!small_events, on = .(dog_id, event_type)]
 The pattern is: state what should exist, then ask what's actually present. The diagnostic is the *difference*. Much more reliable than visually scanning a table for gaps.
 :::
 
-## A quick plot catches what tabular checks miss
+## A quick plot makes the gap obvious
+
+```{r}
+#| output-location: default
+combination_grid <- events[skeleton, on = .(dog_id, event_type)]
+combination_grid[, present := !is.na(event_time)]
+combination_grid[, event_type := factor(event_type, levels = c("intake", "vet_check", "adopted"))]
+missing_combo_plot <- ggplot(
+  combination_grid,
+  aes(x = event_type, y = dog_id, fill = present)
+) +
+  geom_tile(color = "white", linewidth = 1.2) +
+  scale_fill_manual(values = c("TRUE" = "#d9ead3", "FALSE" = "#f4b6a6")) +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none")
+```
+
+## A quick plot makes the gap obvious (cont.)
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.6
+missing_combo_plot
+```
+
+::: notes
+This is the same expected-combinations idea as the anti-join, but drawn as a grid. The missing `vet_check` row for dog 3382 becomes visible immediately.
+:::
+
+## A counts-over-time plot catches different problems
 
 ```{r}
 #| output-location: default
 #| fig-width: 8
 #| fig-height: 2.6
 events[, .N, by = event_date] |>
-  ggplot(aes(x=event_date, y=N)) +
+  ggplot(aes(x = event_date, y = N)) +
   geom_col() +
   labs(x = NULL, y = "events per day")
 ```
 
 ::: notes
-Tabular validation catches duplicates and `NA`s but tends to miss visible patterns: a week of zeros, a sudden 10× jump, a gap that lines up with a date-format change. A single one-line plot of counts over time or by group is usually enough as a first check after a join or reshape.
+The skeleton check flags missing combinations. A count over time flags a different class of issue — and the plot above is doing exactly that: there is a three-month stretch with no events at all in mid-2023. No tabular sanity check would have surfaced this. The fix is upstream (find out what happened to the logging during that window), but the diagnostic is one line of `ggplot`. Worth running after any join, reshape, or type change.
 :::
 
 
@@ -781,7 +806,7 @@ Anchors and quantifiers cover the bulk of pattern-matching needs in data wrangli
 ```{r}
 #| output-location: default
 dogs[, breed := gsub("Rus+el+", "Russell", breed)]
-dogs[breed == "[Cc]orgi", breed := "Pembroke Welsh Corgi"]
+dogs[grep("[Cc]orgi", breed), breed := "Pembroke Welsh Corgi"]
 
 breed_info[dogs, on = .(breed)][
   is.na(avg_life_exp),
@@ -1007,21 +1032,28 @@ Automatic parsing is convenient, but it still needs inspection. The CSV here rec
 
 ## A wrong timezone can change the date
 
+:::: {.columns}
+::: {.column width="50%"}
 ```{r}
 #| output-location: default
-events_auto[
+t(events_auto[
   dog_id == "0013" & event_type == "adopted",
-  .(
-    parsed_as_utc = format(event_time, usetz = TRUE),
-    shown_in_stockholm = format(
+  .(as_utc = format(event_time, usetz = TRUE),
+    in_sthlm = format(
       event_time,
       tz = "Europe/Stockholm",
       usetz = TRUE
     ),
-    stockholm_date = as.IDate(event_time, tz = "Europe/Stockholm")
-  )
-]
+    sthlm_date = as.IDate(event_time, 
+      tz = "Europe/Stockholm"))
+])
 ```
+:::
+::: {.column width="50%"}
+![](timezone_changes_date.png)
+:::
+
+::::
 
 ::: notes
 This row is intentionally close to midnight. If the timestamp is wrongly treated as UTC, displaying or aggregating it in Swedish time moves it to the next calendar date. That is not a formatting detail — it changes daily counts.
@@ -1237,6 +1269,10 @@ event_paths
 A realistic reason to iterate: the inputs live in separate files, but the same reading logic should apply to all of them. In a project, these files would already exist; here they are written from `events_raw` in a hidden setup chunk.
 :::
 
+##
+
+![](many_files_one_table.png){.r-stretch}
+
 ## Write a reusable reader function
 
 ```{r}
@@ -1433,7 +1469,7 @@ sales[
 
 ## Data table magic (cont.)
 
-- `data.table` also supports rolling joins, where we find the *closest* match
+- `data.table` supports rolling joins, to find the *closest* match
 - `roll` can go forward, backward or to nearest match
 - Let's find the sale price closest to `sale_date`
 
@@ -1449,6 +1485,12 @@ dogs[
   on = "dog_id",
   nearest_price := i.price_usd
 ]
+```
+
+## Data table magic (cont.)
+
+```{r}
+#| output-location: default
 dogs[dog_id == "0013", .(breed, sale_date, nearest_price)]
 sales[
   breed == "Labrador Retriever" &
