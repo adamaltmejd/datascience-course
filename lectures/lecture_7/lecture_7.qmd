@@ -22,7 +22,7 @@ library(data.table)
 library(ggplot2)
 library(lubridate)
 theme_set(
-  theme_bw() %+replace%
+  theme_bw(base_size = 12, base_family = "Inter") %+replace%
     theme(
       plot.background = element_rect(fill='transparent', color=NA)
     )
@@ -534,8 +534,10 @@ missing_combo_plot <- ggplot(
 ) +
   geom_tile(color = "white", linewidth = 1.2) +
   scale_fill_manual(values = c("TRUE" = "#d9ead3", "FALSE" = "#f4b6a6")) +
+  scale_x_discrete(expand = c(0, 0)) +
   labs(x = NULL, y = NULL) +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        axis.text.y = element_text(size = 6))
 ```
 
 ## A quick plot makes the gap obvious (cont.)

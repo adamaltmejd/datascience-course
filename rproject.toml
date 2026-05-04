@@ -9,9 +9,9 @@ repositories = [{ alias = "CRAN", url = "https://cloud.r-project.org/" }]
 
 # A list of packages to install and any additional configuration
 # Examples:
-# "dplyr",
-# {name = "dplyr", repository = "CRAN"},
-# {name = "dplyr", git = "https://github.com/tidyverse/dplyr.git", tag = "v1.1.4"},
+# "data.table",
+# {name = "data.table", repository = "CRAN"},
+# {name = "cannonball", git = "https://github.com/janhove/cannonball", branch = "master"},
 dependencies = [
   "data.table",
   "here",
@@ -20,9 +20,9 @@ dependencies = [
   "ggplot2",
   "httr2",
   "jsonlite",
+  "ellmer",
   "rsvg",
   "svglite",
-  "hrbrthemes",
   "dichromat",
   "paletteer",
   "rmarkdown",
