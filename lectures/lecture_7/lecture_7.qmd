@@ -468,8 +468,7 @@ long_events
 ```
 
 - `id.vars` are the columns that identify a row
-- All *other* columns get stacked into one
-- names in one column, values in another
+- All other columns get stacked into one
 
 ::: notes
 Every column not in `id.vars` is treated as a measurement. Names go into one new column, values into another. The result has more rows and fewer columns — same content, with categories now living as values rather than as a schema.
@@ -1013,94 +1012,91 @@ Cheat sheet: <https://github.com/rstudio/cheatsheets/blob/main/lubridate.pdf>. F
 `lubridate` removes the format-string burden for common cases. The function name encodes the component order, so guessing the format is rarely necessary.
 :::
 
-## `fread()` may recognise timestamps automatically
+## `fread()` recognises timestamps automatically
 
 ```{r}
 #| output-location: default
-events_auto <- fread(
+ts <- fread(
   file.path(dog_path, "dog_events.csv"),
   colClasses = list(character = "dog_id")
-)
-
-class(events_auto$event_time)
-attr(events_auto$event_time, "tzone")
+)[dog_id == "0013" & event_type == "adopted", .(dog_id, event_type, event_time)]
+ts
 ```
+
+```{r}
+class(ts$event_time)
+```
+
+```{r}
+attr(ts$event_time, "tzone")
+```
+
+
+Warning! Assumes the **timezone is UTC**
 
 ::: notes
 Automatic parsing is convenient, but it still needs inspection. The CSV here records local Swedish clock time, but the file does not store a timezone — so `fread()` has to guess on UTC which is wrong.
 :::
 
-## A wrong timezone can change the date
+## Assuming the wrong timezone can shift dates
 
 :::: {.columns}
-::: {.column width="50%"}
+::: {.column width="45%"}
+![](timezone_changes_date.png){width="100%"}
+:::
+::: {.column width="55%"}
 ```{r}
 #| output-location: default
-t(events_auto[
-  dog_id == "0013" & event_type == "adopted",
-  .(as_utc = format(event_time, usetz = TRUE),
-    in_sthlm = format(
-      event_time,
-      tz = "Europe/Stockholm",
-      usetz = TRUE
-    ),
-    sthlm_date = as.IDate(event_time, 
-      tz = "Europe/Stockholm"))
-])
+format(ts$event_time, tz = "Europe/Stockholm")
+as.POSIXct(ts$event_time, tz = "Europe/Stockholm")
+as.IDate(ts$event_time, tz = "Europe/Stockholm")
 ```
 :::
-::: {.column width="50%"}
-![](timezone_changes_date.png)
-:::
-
 ::::
 
+All outputs change time/dates instead of timezone.
+
 ::: notes
-This row is intentionally close to midnight. If the timestamp is wrongly treated as UTC, displaying or aggregating it in Swedish time moves it to the next calendar date. That is not a formatting detail — it changes daily counts.
+The string is identical in both paths. If the timestamp is wrongly treated as UTC, displaying or aggregating it in Swedish time moves it to the next calendar date. Need to read the timestamp as text first, then parse with the correct timezone to get the right instant. Or use `lubridate::force_tz()` to fix ex post.
 :::
 
-## Parse naive local timestamps with the intended timezone
+## Fix: read as text, then parse with the correct timezone
 
 ```{r}
 #| output-location: default
-events_local <- fread(
+ts_fix <- fread(
   file.path(dog_path, "dog_events.csv"),
   colClasses = list(character = c("dog_id", "event_time"))
-)
-events_local[,
+)[dog_id == "0013" & event_type == "adopted", .(dog_id, event_type, event_time)]
+ts_fix[,
   event_time := as.POSIXct(
     event_time,
     format = "%Y-%m-%d %H:%M:%S",
     tz = "Europe/Stockholm"
   )
 ]
-events_local[, event_date := as.IDate(event_time, tz = "Europe/Stockholm")]
-```
-
-```{r}
-events_local[
-  dog_id == "0013" & event_type == "adopted",
-  .(event_time, event_date)
-]
+ts_fix
 ```
 
 ::: notes
 The timezone comes from metadata or domain knowledge, not from the column itself. Reading the timestamp as text first prevents the parser from silently assigning the wrong instant before the code has a chance to say what the clock time meant.
 :::
 
-## `lubridate::` `with_tz` displays, `force_tz` reinterprets
+## Better fix from the `lubridate` package
 
-- `with_tz(t, "Europe/Stockholm")` keeps instant, changes display
-- `force_tz(t, "Europe/Stockholm")` keeps time, changes instant
+
+
+`with_tz(t, "Europe/Stockholm")` keeps instant, changes display
 
 ```{r}
-#| output-location: default
-t <- as.POSIXct("2024-03-20 23:40:00", tz = "UTC")
-with_tz(t, "Europe/Stockholm")
-force_tz(t, "Europe/Stockholm")
+with_tz(ts$event_time, "Europe/Stockholm")
 ```
 
-Different questions; using the wrong one silently shifts data.
+`force_tz(t, "Europe/Stockholm")` keeps time, changes instant
+
+```{r}
+force_tz(ts$event_time, "Europe/Stockholm")
+```
 
 ::: notes
 The same input can produce two different timestamps depending on which function you reach for. Choose by asking: did the source already record the right instant, or did it record clock time without a timezone?
@@ -1154,7 +1150,7 @@ Component accessors `year()`, `month()`, `mday()`, `wday()`, `quarter()`, `yday(
 Component accessors are cleaner than reformatting the date as text and re-parsing the parts. The `wday()` convention is a footgun: depending on the package and locale defaults, the week may start on Sunday or Monday.
 :::
 
-## Round dates and month-safe arithmetic
+## Round dates and month-safe arithmetic (`lubridate`)
 
 ```{r}
 #| output-location: default
@@ -1256,10 +1252,19 @@ for (shelter in unique(events_raw$shelter_name)) {
 event_paths <- list.files(event_dir, pattern = "csv$", full.names = TRUE)
 ```
 
+:::: {.columns}
+::: {.column width="50%"}
+![](many_files_one_table.png){width="100%"}
+:::
+::: {.column width="50%"}
 ```{r}
 #| output-location: default
-event_paths
+basename(event_paths)
 ```
+:::
+::::
+
+
 
 - One CSV per shelter, dropped in a folder
 - Read them all with the right types, stacked into one table
@@ -1268,10 +1273,6 @@ event_paths
 ::: notes
 A realistic reason to iterate: the inputs live in separate files, but the same reading logic should apply to all of them. In a project, these files would already exist; here they are written from `events_raw` in a hidden setup chunk.
 :::
-
-##
-
-![](many_files_one_table.png){.r-stretch}
 
 ## Write a reusable reader function
 
@@ -1499,4 +1500,3 @@ sales[
   mean(price_usd)
 ]
 ```
-
