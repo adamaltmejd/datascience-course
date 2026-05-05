@@ -339,31 +339,6 @@ dogs_join[1:5, .(dog_id, breed, age, avg_years_left)]
 The `i.` prefix refers to columns from the incoming table (the one in `i`), so the join can directly create a derived column without a separate intermediate object. Similarly, we can use `x.` to refer to columns from the outer table (`DT[]`).
 :::
 
-## Use `shift()` to create a lagged vector
-
-`shift()` returns a lagged vector within groups
-
-```{r}
-#| output-location: default
-event_order <- copy(events)
-setorder(event_order, dog_id, event_time) # setorder() is crucial!
-event_order[,
-  hours_since_previous_event := round(
-    as.numeric(difftime(event_time, shift(event_time), units = "hours")), 1
-  ),
-  by = dog_id
-]
-event_order[
-  dog_id %in% c("0013", "3382"),
-  .(dog_id, event_time, event_type, hours_since_previous_event)
-]
-```
-
-::: notes
-The honest comparison: a non-equi self-join (see "extra" section) on `event_time < event_time` would also produce this column, but it is much harder to read and slower to run. `shift()` solves the within-group lag case directly. The first row per dog gets `NA` because there is nothing to lag against.
-:::
-
-
 ## Join diagnostics should be routine
 
 - Compare row counts before and after the join
@@ -373,6 +348,62 @@ The honest comparison: a non-equi self-join (see "extra" section) on `event_time
 
 ::: notes
 These checks are quick and they scale. The habit matters more than memorising a specific join taxonomy.
+:::
+
+
+## Detect missing combinations: skeleton + anti-join
+
+```{r}
+events[dog_id %in% c("0013", "3382"),
+  .(dog_id, event_time, event_type)]
+```
+
+```{r}
+#| output-location: default
+skeleton <- CJ(
+  dog_id = unique(events$dog_id),
+  event_type = c("intake", "vet_check", "adopted")
+)
+skeleton[!events, on = .(dog_id, event_type)][dog_id %in% c("0013", "3382")]
+```
+
+- `CJ()` cross-joins the levels you *expected* to see
+- Anti-join data against the skeleton: what's left is missing
+
+::: notes
+The pattern is: state what should exist, then ask what's actually present. The diagnostic is the *difference*. Much more reliable than visually scanning a table for gaps.
+:::
+
+## Alternative: A plot can reveal gaps
+
+```{r}
+#| output-location: default
+combination_grid <- events[skeleton, on = .(dog_id, event_type)]
+combination_grid[, present := !is.na(event_time)]
+combination_grid[, event_type := factor(event_type, levels = c("intake", "vet_check", "adopted"))]
+missing_combo_plot <- ggplot(
+  combination_grid,
+  aes(x = event_type, y = dog_id, fill = present)
+) +
+  geom_tile(color = "white", linewidth = 1.2) +
+  scale_fill_manual(values = c("TRUE" = "#d9ead3", "FALSE" = "#f4b6a6")) +
+  scale_x_discrete(expand = c(0, 0)) +
+  labs(x = NULL, y = NULL) +
+  theme(legend.position = "none",
+        axis.text.y = element_text(size = 6))
+```
+
+## A quick plot makes the gap obvious (cont.)
+
+```{r}
+#| echo: false
+#| fig-width: 8
+#| fig-height: 3.6
+missing_combo_plot
+```
+
+::: notes
+This is the same expected-combinations idea as the anti-join, but drawn as a grid. The missing `vet_check` row for dog 3382 becomes visible immediately.
 :::
 
 # Reshaping
@@ -490,85 +521,13 @@ long_events[, .(total = sum(N)), by = event_type]
 A telling sign that you need long form: you are about to write three almost-identical calls, one per column. That is a workflow pushing you toward `melt`.
 :::
 
-## A missing row can be hard to notice
+## Example: A missing row can be hard to notice
 
 ![](missing_rows.png){.r-stretch}
 
 ::: aside
 A missing *cell* is an `NA` value — usually visible in the output. A missing *row* is an entire expected combination that is absent — invisible unless you build a list of what you expected to see.
 :::
-
-## Detect missing combinations: skeleton + anti-join
-
-```{r}
-events[dog_id %in% c("0013", "3382"),
-  .(dog_id, event_time, event_type)]
-```
-
-```{r}
-#| output-location: default
-skeleton <- CJ(
-  dog_id = unique(events$dog_id),
-  event_type = c("intake", "vet_check", "adopted")
-)
-skeleton[!events, on = .(dog_id, event_type)][dog_id %in% c("0013", "3382")]
-```
-
-- `CJ()` cross-joins the levels you *expected* to see
-- Anti-join data against the skeleton: what's left is missing
-
-::: notes
-The pattern is: state what should exist, then ask what's actually present. The diagnostic is the *difference*. Much more reliable than visually scanning a table for gaps.
-:::
-
-## A quick plot makes the gap obvious
-
-```{r}
-#| output-location: default
-combination_grid <- events[skeleton, on = .(dog_id, event_type)]
-combination_grid[, present := !is.na(event_time)]
-combination_grid[, event_type := factor(event_type, levels = c("intake", "vet_check", "adopted"))]
-missing_combo_plot <- ggplot(
-  combination_grid,
-  aes(x = event_type, y = dog_id, fill = present)
-) +
-  geom_tile(color = "white", linewidth = 1.2) +
-  scale_fill_manual(values = c("TRUE" = "#d9ead3", "FALSE" = "#f4b6a6")) +
-  scale_x_discrete(expand = c(0, 0)) +
-  labs(x = NULL, y = NULL) +
-  theme(legend.position = "none",
-        axis.text.y = element_text(size = 6))
-```
-
-## A quick plot makes the gap obvious (cont.)
-
-```{r}
-#| echo: false
-#| fig-width: 8
-#| fig-height: 3.6
-missing_combo_plot
-```
-
-::: notes
-This is the same expected-combinations idea as the anti-join, but drawn as a grid. The missing `vet_check` row for dog 3382 becomes visible immediately.
-:::
-
-## A counts-over-time plot catches different problems
-
-```{r}
-#| output-location: default
-#| fig-width: 8
-#| fig-height: 2.6
-events[, .N, by = event_date] |>
-  ggplot(aes(x = event_date, y = N)) +
-  geom_col() +
-  labs(x = NULL, y = "events per day")
-```
-
-::: notes
-The skeleton check flags missing combinations. A count over time flags a different class of issue — and the plot above is doing exactly that: there is a three-month stretch with no events at all in mid-2023. No tabular sanity check would have surfaced this. The fix is upstream (find out what happened to the logging during that window), but the diagnostic is one line of `ggplot`. Worth running after any join, reshape, or type change.
-:::
-
 
 # Manipulating Strings
 
@@ -1193,6 +1152,24 @@ The default unit chosen by `-` and by `difftime()` depends on the magnitude. Pas
 
 ::: notes
 Subtracting timestamps returns a `difftime`. The default unit can flip from seconds to minutes to days depending on the gap, which is a quiet source of bugs. Forcing the unit and converting to numeric makes downstream arithmetic predictable.
+:::
+
+## Using dates in diagnostic plots
+
+A count over time graph can reveal missing data that a tabular check would miss.
+
+```{r}
+#| output-location: default
+#| fig-width: 8
+#| fig-height: 2.6
+events[, .N, by = event_date] |>
+  ggplot(aes(x = event_date, y = N)) +
+  geom_col() +
+  labs(x = NULL, y = "events per day")
+```
+
+::: aside
+`ggplot` allows plots dates, just make sure the type is not character and the x-axis will be scaled appropriately.
 :::
 
 # Iteration
