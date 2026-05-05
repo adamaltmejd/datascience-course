@@ -714,16 +714,33 @@ dogs[, c(
 `shift()` returns a lagged vector within groups
 
 ```{r}
+#| echo: false
+events_raw <- fread(
+  file.path(dog_path, "dog_events.csv"),
+  colClasses = list(character = c("dog_id", "event_time"))
+)
+events <- copy(events_raw)
+events[,
+  event_time := as.POSIXct(
+    event_time,
+    format = "%Y-%m-%d %H:%M:%S",
+    tz = "Europe/Stockholm"
+  )
+]
+events[, event_date := as.IDate(event_time, tz = "Europe/Stockholm")]
+```
+
+```{r}
 #| output-location: default
-event_order <- copy(events)
-setorder(event_order, dog_id, event_time) # setorder() is crucial!
-event_order[,
+events
+setorder(events, dog_id, event_time) # setorder() is crucial!
+events[,
   hours_since_previous_event := round(
     as.numeric(difftime(event_time, shift(event_time), units = "hours")), 1
   ),
   by = dog_id
 ]
-event_order[
+events[
   dog_id %in% c("0013", "3382"),
   .(dog_id, event_time, event_type, hours_since_previous_event)
 ]
