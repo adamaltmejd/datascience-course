@@ -19,9 +19,9 @@ Material links below are updated as slides and handouts are published.
 | 5. Independent Workflows, Debugging, and AI Support | Thursday, April 23, 2026 | 10:00-12:00 | [Slides](lectures/lecture_5/lecture_5.html), [PDF](lectures/lecture_5/lecture_5.pdf) |
 | 6. Data Wrangling I | Tuesday, April 28, 2026 | 10:00-12:00 | [Slides](lectures/lecture_6/lecture_6.html), [PDF](lectures/lecture_6/lecture_6.pdf) |
 | 7. Data Wrangling II | Tuesday, May 5, 2026 | 10:00-12:00 | [Slides](lectures/lecture_7/lecture_7.html), [PDF](lectures/lecture_7/lecture_7.pdf) |
-| 8. APIs and External Data | Tuesday, May 12, 2026 | 13:00-15:00 | Pending |
+| 8. APIs and External Data | Tuesday, May 12, 2026 | 13:00-15:00 | [Slides](lectures/lecture_8/lecture_8.html), [PDF](lectures/lecture_8/lecture_8.pdf) |
 | 9. LLMs for Data Processing | Tuesday, May 19, 2026 | 13:00-15:00 | Pending |
-| 10. Visualization and Communication | Thursday, May 28, 2026 | 10:00-12:00 | Pending |
+| 10. Visualization and Communication | Thursday, May 28, 2026 | 10:00-12:00 | [Slides](lectures/lecture_10/lecture_10.html), [PDF](lectures/lecture_10/lecture_10.pdf) |
 
 ## Problem sets
 

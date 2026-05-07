@@ -11,9 +11,9 @@ Course website: <https://adamaltmejd.github.io/datascience-course/>.
 5. Independent Workflows, Debugging, and AI Support. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_5/lecture_5.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_5/lecture_5.pdf)]
 6. Data Wrangling I. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_6/lecture_6.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_6/lecture_6.pdf)]
 7. Data Wrangling II. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_7/lecture_7.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_7/lecture_7.pdf)]
-8. APIs and External Data.
+8. APIs and External Data. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_8/lecture_8.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_8/lecture_8.pdf)]
 9. LLMs for Data Processing.
-10. Visualization and Communication.
+10. Visualization and Communication. [[Slides](https://adamaltmejd.github.io/datascience-course/lectures/lecture_10/lecture_10.html) | [Handout PDF](https://adamaltmejd.github.io/datascience-course/lectures/lecture_10/lecture_10.pdf)]
 
 # Problem sets
 
