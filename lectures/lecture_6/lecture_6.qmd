@@ -716,7 +716,7 @@ dogs[, c(
 ```{r}
 #| echo: false
 events_raw <- fread(
-  file.path(dog_path, "dog_events.csv"),
+  file.path(dirname(dog_path), "dog_events.csv"),
   colClasses = list(character = c("dog_id", "event_time"))
 )
 events <- copy(events_raw)
