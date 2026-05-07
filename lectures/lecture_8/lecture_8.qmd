@@ -15,75 +15,137 @@ knitr:
 #| echo: false
 #| message: false
 #| warning: false
+knitr::opts_knit$set(root.dir = here::here())
 options(width = 90)
 options(datatable.print.nrows = 8)
 options(datatable.print.topn = 3)
 library(data.table)
 library(httr2)
 library(jsonlite)
+library(tinytable)
 ```
 
 ## Today
 
+- Web scraping, and why you should try to avoid it
 - What an API is, and why economists meet them
-- HTTP requests, responses, status codes, JSON
-- Calling APIs from R with `httr2`
-- Two examples: Kolada and SCB
-- Turning nested JSON responses into tables
-- Authentication, environment variables, rate limits
+- HTTP requests, status codes, JSON
+- Calling APIs from R with `httr2` — Kolada and SCB
+- Authentication with Google Maps geocoding
+- Rate limits, retries, caching
 - Wrapping an API call as an Agent *skill*
 
 ::: notes
 The wrangling block left us with one big assumption: a clean CSV is sitting on disk waiting to be read. This lecture is about how that CSV gets there in the first place.
 :::
 
-# Brief intro to web scraping
+## Where did our municipal data come from?
 
-## When the data is not behind an API
+```{r}
+#| output-location: default
+panel <- fread(here::here(
+  "data-sources", "data", "municipal-opportunity-panel",
+  "municipal_opportunity_panel_2016_2023.csv"
+))
+panel[municipality_name == "Stockholm" & year == 2022,
+      .(municipality_name, year,
+        new_firm_starts_per_1000_16_64,
+        share_postsecondary)]
+```
 
-- The page is HTML, not JSON
-- The provider does not offer a structured download
-- Last resort, not a first choice
+- Every column in the panel was produced by an API call
+- By the end of today you can reproduce this row
 
-## Tools and rules
+::: notes
+The opportunity panel that we worked with did not appear out of nowhere. The build script in `data-sources/data/municipal-opportunity-panel/` calls Kolada and SCB, parses the responses, joins the pieces, and writes the CSV. Today we open up that script.
+:::
 
-- `rvest` for parsing HTML and extracting elements by CSS selector
-- `polite` for respecting `robots.txt` and rate-limiting
-- Always read the site's terms before scraping
-- Cache aggressively — every fetch is a cost on someone else's server
+# Web Scraping
+
+## The data is on a page, not in a database
+
+- A web page is full of data. You can see it in your browser, but there is no download button.
+- The provider does not intend for you to get it in bulk, but you want it anyway
+- The last-resort tool is *web scraping*: read the page's HTML, walk the divs and classes, pull out the bits you want
+- Useful occasionally — but as you'll see, fragile and slow
+
+## Classical scraping with `rvest`
+
+- `read_html()` downloads and parses the page
+- `html_element()` picks one element by **CSS** selector
+- `html_table()` coerces a `<table>` into a data frame
+
+```{r}
+#| output-location: default
+library(rvest)
+"https://en.wikipedia.org/wiki/List_of_municipalities_of_Sweden" |>
+  read_html() |> html_element("table.wikitable") |>
+  html_table() |> as.data.table() |> _[1:2, 1:5] |> tt()
+```
+
+::: notes
+The example above takes maybe ten seconds to write once you know the selector. The catch is figuring out the selector. SelectorGadget is the classical tool — a Chrome extension that prints the CSS selector when you click on the element you want.
+:::
+
+## Why scraping is fragile
+
+- CSS selectors break the moment the site is restyled
+- Many pages are JavaScript-rendered — the data is *not* in the HTML you download
+- Rate limits and Terms of Service may forbid automated access
+- "Quasi-regular" structures (the Craigslist case) need ad-hoc parsing per page
+- Treat any scraper as *fragile infrastructure* with an expected lifetime
 
 ::: aside
 A scraper that looks like a person browsing slowly is fine on most public-data sites. A scraper that hammers a server, ignores `robots.txt`, or republishes the data wholesale is not — and may not be legal. When in doubt, email and ask.
 :::
 
-## Scraping vs APIs
+## AI agents change the cost structure
 
-- Web APIs return *data*; scraping returns *pages that happen to contain data*
-- Page layouts change without notice; selectors break silently
-- Treat any scraper as fragile infrastructure with an expected lifetime
-- Whenever an API exists later, switch
+- Old way: open inspector, click around, hand-write a selector, debug
+- New way: send URL to agent, ask it write an `rvest` pipeline to pull the data you want
+- The hardest part of scraping — finding the right selector — has become cheap
+- *Browser use* allows agents to see the rendered page just like you would 
+- The agent can also help with: "this site renders in JS, can you find the underlying API instead?"
+
+::: notes
+The most useful agent move is not "write me a scraper" — it's "look at this page in DevTools and tell me whether the data is loaded from a hidden JSON endpoint". Many "scraping" tasks turn out to be API tasks once an agent (or you) opens the Network tab of the Developer tools.
+:::
+
+## Look for a hidden API before you scrape
+
+Most modern pages render in the browser by fetching JSON content separately. That JSON request *is* an API call — you can find it:
+
+1. Open the page in Chrome
+2. **DevTools → Network → XHR** (Cmd+Opt+I, filter to `XHR`)
+3. Reload, click around — watch the requests roll in
+4. Click one with a JSON-looking response → copy the URL
+5. Paste it into R: `request(url) |> req_perform() |> resp_body_json()`
+
+Agents are good at this too: paste a URL and ask "is there a JSON API endpoint behind this?"
+
+::: notes
+Many "this site has no API" complaints turn out to be "I did not look". When an agent helps, still verify manually: open the URL in your browser, confirm row counts and schema, check the site's terms.
+:::
 
 # What is an API?
 
 ## API = Application Programming Interface
 
 - A structured way for software systems to talk to each other
-- The provider defines the rules: what you may ask, what they will return
+- The provider sets rules: what you may ask, what they will return
 - We will focus on *web APIs*: requests sent over `HTTP/S`
 - The data we want lives behind one
 
 ::: notes
-APIs are not exotic. They are just an agreement: "ask in this format, and I will answer in this format." The R packages we use every day are also APIs in the broader sense — `data.table` exposes an interface to its internals through `DT[i, j, by]`. Today's APIs sit on a server and answer over the network.
+APIs are just an APIs: "ask in this format, and I will answer in this format." The R packages we use every day are also APIs in the broader sense — `data.table` exposes an interface to its internals through `DT[i, j, by]`. Today's APIs sit on a server and answer over the network.
 :::
 
 ## Why care
 
 - Many public statistics distributed through APIs
-- Scale: tens of thousands of indicators are out of reach by manual download
 - Reproducibility: an API script documents the source and the query
-- Up-to-dateness: re-run the script to get revised or new data without manual steps
-- Generate the data you want on demand (e.g. coordinates from addresses)
-- Its much easier for an Agent to call an API than to browse a website
+- Up-to-dateness: re-run the script to get revised or new data
+- Generate data on demand (e.g. coordinates from addresses)
 
 ::: notes
 Statistical agencies, central banks, and platform companies have shifted to API-first delivery. The old workflow — download a spreadsheet, save it locally, edit by hand — does not scale and does not document itself. A small API script is shorter, more honest, and easier to rerun next year.
@@ -102,8 +164,6 @@ Statistical agencies, central banks, and platform companies have shifted to API-
 ::: notes
 "REST" (REpresentational State Transfer) is a convention, not a strict standard. For data work the only verbs that matter are `GET` and `POST`. Everything else is an extension. Statelessness means you cannot rely on the server to remember which page you fetched last — you have to ask for the next page explicitly.
 :::
-
-# Anatomy of a Request
 
 ## URL requests
 
@@ -150,7 +210,11 @@ Headers are the side channel of HTTP. Think of them as the envelope, while the U
 A `200 OK` is the only status that means "your request worked and the body is what you asked for". Everything else is information about a problem. `4xx` codes blame the client; `5xx` blame the server. The split matters because the fix is in different places.
 :::
 
-## JSON: the standard API data format
+## JSON
+
+- Lightweight, text-based, easy for humans and machines
+- Nearly every modern API speaks JSON
+- R parses it into nested *lists*
 
 ```json
 {
@@ -165,12 +229,6 @@ A `200 OK` is the only status that means "your request worked and the body is wh
 }
 ```
 
-## JSON
-
-- Lightweight, text-based, easy for humans and machines
-- Nearly every modern API speaks JSON
-- R parses it into nested *lists*
-
 ## JSON has two structures
 
 - **Objects**: unordered key/value pairs in `{ ... }`
@@ -179,23 +237,34 @@ A `200 OK` is the only status that means "your request worked and the body is wh
   - Become *named lists* in R
 - **Arrays**: ordered values in `[ ... ]`
   - Become *unnamed lists* (or vectors) in R
-- Values are strings, numbers, booleans, `null`, or nested objects/arrays
+- Values are strings, numbers, booleans, `null`, or nested objects
 - Everything you can express in JSON is some combination of these
 
 ::: notes
 Two structures, recursively combined. Most "the API is complicated" frustration is really "the JSON is nested several layers deep". The path from a parsed response to a tidy table is mostly about navigating those layers.
 :::
 
-# Calling APIs from R
+# Calling APIs from R: Kolada
+
+## `Kolada`: open Swedish municipal database
+
+- Run by `RKA` ("Rådet för främjande av kommunala analyser")
+- Over 6,000 indicators ("KPIs") for Swedish municipalities and regions
+- Free, no key, no agreement
+- API base: `https://api.kolada.se/v3/`
+
+::: aside
+Source: <https://kolada.se/> and <https://kolada.se/om-oss/api/>. Try this in a browser right now: <https://api.kolada.se/v3/municipality?title=Stockholm>. The page you see is the API speaking — no rendering, just JSON.
+:::
 
 ## `httr2`
 
 - Modern HTTP client for R, built on `curl`
-- Functions read like a pipeline: build the request → perform → inspect
+- Functions designed for pipelines: build the request → perform → inspect
 - Handles JSON parsing, retries, auth, caching
 
 ::: aside
-`httr` (no `2`) was the previous generation. `httr2` is the actively developed successor and what new code should use. The package website at <https://httr2.r-lib.org/> has a good vignette tour. 
+`httr` (no `2`) was the previous generation. `httr2` is the actively developed successor and what new code should use. The package website at <https://httr2.r-lib.org/> has a good vignette tour.
 :::
 
 ## Build the request before you perform it
@@ -209,7 +278,7 @@ req <- request("https://api.kolada.se/v3/municipality") |>
 req
 ```
 
-- `request()` starts a request object — *no network call yet*
+- `request()` creates a request object — *no network call yet*
 - `req_*()` functions add pieces (query params, headers, body)
 - The request is just a description; nothing is sent until `req_perform()`
 
@@ -246,7 +315,6 @@ str(body, max.level = 2)
 ```
 
 - `resp_body_json()` parses JSON into a nested R list
-- `str(x, max.level = 2)` is the right first move on any unfamiliar list
 - Use `str()` or `View()` if you want to click through
 
 ::: aside
@@ -257,7 +325,7 @@ Need raw text instead? `resp_body_string()`. Need raw bytes (e.g. an image)? `re
 
 ```{r}
 #| output-location: default
-str(body$values, max.level = 2, list.len = 2)
+str(body$values, max.level = 2)
 ```
 
 ```{r}
@@ -269,8 +337,6 @@ body$values[[2]]
 The shape almost always nests the actual rows one or two levels deep — typically under a key called `values`, `data`, `results`, or `items`. Print one element first to see what each row looks like before trying to assemble a table.
 :::
 
-# From Nested JSON to a Table
-
 ## JSON shapes ≠ table shapes
 
 - JSON: a tree of nested lists, with optional fields and varying depth
@@ -279,7 +345,7 @@ The shape almost always nests the actual rows one or two levels deep — typical
   1. Find the list of "rows" (the array you want repeated)
   2. Map each list element to a one-row `data.table`, then `rbindlist`
 
-## `rbindlist` over `lapply` is the workhorse
+## `lapply` + `rbindlist` is the workhorse
 
 ```{r}
 #| output-location: default
@@ -300,33 +366,44 @@ municipalities
 This is the entire JSON-to-table pattern in eight lines. `lapply` runs the per-element conversion; `rbindlist` stacks the results. Naming columns explicitly is much safer than relying on auto-flatten — it forces you to decide what each column should be called before the data lands.
 :::
 
-## Why not just `as.data.table(body$values)`?
-
-- Auto-flatten works only when every element has the *same* keys, in the same order
-- Real APIs return optional fields, missing values, and nested sub-lists
-- `lapply()` + a per-row constructor:
-  - Documents which fields you actually use
-  - Produces predictable column types
-  - Survives schema additions on the server side
-
 ::: aside
-`jsonlite::fromJSON(..., simplifyVector = TRUE)` will try to flatten arrays of objects into a data frame automatically. It works when the data is uniform, but it silently changes shape when the input changes. For pipelines you want to rerun next year, the explicit `lapply` form is more reliable.
+Why not `as.data.table(body$values)` directly? Auto-flatten works only when every element has the *same* keys in the same order; real APIs return optional fields and nested sub-lists. The explicit `lapply` form documents which fields you use, produces predictable column types, and survives schema additions on the server side. Same caveat applies to `jsonlite::fromJSON(..., simplifyVector = TRUE)`.
 :::
 
-# Example 1: Kolada (GET)
+## Preparing a KPI lookup in Kolada
 
-## What `Kolada` is
+Kolada has 6000+ indicators. Say we want "new firm starts per 1000 inhabitants aged 16-64". How do we find the code for that?
 
-- Open municipal database run by `RKA` ("Rådet för främjande av kommunala analyser")
-- Over 6,000 indicators ("KPIs") for Swedish municipalities and regions
-- Free, no key, no agreement
-- API base: `https://api.kolada.se/v3/`
+- Two ways to find one:
+  1. Browse <https://kolada.se/> by topic
+  2. Hit `/v3/kpi?title=<keyword>` and read the matches
 
-::: aside
-Source: <https://kolada.se/> and <https://kolada.se/om-oss/api/>. Note that values can be revised without notice — pin a build date if reproducibility matters.
+```{r}
+#| output-location: default
+hits <- request("https://api.kolada.se/v3/kpi") |>
+  req_url_query(title = "nystartade företag") |>
+  req_perform() |>
+  resp_body_json()
+
+rbindlist(lapply(hits$values, \(v)
+  data.table(id = v$id, title = v$title)))
+```
+
+::: notes
+The hard part of any API is rarely the HTTP call — it is figuring out *what to ask for*. Browse first, lock in the code, then write the script. The website and the API expose the same catalogue, so whichever you find more comfortable is fine.
 :::
 
-## Find a KPI in the catalogue
+## Many APIs document themselves: OpenAPI / Swagger
+
+See <https://api.kolada.se/v3/docs>
+
+![](kolada_swagger.png){.r-stretch}
+
+::: notes
+Most modern APIs ship an interactive **OpenAPI** (formerly Swagger) page that lists every endpoint, every parameter, and lets you fire requests from the browser. Kolada exposes one at `/v3/docs`.
+:::
+
+## Confirm the KPI before fetching values
 
 ```{r}
 #| output-location: default
@@ -340,10 +417,10 @@ kpi$values[[1]]$description
 
 - `N00999`: new firm starts per 1000 inhabitants aged 16-64
 - The catalogue endpoint returns metadata, not data values
-- Useful first stop when you do not yet know which indicator to pull
+- Read the description and unit *before* you trust the numbers
 
 ::: notes
-Indicator codes are opaque and the database is huge. The catalogue endpoint exists precisely so you do not have to memorise codes — read the description, confirm the unit, then commit to a code in your script.
+Even after you have a code, take ten seconds to check the description. KPI titles are short and easy to misread; the description tells you the unit, the denominator, and any disaggregation the source applies. This is the cheapest debugging step in API work.
 :::
 
 ## Fetch the values for one KPI, one year
@@ -366,22 +443,20 @@ str(firms_2022$values[[1]])
 
 ```{r}
 #| output-location: default
-extract_total <- function(entry) {
-  total <- Filter(\(x) identical(x$gender, "T"), entry$values)
+extract_value <- function(entry) {
   data.table(
     municipality_code = entry$municipality,
     year = as.integer(entry$period),
-    new_firm_starts_per_1000 = if (length(total))
-      as.numeric(total[[1]]$value) else NA_real_
+    new_firm_starts_per_1000 = as.numeric(entry$values[[1]]$value)
   )
 }
 
-firms_dt <- rbindlist(lapply(firms_2022$values, extract_total))
+firms_dt <- rbindlist(lapply(firms_2022$values, extract_value))
 firms_dt[order(-new_firm_starts_per_1000)][1:5]
 ```
 
 ::: notes
-The Kolada response separates totals from gender-disaggregated rows. We pull the `T` (total) entry only. Wrapping that decision in a small named function keeps the data-shape work out of the calling code, and it documents *which* slice we chose to keep.
+Wrapping the per-row shape in a small named function keeps the data-shape work out of the calling code, and documents which fields we keep. For gender-divided KPIs (`is_divided_by_gender = TRUE`), `entry$values` would have multiple elements and you would need to pick one — but `N00999` is a single-value KPI, so `[[1]]` is enough.
 :::
 
 ## Many years: one call per year
@@ -394,7 +469,7 @@ firms <- rbindlist(lapply(years, function(y) {
     req_url_query(region_type = "municipality") |>
     req_perform() |>
     resp_body_json() |>
-    (\(p) rbindlist(lapply(p$values, extract_total)))()
+    (\(p) rbindlist(lapply(p$values, extract_value)))()
 }))
 firms[1:2]
 ```
@@ -407,241 +482,289 @@ firms[1:2]
 This is the same iteration shape as last week's multi-file reader. The only thing that changed is the source: instead of files on disk, the loop reads from a URL. The "function that returns a small `data.table`, then `rbindlist`" pattern is the recurring building block.
 :::
 
-# Example 2: SCB (POST with a body)
+# Example 2: SCB (PxWebApi v2, GET)
 
 ## What `SCB` exposes
 
-- Statistics Sweden's open Statistical Database (`PxWeb`)
-- ~5,000 tables organised in a topic tree
-- API base: `https://api.scb.se/OV0104/v1/doris/sv/ssd/START`
-- Path mirrors the topic tree:
-  - `/BE/BE0101/BE0101A/BefolkningNy` = Population, by municipality
-- Free, no key, but rate limits apply (10 requests / 10 seconds)
+- Statistics Sweden's Statistical Database (`PxWeb`) — ~5,000 tables
+- Each table = multi-dimensional (region × age × sex × year × ...)
+- New `PxWebApi v2` (October 2025) — `GET`-based, stable table IDs
+- API base (beta): `https://api.scb.se/OV0104/v2beta/api/v2/`
+- Free, no key. Rate limit: 30 requests / 10 seconds per IP
 
 ::: aside
-The legacy `v1` API still backs the build script for the course. A newer `PxWebApi v2` (October 2025) supports `GET` and exposes more metadata. The principles below carry over either way.
+The old `v1` API needed a `POST` with a JSON query body. `v2` covers the same data with plain URL parameters. Documentation: <https://www.scb.se/en/services/open-data-api/pxwebapi/pxwebapi-2.0/>.
 :::
 
-## SCB tables are multi-dimensional
+## SCB tables: pin the dimensions you want
 
-- Each table is indexed by several variables: region, age, sex, time...
-- A request must say *which slice* of the cube you want
-- That slice is sent as JSON in a `POST` body, not as URL parameters
-- The response is the requested cube, also as JSON
+- A request says *which slice* of the multi-dimensional data to return
+- Variables are either **eliminable** (server can aggregate them away) or not
+- Pin the ones you care about; drop the rest from the URL
+- Mandatory dimensions are usually `ContentsCode` (the metric) and `Tid` (the period)
 
-::: notes
-This is the main thing that makes SCB harder than Kolada. A SCB table is not "a list of rows" — it is an n-dimensional cube. Before you can fetch anything, you have to decide what your slice should look like along each dimension.
-:::
+## Where to find codes?
 
-## Inspect a table's metadata first
+- The SCB API hosts ~5,000 tables — you find one, then keep its short ID in the script
+- Two equivalent paths:
+  1. <https://www.statistikdatabasen.scb.se/> — click through to the data you want, at the bottom there is an "API" button that shows the URL
+  2. Call the query endpoint: `/tables?query=<keyword>&lang=en` — same database, JSON
+
+## Querying tables
 
 ```{r}
 #| output-location: default
-meta <- request(
-  "https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101A/BefolkningNy"
-) |>
+hits <- request("https://api.scb.se/OV0104/v2beta/api/v2/tables") |>
+  req_url_query(query = "population marital status", lang = "en", pageSize = 3) |>
   req_perform() |>
   resp_body_json()
 
-sapply(meta$variables, \(v) v$code)
+rbindlist(lapply(hits$tables, \(t)
+  data.table(id = t$id, label = t$label, period = paste0(t$firstPeriod, "–", t$lastPeriod))))
 ```
 
-- A `GET` to the table URL returns its variable list, not its data
-- Each `variables` entry has a `code`, `text`, and `values` (the allowed levels)
+::: aside
+The web GUI is often faster for exploring an unfamiliar subject. Once you know the table ID, the API gives you a reproducible script — and `/tables/<id>` returns the same metadata the GUI shows on the table page.
+:::
+
+::: notes
+SCB does not publish a Swagger page, but the GUI fills the same role — click through the subject tree, find the table, read the variable list, copy the table ID. Every choice you make in the GUI corresponds to a `valueCodes[...]` parameter in the API. If you can build the slice you want by point-and-click, you can build the URL.
+:::
+
+## Fetch table metadata
+
+`TAB638` = "Population by region, marital status, age and sex"
 
 ```{r}
 #| output-location: default
-meta$variables[[2]]$text
-head(unlist(meta$variables[[2]]$values))
+scb_base <- "https://api.scb.se/OV0104/v2beta/api/v2/tables/TAB638"
+
+meta <- request(paste0(scb_base, "/metadata")) |>
+  req_url_query(lang = "en") |>
+  req_perform() |>
+  resp_body_json()
+
+names(meta$dimension)
+```
+
+- Each entry in `dimension` is a variable with codes and labels
+- `extension$elimination = TRUE` means we can drop that variable from the request
+
+```{r}
+#| output-location: default
+sapply(meta$dimension, \(d) d$extension$elimination)
 ```
 
 ::: notes
-The metadata call is how you discover the variable codes you need. Without it you would be guessing at codes like `BE0101N1`. In practice you usually do this once interactively, write the codes down in the script, and then never read them again.
+Without the metadata call you would be guessing at codes. The `elimination = TRUE` flag is what makes `v2` so much easier than `v1` — you only spell out the dimensions you actually care about.
 :::
 
-## Build a query body
+## Content codes: which metric do you want?
+
+A single table can hold several metrics. `ContentsCode` is the dimension that picks one.
 
 ```{r}
 #| output-location: default
-query_body <- list(
-  query = list(
-    list(code = "Region",       selection = list(filter = "item",
-                                                 values = list("0180"))),
-    list(code = "Alder",        selection = list(filter = "item",
-                                                 values = list("tot"))),
-    list(code = "ContentsCode", selection = list(filter = "item",
-                                                 values = list("BE0101N1"))),
-    list(code = "Tid",          selection = list(filter = "item",
-                                                 values = as.list(as.character(2016:2023))))
-  ),
-  response = list(format = "json")
-)
+unlist(meta$dimension$ContentsCode$category$label)
+```
 
-cat(toJSON(query_body, auto_unbox = TRUE, pretty = TRUE))
+Same for other dimensions — `category$label` to see the codes
+
+```{r}
+#| output-location: default
+head(unlist(meta$dimension$Region$category$label), 4)
 ```
 
 ::: notes
-The shape is dictated by `PxWeb`. Every dimension you do not pin gets summed or returned in full, which usually fails the size limit. `auto_unbox = TRUE` is what stops `jsonlite` from wrapping every scalar in a one-element array — without it the API rejects the body.
+Every dimension in `meta$dimension` has the same shape: a `category$label` list mapping code to human-readable name.
 :::
 
-## POST the query
+## Build the GET URL
 
 ```{r}
 #| output-location: default
-resp <- request(
-  "https://api.scb.se/OV0104/v1/doris/sv/ssd/START/BE/BE0101/BE0101A/BefolkningNy"
-) |>
-  req_method("POST") |>
-  req_body_json(query_body, auto_unbox = TRUE) |>
+resp <- request(paste0(scb_base, "/data")) |>
+  req_url_query(
+    lang = "en",
+    `valueCodes[Region]` = "0114,0180,1480,2480",
+    `valueCodes[Tid]` = "top(5)",
+    `valueCodes[ContentsCode]` = "BE0101N1",
+    outputFormat = "json-px"
+  ) |>
   req_perform()
 
 resp_status(resp)
-payload <- resp_body_json(resp)
-str(payload, max.level = 1)
 ```
 
-- `req_body_json()` serialises the list to JSON and sets `Content-Type` for us
-- `req_method("POST")` is implied by `req_body_json()` but explicit is clearer
-- The response shape mirrors the cube: `columns` describe the schema, `data` carries the cells
+- Pin Region (four municipalities), `Tid` (last 5 years), and the metric
+- Drop `Civilstand`, `Alder`, `Kon` — `elimination = TRUE` lets the server aggregate them
+- `top(5)` selects; `*` (all) and `range(2010,2020)` also work
 
-## Parse the SCB cube
+::: aside
+The bracket syntax `valueCodes[Region]` is part of the API spec. `httr2` percent-encodes it for you. Backticks let you pass non-syntactic argument names like `` `valueCodes[Region]` ``.
+:::
+
+## Parse the response
 
 ```{r}
-#| output-location: default
+payload <- resp_body_json(resp)
+str(payload$columns)
+```
+
+Save the column names
+
+```{r}
 column_codes <- sapply(payload$columns, `[[`, "code")
 column_codes
-
-stockholm <- rbindlist(lapply(payload$data, function(row) {
-  values <- c(row$key, row$values)
-  setnames(as.data.table(as.list(values)), column_codes)
-}))
-
-stockholm[, BE0101N1 := as.integer(BE0101N1)]
-stockholm
 ```
 
-- `row$key` holds the dimension values; `row$values` holds the metric(s)
-- Concatenate, name the columns from `payload$columns`, fix types
-- Same `lapply + rbindlist` shape as Kolada
-
-::: notes
-Once you know the trick, every PxWeb response unpacks the same way. The build script in `data-sources/data/municipal-opportunity-panel/build_municipal_opportunity_panel.R` is essentially this slide, repeated for population, education, labour-market, and income tables.
-:::
-
-## A note on stitched series
+## Parse the response (cont.)
 
 ```{r}
 #| output-location: default
-#| eval: false
-labour_old <- scb_query(scb_urls$labour_old, ..., Tid = years[years <= 2021])
-labour_new <- scb_query(scb_urls$labour_new, ..., Tid = years[years >= 2022])
-rbindlist(list(labour_old, labour_new), use.names = TRUE)
+population <- rbindlist(lapply(payload$data, function(row) {
+  setnames(as.data.table(as.list(c(row$key, row$values))), column_codes)
+}))
+population[, BE0101N1 := as.integer(BE0101N1)]
+population[1:2]
 ```
 
-- `SCB` retired the old labour-market table in 2022 and replaced it with a new one
-- Variable codes changed (`000001T8` → `000007K3`)
-- The build script keeps both tables and records which one each row came from
-- A `labour_market_source_table` column makes the seam visible to downstream users
+- Same `lapply + rbindlist` shape as Kolada — the cube unpacks one row at a time
+- `row$key` is the dimension values, `row$values` is the metric(s)
 
 ::: notes
-This is the kind of detail that does not appear in any tutorial but ruins panels in production. APIs evolve. Series get renamed, restructured, or replaced. Recording which source each value came from turns a future debugging hour into a one-line lookup.
+Once you have the v2 URL, every PxWeb response unpacks the same way. Most of the work in a real build script is choosing the right tables and writing down the codes — the parse is one helper function.
 :::
 
-# Authentication
+# Authentication and Respectful Use
 
 ## When you need a key
 
-- Most public statistics APIs (`SCB`, `Kolada`, World Bank, OECD): no key
-- Private or commercial APIs (Google Maps, OpenAI, Twitter/X): key required
-- Some tiered APIs (Eurostat, FRED): work without a key but with stricter limits
+- Most public statistics APIs (`SCB`, `Kolada`, OECD): no key
+- Private or commercial APIs (Google Maps, Twitter/X): key required
+- Some tiered APIs (e.g., FRED): key unlocks features
 - A key identifies *who* is calling — for billing and rate-limit accounting
+
+## Geocoding: address → coordinates
+
+- *Geocoding* is turning a street address into latitude/longitude
+- Useful when you want to merge data on location (e.g. distance to nearest school)
+- Google Maps Platform offers a generous free tier and good Swedish coverage
+- Endpoint: `https://maps.googleapis.com/maps/api/geocode/json`
+- Requires a personal API key from <https://mapsplatform.google.com/>
+
+::: aside
+Other free options exist — `Nominatim` (OpenStreetMap) is the most common no-key alternative, but it has tighter limits and patchier results outside major cities.
+:::
+
+## Environment variables: where the key lives
+
+- Never paste a key into a script or commit it to Git
+- Define it once, outside your project, e.g. in `~/.Renviron`:
+
+```r
+# ~/.Renviron — one KEY=value per line, no quotes needed
+GMAPS_API_KEY=AIzaSyD...your-real-key-here
+```
+
+- Edit with `usethis::edit_r_environ()`, then restart R
+- Read at runtime with `Sys.getenv("GMAPS_API_KEY")`
+
+::: aside
+`~/.Renviron` is a "dotfile", a type of configuration file that lives in your home directory — accessible from every project. A project-local `.Renviron` (no `~/`) overrides it for one project. Add `.Renviron` to `.gitignore`.
+:::
+
+::: notes
+Keys exposed in public Git history get scraped within minutes by automated scanners. GitHub itself will email you when it spots a leaked secret, and the relevant providers usually disable the key.
+:::
 
 ## Two ways APIs accept keys
 
 - **Query parameter**: `...?key=ABC123`
   - Visible in URL and in server logs — less secure
-  - Common for low-stakes calls (Google Maps Geocoding)
+  - Common for low-stakes calls (Google Maps, basic stats APIs)
 - **Authorization header**: `Authorization: Bearer ABC123`
   - Not logged with the URL, slightly safer
   - Standard for OpenAI, GitHub, most modern APIs
 
 ```{r}
+#| output-location: default
 #| eval: false
-# Header form
-request(url) |>
-  req_auth_bearer_token(Sys.getenv("OPENAI_API_KEY")) |>
-  req_perform()
-
-# Query-parameter form
+# Query-parameter form (Google Maps)
 request(url) |>
   req_url_query(key = Sys.getenv("GMAPS_API_KEY")) |>
   req_perform()
+
+# Header form (OpenAI, GitHub, ...)
+request(url) |>
+  req_auth_bearer_token(Sys.getenv("OPENAI_API_KEY")) |>
+  req_perform()
 ```
 
-## Never put keys in code
+## Geocoding Stockholms universitet
 
-- Never paste a key directly into a script
-- Never commit a key to Git (assume "public" the moment it leaves your machine)
-- Rotate any key that has been exposed — even briefly, even privately
+```{r}
+#| eval: false
+#| output-location: default
+geo <- request("https://maps.googleapis.com/maps/api/geocode/json") |>
+  req_url_query(
+    address = "Stockholms universitet, Stockholm, Sweden",
+    key = Sys.getenv("GMAPS_API_KEY")
+  ) |>
+  req_perform() |>
+  resp_body_json()
+
+geo$results[[1]]$geometry$location
+#> $lat
+#> [1] 59.36546
+#>
+#> $lng
+#> [1] 18.05518
+```
+
+- Same pipeline as before
+- Only difference: the `key` argument to authenticate
 
 ::: notes
-Keys exposed in public Git history get scraped within minutes by automated scanners. GitHub itself will email you when it spots a leaked secret, and the relevant providers will often disable the key. Rotation is the only safe response.
+Geocoding is one of the rare API services where the response is generated on demand rather than retrieved from a fixed table — Google's geocoder runs a search engine over its address database for each call.
 :::
 
-## Environment variables: the standard fix
-
-- Define the key once, outside your script
-- Read it from `Sys.getenv("VARNAME")` at runtime
-- R-specific entry point: `~/.Renviron`
-  - Plain text, one `KEY=value` per line
-  - Restart R after editing for changes to take effect
-  - Edit with `usethis::edit_r_environ()`
-
-```r
-# ~/.Renviron
-GMAPS_API_KEY="paste-real-key-here"
-KOLADA_USER_AGENT="ec7422-student/0.1 (you@su.se)"
-```
-
-::: aside
-`~/.Renviron` lives in your home directory — accessible from every project. A project-local `.Renviron` (no `~/`) overrides it for one project. Either way, add `.Renviron` to `.gitignore`.
-:::
-
-# Respectful API Use
-
-## Rate limits exist
+## Rate limits
 
 - Public APIs cap how often you may call them
-- `SCB`: 10 requests per 10-second window per IP
+- `SCB` v2: 30 requests per 10-second window per IP
 - `Kolada`: no published limit, but be polite
-- Headers like `X-RateLimit-Remaining` and `Retry-After` tell you where you stand
+- Google Maps Geocoding: free tier ≈ 10,000 requests / month
+- `X-RateLimit-Remaining` and `Retry-After` tell you where you stand
 - Going over the limit returns `429 Too Many Requests`
 
 ::: notes
-Hitting the limit is not just rude — it usually gets you a temporary block. The build script for the course panel sleeps about a second between SCB calls, which is enough to stay safely under the rolling-window limit even when the script issues many calls back-to-back.
+Hitting the limit is not just rude — it usually gets you a temporary block. A build script that sleeps a fraction of a second between calls stays safely under most rolling-window limits even when issuing many calls back-to-back.
 :::
 
 ## Slow yourself down
 
 ```{r}
 #| eval: false
+#| output-location: default
 for (year in years) {
   fetch_one_year(year)
-  Sys.sleep(1.1)   # stay under SCB's 10-per-10-seconds limit
+  Sys.sleep(0.4)   # stay well under SCB's 30-per-10-seconds limit
 }
 ```
 
 - A simple `Sys.sleep()` between calls is often enough
-- Keep sleeps short but not zero — even unlimited APIs benefit from courtesy
+- Keep sleeps short but not zero — even for unlimited APIs
 
 ## Handle transient failures with `req_retry`
 
 ```{r}
 #| eval: false
+#| output-location: default
 request(url) |>
   req_retry(
     max_tries = 3,
-    backoff = \(attempt) attempt * 2 # 2s, 4s, 6s
+    backoff = \(n_failed) n_failed * 2 # seconds to wait
   ) |>
   req_perform()
 ```
@@ -658,6 +781,7 @@ Retries are not a license to ignore errors — they are a way to recover from *t
 
 ```{r}
 #| eval: false
+#| output-location: default
 request(url) |>
   req_cache(tools::R_user_dir("ec7422-cache", which = "cache")) |>
   req_perform()
@@ -684,70 +808,130 @@ A polite `User-Agent` is the cheapest insurance against being blocked. The defau
 
 # Wrapping API access in an Agent Skill
 
-## A working API call is one step away from a reusable tool
+## From an API call to a skill
 
-- The slides above let *you* fetch SCB data from R
-- The same calls let an *agent* fetch SCB data — if it knows how
-- A Claude Code *skill* is a folder with a short `SKILL.md` describing
-  - what the capability is
-  - when the agent should reach for it
-  - which helper scripts to run
-- Same idea as L5's agent setup, but pointed *outward* at an API instead of inward at the codebase
+- An **agent skill** is a small package that tells an agent
+  - *what* a capability does
+  - *when* to reach for it
+  - *how* to call it
+- Folder with a `SKILL.md` runbook plus helper `R` scripts
+- Same idea as L5: Skill is now pointed *outward* at an API
+
+## What a `fetch-scb` skill should do
+
+Help any caller — agent or human — pull statistics from SCB without re-learning the API every time.
+
+- **Search** for table candidates - return candidate `TAB####` IDs and labels
+- **Inspect** a table ID - list (eliminable/not) dimensions, codes
+- **Slice** a table ID - fetch and parse into a tidy `data.table`
+- **Iterate** politely — sleep between calls, retry on fail, cache repeats
+- **Cite** — return the table ID, `ContentsCode`, API call
 
 ::: notes
-We met agents as coding support back in lecture 5. Skills extend that idea: instead of describing how to navigate the project, a skill describes how to use a specific external capability. SCB is a natural first example because the codes are opaque enough that even a new human user wants a runbook on the way in.
+The three core layers — search, inspect, slice — match the workflow we walked through manually. Wrapping each step lets the agent compose them: "find a table about employment rates, list its dimensions, pull the rate for these four municipalities." Without the search and inspect layers, the agent would only fetch from tables you already named — which defeats the point of the skill.
 :::
 
-## A `fetch-scb` skill (sketch)
 
-```text
-.claude/skills/fetch-scb/
-├── SKILL.md          # what the skill does and when to use it
-└── scripts/scb_query.R
-```
+## `SKILL.md` — the runbook the agent reads
 
 ````markdown
 ---
 name: fetch-scb
-description: Fetch a slice of an SCB PxWeb table as a tidy data.table.
-  Use for Swedish official statistics by municipality and year.
+description: Search SCB tables and fetch tidy slices as data.table.
+  Use for any Swedish official-statistics question by region, year, or demographic.
 ---
 
 # fetch-scb
 
-Helper: `scripts/scb_query.R` exports `scb_query(table, selection, years)`.
+## Workflow
 
-## Tables this skill knows about
-
-- `BE/BE0101/BE0101A/BefolkningNy` — population by municipality
-- `UF/UF0506/UF0506B/Utbildning` — education attainment
-- `AA/AA0003/AA0003F/IntGr5Kom` — disposable income
+1. If the user names a topic, run `search_scb_tables(...)`. Show top hits, ask which to use.
+2. Run `scb_metadata(...)`. Confirm the metric (`ContentsCode`) and the slicing dimensions.
+3. Call `scb_query(...)` with `selections` listing only the dimensions to pin.
 
 ## Rules
 
-1. Pin every dimension; unpinned dimensions explode the response.
-2. Sleep ≥ 1.1 seconds between calls (SCB's 10-per-10s limit).
-3. SCB returns everything as character — convert numeric columns explicitly.
+1. Always set `outputFormat=json-px` — the parser expects that shape.
+2. Pin `ContentsCode` and `Tid`. Drop dimensions where `elimination = TRUE`.
+3. Sleep ≥ 0.4 s between calls (SCB's 30-per-10-s limit). Retry once on `503`.
+4. SCB returns everything as character — convert numeric columns explicitly.
+5. Cite table ID, `ContentsCode`, and time range in any output that uses the data.
 ````
 
 ::: notes
-The frontmatter `description` is what the agent actually reads when deciding whether the skill is relevant. The body is the runbook a new caller would otherwise discover the hard way. A good skill fits on one screen and is one place to update when the API changes — for L8 it is also a natural bridge into next week, where we look at LLMs as the data-processing tool itself rather than as the caller.
+The frontmatter `description` is what the runtime actually reads when deciding whether the skill is relevant — keep it specific enough to disambiguate from neighbouring skills. The body is the runbook a new caller would otherwise discover the hard way: a step-by-step workflow first (so the order of operations is unambiguous), then the rules that bite if you forget them. The citation rule is what makes downstream work reproducible — without it, the agent's output is a number with no provenance.
+:::
+
+## Layout: small folder, one job per script
+
+```text
+skills/fetch-scb/
+├── SKILL.md
+└── scripts/
+    ├── scb_search.R   # search_scb_tables(query, page_size = 10)
+    ├── scb_meta.R     # scb_metadata(table_id), dim_codes(meta, dim)
+    └── scb_query.R    # scb_query(table_id, selections, years)
+```
+
+- One helper script per capability, each callable from R or from the agent's tool layer
+- Helpers are normal R functions — write tests, run them at the REPL, ship them in the skill
+
+::: aside
+You already have building blocks for these: the search slide called `/tables?query=...`, the metadata slide drilled into `meta$dimension`, and the URL slide pinned `valueCodes[...]`. The skill just packages each step under a stable name.
+:::
+
+## A skill grows institutional memory
+
+- `SKILL.md` is where that knowledge lives — versioned with the project, re-read on every call
+- More wisdom over time — append, don't rewrite
+
+````markdown
+## Tables we have used
+
+| ID      | What                                  | ContentsCode |
+|---------|---------------------------------------|--------------|
+| TAB638  | Population by region, age, sex        | BE0101N1     |
+| ...     | (add as you confirm them)             | ...          |
+
+## Gotchas
+
+- **Labour-market series breaks in 2022.** Pre-2022 lives in one table,
+  2022+ in another. The series is *not* seamless — keep a `source_table`
+  column so the join is auditable.
+- **414 URI Too Long.** `valueCodes[Alder]` with many ages overflows the
+  URL. Split age ranges into chunks of ≤ 25 codes and `rbindlist`.
+- **Income is in price-base amounts (`pbb`)**, not SEK. Join the yearly
+  `prisbasbelopp` to convert. Real-terms comparisons need the index too.
+````
+
+::: notes
+This is *explicit* memory: version-controlled, peer-reviewable, transferable when a colleague picks up the project. Different from an agent's session memory — that lives in one chat; this lives in git. Borrow the entries when starting `fetch-eurostat`; throw them out when SCB fixes the bug. The same appendix doubles as a personal knowledge base — students who keep one across PS3, the thesis, and their first job will rediscover the same gotchas exactly once.
+:::
+
+## Why a skill, not just a script
+
+- **Discoverable**: the agent finds it when relevant
+- **Interactive**: the agent can ask questions and help you search
+- **Single source of truth**: API quirks and rate-limit rules in one place
+- **Adaptable**: the agent can adjust parameters on the fly (e.g., "fetch 2010–2020 instead of just 2022")
+- **Transferable**: same shape works for `fetch-eurostat`, `fetch-fred`, `fetch-worldbank`
+
+::: notes
+A good skill fits on one screen and is one place to update when the API changes. For L8 it also bridges to next week, when we look at LLMs as the data-processing tool itself rather than as the caller. The skill pattern is what turns "I once wrote an SCB script" into "my projects can talk to SCB"; the difference is having the runbook live next to the code instead of in your head.
 :::
 
 # Wrapping Up
 
 ## Main takeaways
 
-- An API is a contract: ask in this format, get back that format
-- HTTP requests have four parts: URL, method, headers, body — `httr2` builds them as a pipeline
-- Always check the status before trusting the body
-- Nested JSON becomes a table via `lapply` + a per-row constructor + `rbindlist`
-- Authenticate with environment variables, never with hard-coded keys
-- Respect rate limits, retry transient failures, and identify yourself politely
-- A working API call can be packaged as a Claude Code skill so you (or an agent) can reuse it without re-discovering the gotchas
+- Look for an API before you scrape — and look for a hidden API before you give up
+- `httr2` pipeline: `request → req_*() → req_perform → resp_body_json`
+- Nested JSON → table = `lapply` + per-row constructor + `rbindlist`
+- Keep keys in `~/.Renviron`; pull with `Sys.getenv()`
+- Respect rate limits, retry transient failures, identify yourself politely
+- Wrap a working call as an agent skill — you and your agents both get it for free
 
 ## Next lecture: LLMs for data processing
 
-- Structured extraction, classification, and summarisation as data tasks
+- Structured extraction, classification, and summarisation
 - Validation and failure documentation
-- A bounded extension to `PS3` using real text data

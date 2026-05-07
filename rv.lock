@@ -368,6 +368,19 @@ dependencies = [
 ]
 
 [[packages]]
+name = "httr"
+version = "1.4.8"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    { name = "curl", requirement = "(>= 5.1.0)" },
+    "jsonlite",
+    "mime",
+    { name = "openssl", requirement = "(>= 0.8)" },
+    "R6",
+]
+
+[[packages]]
 name = "httr2"
 version = "1.2.2"
 source = { repository = "https://cloud.r-project.org/" }
@@ -733,6 +746,23 @@ force_source = false
 dependencies = []
 
 [[packages]]
+name = "rvest"
+version = "1.0.5"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    "cli",
+    "glue",
+    { name = "httr", requirement = "(>= 0.5)" },
+    { name = "lifecycle", requirement = "(>= 1.0.3)" },
+    "magrittr",
+    { name = "rlang", requirement = "(>= 1.1.0)" },
+    "selectr",
+    "tibble",
+    { name = "xml2", requirement = "(>= 1.4.0)" },
+]
+
+[[packages]]
 name = "sass"
 version = "0.4.10"
 source = { repository = "https://cloud.r-project.org/" }
@@ -763,11 +793,36 @@ dependencies = [
 ]
 
 [[packages]]
+name = "selectr"
+version = "0.5-1"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    "stringr",
+    "R6",
+]
+
+[[packages]]
 name = "stringi"
 version = "1.8.7"
 source = { repository = "https://cloud.r-project.org/" }
 force_source = false
 dependencies = []
+
+[[packages]]
+name = "stringr"
+version = "1.6.0"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    "cli",
+    { name = "glue", requirement = "(>= 1.6.1)" },
+    { name = "lifecycle", requirement = "(>= 1.0.3)" },
+    "magrittr",
+    { name = "rlang", requirement = "(>= 1.0.0)" },
+    { name = "stringi", requirement = "(>= 1.5.3)" },
+    { name = "vctrs", requirement = "(>= 0.4.0)" },
+]
 
 [[packages]]
 name = "svglite"
@@ -940,6 +995,16 @@ version = "0.57"
 source = { repository = "https://cloud.r-project.org/" }
 force_source = false
 dependencies = []
+
+[[packages]]
+name = "xml2"
+version = "1.5.2"
+source = { repository = "https://cloud.r-project.org/" }
+force_source = false
+dependencies = [
+    "cli",
+    { name = "rlang", requirement = "(>= 1.1.0)" },
+]
 
 [[packages]]
 name = "yaml"
