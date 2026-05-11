@@ -33,15 +33,15 @@ output_file <- file.path(
   sprintf("municipal_opportunity_panel_%s_%s.csv", min(years), max(years))
 )
 
-scb_base <- "https://api.scb.se/OV0104/v1/doris/sv/ssd/START"
+scb_base <- "https://statistikdatabasen.scb.se/api/v2/tables"
 kolada_base <- "https://api.kolada.se/v3"
 
 scb_urls <- list(
-  population = sprintf("%s/BE/BE0101/BE0101A/BefolkningNy", scb_base),
-  education = sprintf("%s/UF/UF0506/UF0506B/Utbildning", scb_base),
-  labour_old = sprintf("%s/AA/AA0003/AA0003X/IntGr1KomKonUtb", scb_base),
-  labour_new = sprintf("%s/AA/AA0003/AA0003B/IntGr1KomUtbBAS", scb_base),
-  income = sprintf("%s/AA/AA0003/AA0003F/IntGr5Kom", scb_base)
+  population = sprintf("%s/TAB638/data", scb_base),
+  education = sprintf("%s/TAB3981/data", scb_base),
+  labour_old = sprintf("%s/TAB4881/data", scb_base),
+  labour_new = sprintf("%s/TAB6383/data", scb_base),
+  income = sprintf("%s/TAB1792/data", scb_base)
 )
 
 # These values are hard-coded because they are not fetched from the same APIs.
@@ -52,30 +52,11 @@ price_base_amounts <- data.table::data.table(
 
 request_json <- function(
   url,
-  method = c("GET", "POST"),
-  body = NULL,
   attempts = 3L
 ) {
-  method <- match.arg(method)
-
   for (attempt in seq_len(attempts)) {
     response <- tryCatch(
-      {
-        if (method == "GET") {
-          curl::curl_fetch_memory(url)
-        } else {
-          handle <- curl::new_handle(
-            post = TRUE,
-            httpheader = c("Content-Type" = "application/json"),
-            postfields = jsonlite::toJSON(
-              body,
-              auto_unbox = TRUE,
-              null = "null"
-            )
-          )
-          curl::curl_fetch_memory(url, handle = handle)
-        }
-      },
+      curl::curl_fetch_memory(url),
       error = identity
     )
 
@@ -147,36 +128,32 @@ parse_scb_response <- function(payload) {
 }
 
 scb_query <- function(url, selections, sleep_seconds = 1.1) {
-  payload <- request_json(
-    url = url,
-    method = "POST",
-    body = list(
-      query = lapply(
-        names(selections),
-        function(code) {
-          selection <- selections[[code]]
+  params <- c(
+    list(lang = "sv", outputFormat = "json-px"),
+    lapply(selections, function(selection) {
+      values <- if (is.list(selection) && !is.null(selection$values)) {
+        selection$values
+      } else {
+        selection
+      }
 
-          if (is.list(selection) && !is.null(selection$filter)) {
-            selection <- list(
-              filter = selection$filter,
-              values = as.list(as.character(selection$values))
-            )
-          } else {
-            selection <- list(
-              filter = "item",
-              values = as.list(as.character(selection))
-            )
-          }
-
-          list(
-            code = code,
-            selection = selection
-          )
-        }
-      ),
-      response = list(format = "json")
-    )
+      paste(as.character(values), collapse = ",")
+    })
   )
+  names(params)[-(1:2)] <- sprintf(
+    "valueCodes[%s]",
+    names(selections)
+  )
+
+  query <- paste(
+    sprintf(
+      "%s=%s",
+      curl::curl_escape(names(params)),
+      curl::curl_escape(unlist(params, use.names = FALSE))
+    ),
+    collapse = "&"
+  )
+  payload <- request_json(sprintf("%s?%s", url, query))
 
   Sys.sleep(sleep_seconds)
   parse_scb_response(payload)

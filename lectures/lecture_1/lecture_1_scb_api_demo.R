@@ -16,8 +16,8 @@ library(ggplot2)
 ## Browsable table URLs:
 ## https://www.statistikdatabasen.scb.se/pxweb/sv/ssd/START__AA__AA0003__AA0003X/IntGr1KomKonUtb/
 ## https://www.statistikdatabasen.scb.se/pxweb/sv/ssd/START__AA__AA0003__AA0003B/IntGr1KomUtbBAS/
-old_url <- "https://api.scb.se/OV0104/v1/doris/sv/ssd/START/AA/AA0003/AA0003X/IntGr1KomKonUtb"
-new_url <- "https://api.scb.se/OV0104/v1/doris/sv/ssd/START/AA/AA0003/AA0003B/IntGr1KomUtbBAS"
+old_url <- "https://statistikdatabasen.scb.se/api/v2/tables/TAB4881/data"
+new_url <- "https://statistikdatabasen.scb.se/api/v2/tables/TAB6383/data"
 
 ## Kolada gives us a simple lookup table from municipality code to
 ## municipality name.
@@ -29,6 +29,26 @@ key_url <- "https://api.kolada.se/v3/municipality"
 ## Save the lecture dataset next to the lecture slides.
 output_file <- file.path("lectures", "lecture_1", "lecture_1_demo_panel.csv")
 
+scb_get <- function(url, selections) {
+  params <- c(
+    list(lang = "sv", outputFormat = "json-px"),
+    lapply(selections, function(values) {
+      paste(as.character(values), collapse = ",")
+    })
+  )
+  names(params)[-(1:2)] <- sprintf(
+    "valueCodes[%s]",
+    names(selections)
+  )
+
+  request <- request(url)
+  request <- do.call(req_url_query, c(list(request), params))
+
+  request |>
+    req_perform() |>
+    resp_body_json()
+}
+
 ## ---- Download unemployment data from the old SCB table -----------------
 ##
 ## The query says:
@@ -38,24 +58,17 @@ output_file <- file.path("lectures", "lecture_1", "lecture_1_demo_panel.csv")
 ## - ages 20-64,
 ## - unemployment rate,
 ## - years 2016-2021.
-labour_old_raw <- request(old_url) |>
-  req_body_json(list(
-    query = list(
-      list(code = "Region", selection = list(filter = "all", values = list("*"))),
-      list(code = "Kon", selection = list(filter = "item", values = list("1+2"))),
-      list(code = "UtbNiv", selection = list(filter = "item", values = list("000"))),
-      list(code = "BakgrVar", selection = list(filter = "item", values = list("tot20-64"))),
-      list(code = "ContentsCode", selection = list(filter = "item", values = list("000001TC"))),
-      list(
-        code = "Tid",
-        selection = list(filter = "item", values = as.list(as.character(2016:2021)))
-      )
-    ),
-    response = list(format = "json")
-  )) |>
-  req_perform() |>
-  resp_body_string() |>
-  fromJSON(simplifyVector = FALSE)
+labour_old_raw <- scb_get(
+  old_url,
+  list(
+    Region = "*",
+    Kon = "1+2",
+    UtbNiv = "000",
+    BakgrVar = "tot20-64",
+    ContentsCode = "000001TC",
+    Tid = 2016:2021
+  )
+)
 
 ## SCB gives the result back as nested JSON. Here we turn each returned
 ## row into a simple data.table with just the variables we care about.
@@ -70,24 +83,17 @@ labour_old <- rbindlist(lapply(labour_old_raw$data, function(row) {
 ## ---- Download unemployment data from the new SCB table -----------------
 ##
 ## Same idea, but the table structure and variable codes changed in 2022.
-labour_new_raw <- request(new_url) |>
-  req_body_json(list(
-    query = list(
-      list(code = "Region", selection = list(filter = "all", values = list("*"))),
-      list(code = "Kon", selection = list(filter = "item", values = list("1+2"))),
-      list(code = "UtbNiv", selection = list(filter = "item", values = list("000"))),
-      list(code = "BakgrVar", selection = list(filter = "item", values = list("TOT"))),
-      list(code = "ContentsCode", selection = list(filter = "item", values = list("000007K8"))),
-      list(
-        code = "Tid",
-        selection = list(filter = "item", values = as.list(as.character(2022:2023)))
-      )
-    ),
-    response = list(format = "json")
-  )) |>
-  req_perform() |>
-  resp_body_string() |>
-  fromJSON(simplifyVector = FALSE)
+labour_new_raw <- scb_get(
+  new_url,
+  list(
+    Region = "*",
+    Kon = "1+2",
+    UtbNiv = "000",
+    BakgrVar = "TOT",
+    ContentsCode = "000007K8",
+    Tid = 2022:2023
+  )
+)
 
 labour_new <- rbindlist(lapply(labour_new_raw$data, function(row) {
   data.table(
@@ -106,13 +112,16 @@ municipality_key_raw <- request(key_url) |>
   resp_body_string() |>
   fromJSON(simplifyVector = FALSE)
 
-municipality_key <- rbindlist(lapply(municipality_key_raw$values, function(row) {
-  data.table(
-    municipality_code = row$id,
-    municipality_name = row$title,
-    type = row$type
-  )
-}))[type == "K", .(municipality_code, municipality_name)]
+municipality_key <- rbindlist(lapply(
+  municipality_key_raw$values,
+  function(row) {
+    data.table(
+      municipality_code = row$id,
+      municipality_name = row$title,
+      type = row$type
+    )
+  }
+))[type == "K", .(municipality_code, municipality_name)]
 
 ## ---- Merge the pieces ---------------------------------------------------
 ##
@@ -123,12 +132,15 @@ panel <- merge(
   municipality_key,
   by = "municipality_code",
   all.x = TRUE
-)[order(year, municipality_code), .(
-  municipality_code,
-  municipality_name,
-  year,
-  unemployment_rate
-)]
+)[
+  order(year, municipality_code),
+  .(
+    municipality_code,
+    municipality_name,
+    year,
+    unemployment_rate
+  )
+]
 
 ## Save the finished lecture demo dataset so the slides can load it later.
 fwrite(panel, output_file)
@@ -137,8 +149,7 @@ fwrite(panel, output_file)
 print(panel[1:10])
 
 ## Collapse to one average unemployment rate per year.
-unemployment_summary <- panel[
-  ,
+unemployment_summary <- panel[,
   .(unemployment_rate = mean(unemployment_rate, na.rm = TRUE)),
   by = year
 ]

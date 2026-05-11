@@ -53,7 +53,7 @@ panel[municipality_name == "Stockholm" & year == 2022,
         share_postsecondary)]
 ```
 
-- Every column in the panel was produced by an API call
+- Data came from an API call
 - By the end of today you can reproduce this row
 
 ::: notes
@@ -137,7 +137,7 @@ Many "this site has no API" complaints turn out to be "I did not look". When an 
 - The data we want lives behind one
 
 ::: notes
-APIs are just an APIs: "ask in this format, and I will answer in this format." The R packages we use every day are also APIs in the broader sense — `data.table` exposes an interface to its internals through `DT[i, j, by]`. Today's APIs sit on a server and answer over the network.
+APIs are just interfaces: "ask in this format, and I will answer in this format." The R packages we use every day are also APIs in the broader sense — `data.table` exposes an interface to its internals through `DT[i, j, by]`. Today's APIs sit on a server and answer over the network.
 :::
 
 ## Why care
@@ -273,7 +273,7 @@ Source: <https://kolada.se/> and <https://kolada.se/om-oss/api/>. Try this in a 
 #| output-location: default
 req <- request("https://api.kolada.se/v3/municipality") |>
   req_url_query(title = "Stockholm") |>
-  req_user_agent("ec7422-student/0.1 (adam@altmejd.se)")
+  req_user_agent("ec7422-student/0.1 (student@example.com)")
 
 req
 ```
@@ -489,11 +489,11 @@ This is the same iteration shape as last week's multi-file reader. The only thin
 - Statistics Sweden's Statistical Database (`PxWeb`) — ~5,000 tables
 - Each table = multi-dimensional (region × age × sex × year × ...)
 - New `PxWebApi v2` (October 2025) — `GET`-based, stable table IDs
-- API base (beta): `https://api.scb.se/OV0104/v2beta/api/v2/`
+- API table prefix: `https://statistikdatabasen.scb.se/api/v2/tables/`
 - Free, no key. Rate limit: 30 requests / 10 seconds per IP
 
 ::: aside
-The old `v1` API needed a `POST` with a JSON query body. `v2` covers the same data with plain URL parameters. Documentation: <https://www.scb.se/en/services/open-data-api/pxwebapi/pxwebapi-2.0/>.
+The old `v1` API needed a `POST` with a JSON query body. `v2` covers the same data with plain URL parameters. The root URL returns 404; the useful endpoints live under `/api/v2/tables/...`. Documentation: <https://www.scb.se/en/services/open-data-api/pxwebapi/pxwebapi-2.0/>.
 :::
 
 ## SCB tables: pin the dimensions you want
@@ -514,7 +514,7 @@ The old `v1` API needed a `POST` with a JSON query body. `v2` covers the same da
 
 ```{r}
 #| output-location: default
-hits <- request("https://api.scb.se/OV0104/v2beta/api/v2/tables") |>
+hits <- request("https://statistikdatabasen.scb.se/api/v2/tables") |>
   req_url_query(query = "population marital status", lang = "en", pageSize = 3) |>
   req_perform() |>
   resp_body_json()
@@ -537,7 +537,7 @@ SCB does not publish a Swagger page, but the GUI fills the same role — click t
 
 ```{r}
 #| output-location: default
-scb_base <- "https://api.scb.se/OV0104/v2beta/api/v2/tables/TAB638"
+scb_base <- "https://statistikdatabasen.scb.se/api/v2/tables/TAB638"
 
 meta <- request(paste0(scb_base, "/metadata")) |>
   req_url_query(lang = "en") |>
@@ -655,6 +655,8 @@ Once you have the v2 URL, every PxWeb response unpacks the same way. Most of the
 
 ::: aside
 Other free options exist — `Nominatim` (OpenStreetMap) is the most common no-key alternative, but it has tighter limits and patchier results outside major cities.
+
+Google Maps requires billing to be enabled even when a small demo fits inside the free monthly usage. Treat it as a real paid service with a free allowance, not as a no-cost public API.
 :::
 
 ## Environment variables: where the key lives
@@ -770,7 +772,7 @@ request(url) |>
 ```
 
 - Network blips, momentary `503`s, and `429`s are normal
-- `req_retry()` re-sends after waiting, with exponential backoff
+- `req_retry()` re-sends after waiting, with backoff
 - It also reads `Retry-After` headers automatically when present
 
 ::: notes
@@ -792,13 +794,13 @@ request(url) |>
 - Add a manual *invalidation strategy* — APIs do change
 
 ::: aside
-This Quarto deck uses `cache: true` at the chunk level for the same reason: re-knitting should not require re-fetching every API. For the panel build, store the raw JSON next to the parsed CSV; reproducibility means the *raw bytes*, not just the cleaned table.
+A good habit is also to store the raw JSON next to the parsed CSV; reproducibility means the *raw bytes*, not just the cleaned table.
 :::
 
 ## Identify yourself
 
 - Set a meaningful `User-Agent` so providers can contact you on abuse
-  - `req_user_agent("ec7422-student/0.1 (you@su.se)")`
+  - `req_user_agent("ec7422-student/0.1 (student@example.com)")`
 - Read the documentation. Some APIs require it (Nominatim, met.no)
 - Cite the source in any output that uses the data
 
@@ -837,25 +839,24 @@ The three core layers — search, inspect, slice — match the workflow we walke
 ````markdown
 ---
 name: fetch-scb
-description: Search SCB tables and fetch tidy slices as data.table.
-  Use for any Swedish official-statistics question by region, year, or demographic.
+description: Search SCB tables and fetch tidy slices as R data.table. Use for Swedish official-statistics questions by region, year, or demographic.
 ---
 
 # fetch-scb
 
+R scripts for searching, querying, and parsing live in `scripts/`:
+
+- `scripts/scb_search.R` defines `scb_search_tables(...)` for finding relevant tables by keyword
+- `scripts/scb_meta.R` defines `scb_metadata(...)` for fetching data codes and slicing dimensions
+- `scripts/scb_query.R` defines `scb_query(...)` for fetching and parsing tidy data
+
 ## Workflow
 
-1. If the user names a topic, run `search_scb_tables(...)`. Show top hits, ask which to use.
-2. Run `scb_metadata(...)`. Confirm the metric (`ContentsCode`) and the slicing dimensions.
-3. Call `scb_query(...)` with `selections` listing only the dimensions to pin.
+1. If the user names a topic, search with `scb_search_tables(...)`. Show top hits, ask which to use.
+2. `scb_metadata(...)`: confirm metric (`ContentsCode`) and dimensions.
+3. `scb_query(...)`: with `selections` listing only the dimensions to pin
 
-## Rules
-
-1. Always set `outputFormat=json-px` — the parser expects that shape.
-2. Pin `ContentsCode` and `Tid`. Drop dimensions where `elimination = TRUE`.
-3. Sleep ≥ 0.4 s between calls (SCB's 30-per-10-s limit). Retry once on `503`.
-4. SCB returns everything as character — convert numeric columns explicitly.
-5. Cite table ID, `ContentsCode`, and time range in any output that uses the data.
+...
 ````
 
 ::: notes
@@ -865,7 +866,7 @@ The frontmatter `description` is what the runtime actually reads when deciding w
 ## Layout: small folder, one job per script
 
 ```text
-skills/fetch-scb/
+in_class_examples/lecture_8/fetch-scb/
 ├── SKILL.md
 └── scripts/
     ├── scb_search.R   # search_scb_tables(query, page_size = 10)
@@ -886,15 +887,7 @@ You already have building blocks for these: the search slide called `/tables?que
 - More wisdom over time — append, don't rewrite
 
 ````markdown
-## Tables we have used
-
-| ID      | What                                  | ContentsCode |
-|---------|---------------------------------------|--------------|
-| TAB638  | Population by region, age, sex        | BE0101N1     |
-| ...     | (add as you confirm them)             | ...          |
-
 ## Gotchas
-
 - **Labour-market series breaks in 2022.** Pre-2022 lives in one table,
   2022+ in another. The series is *not* seamless — keep a `source_table`
   column so the join is auditable.
@@ -905,7 +898,7 @@ You already have building blocks for these: the search slide called `/tables?que
 ````
 
 ::: notes
-This is *explicit* memory: version-controlled, peer-reviewable, transferable when a colleague picks up the project. Different from an agent's session memory — that lives in one chat; this lives in git. Borrow the entries when starting `fetch-eurostat`; throw them out when SCB fixes the bug. The same appendix doubles as a personal knowledge base — students who keep one across PS3, the thesis, and their first job will rediscover the same gotchas exactly once.
+This is *explicit* memory: version-controlled, peer-reviewable, transferable when a colleague picks up the project. Different from an agent's session memory — that lives in one chat; this lives in git.
 :::
 
 ## Why a skill, not just a script
