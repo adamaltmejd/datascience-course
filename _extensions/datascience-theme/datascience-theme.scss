@@ -381,9 +381,31 @@ $code-block-border-color:          $border-default !default;
   margin: 0;
 }
 
-// Consecutive standalone pre elements get consistent spacing
-.reveal .slide pre + pre {
+// Standalone fenced blocks (```bash, ```text) are wrapped in
+// .code-copy-outer-scaffold rather than being direct <pre> siblings, so the
+// usual `pre + pre` selector never matches. Mirror the unconditional top
+// margin already applied to .cell so scaffolds get the same spacing whether
+// they follow a .cell, a heading, or another scaffold.
+.reveal .slide > .code-copy-outer-scaffold {
   margin-top: $gap;
+}
+
+// ── Plain-text fenced blocks as "output" ───────────────────
+// Style ```text blocks like cell outputs (gray bg, muted text, output border)
+// so static `text` snippets can stand in for live cell output without running
+// code at build time. Also strip the line-number gutter — line numbers on
+// output are noise.
+.reveal pre.text {
+  --pre-bg: #{$bg-output};
+  border-left-color: $border-output;
+}
+
+.reveal pre.text code {
+  color: $text-muted;
+}
+
+.reveal pre.numberSource.text code > span > a:first-child {
+  display: none;
 }
 
 // ── Tables ─────────────────────────────────────────────────
