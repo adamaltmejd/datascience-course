@@ -379,7 +379,7 @@ Package site: <https://ellmer.tidyverse.org/>. "Articles" section has useful res
 
 - We will use **Google Gemini**
 - Google offers a *free* preview tier that covers everything we will do in the problem sets
-- Set `GOOGLE_API_KEY` once in `~/.Renviron`
+- Get a key from <https://aistudio.google.com>, save as `GOOGLE_API_KEY` in `~/.Renviron`
 - The models we will use:
   - `gemini-3-flash-preview` — default; thinking, structured output
   - `gemini-3.1-flash-lite` — faster and cheaper, less capable
@@ -447,12 +447,12 @@ ads <- list(
 ```{r}
 #| eval: false
 #| output-location: default
-chat <- chat_google_gemini(
+pirate_chat <- chat_google_gemini(
   model = "gemini-3-flash-preview",
   system_prompt = "You are an expert at the Swedish job market coming 
                    from a previous career as a pirate on the seven seas."
 )
-chat$chat(ads[[1]])
+pirate_chat$chat(ads[[1]])
 ```
 
 ```text
@@ -506,14 +506,13 @@ The schema is half data definition, half prompt. The descriptions tell the model
 #| eval: false
 #| output-location: default
 result <- parallel_chat_structured(
-  chat, ads, type = job_schema
+  pirate_chat, ads, type = job_schema
 )
 
 as.data.table(result)
 ```
 
 ```text
-                 role   location employment_type salary_sek_monthly
                  role location employment_type salary_sek_monthly
                <char>   <char>          <fctr>              <num>
 1: Software developer   remote       full_time              55000
@@ -525,7 +524,7 @@ as.data.table(result)
 - Result in tibble with one row per prompt, columns per schema
 
 ::: aside
-`ellmer` handles the schema-to-prompt translation behind the scenes. Different providers expose this as either "JSON mode" or "tool calling"; `ellmer` picks the right path automatically.
+`ellmer` handles the schema-to-prompt translation behind the scenes. Different providers expose this as either "JSON mode" or "tool calling"; `ellmer` picks the right path automatically. The structure gave no room for the pirate persona.
 :::
 
 ## Why this beats free-form prompting
@@ -554,6 +553,20 @@ Structured output is the single biggest reliability win available with current L
 - If missing is accepted, use `required = FALSE` and specify the missing value in the prompt
 - Decide units up front (e.g. `SEK_monthly`)
 - Keep descriptions short and precise, use examples if the model struggles
+
+## Prompting still matters
+
+- Four habits that pay off:
+  - **Be explicit** about types, units, format, and language ("monthly SEK", "answer in English")
+  - **Show examples** — one or two worked cases beat five paragraphs of rules ("few-shot prompting")
+  - **Spell out edge cases** — what to do if a field is missing, ambiguous, or out of scope
+  - **Iterate against the regression set** — change one thing, re-run, compare
+- Treat the prompt like code: keep it in version control, diff it, comment it
+
+
+::: notes
+The schema covers the structural half of prompt design; this slide is the prose half. Both matter and neither replaces the other. The biggest single win is examples: a positive and a negative example next to an ambiguous case will move the model more than another paragraph of definition.
+:::
 
 # Classification
 
@@ -642,7 +655,7 @@ labels_dt[, .N, by = label]
 | Ganska intressant, faktiskt. Mer än jag trodde.  | positive | Pleasant surprise; more engaging than expected    |
 | Kan vi få gå hem nu? Snälla?                     | negative | Impatience; desire to leave the current setting   |
 
-- The `reason` field is the model's own justification — useful for spot-checks (althouth watch out for sycophancy!)
+- The `reason` field is the model's own justification — useful for spot-checks (although watch out for sycophancy!)
 
 ## Build a validation set by hand
 
@@ -658,14 +671,6 @@ Fifty hand-coded items is enough to tell a 70%-accuracy model from a 90%-accurac
 
 ## Compare model to your validation set: confusion matrix
 
-```{r}
-#| eval: false
-#| output-location: default
-cm <- merged[, .N, by = .(label_truth, label_model)] |>
-  dcast(label_truth ~ label_model, value.var = "N", fill = 0)
-setorder(cm, label_truth)[]
-```
-
 ```text
    label_truth negative neutral positive
 1:    negative       14       5        0
@@ -673,7 +678,7 @@ setorder(cm, label_truth)[]
 3:    positive        0       0        4
 ```
 
-- The model is conservative — it misses 5 negatives (calls them neutral) but rarely over-classifies as negative
+- The model is asymmetric — misses 5 negatives by calling them neutral, but only 2 neutrals get pushed to negative
 - Different errors call for different prompt fixes
 
 ::: notes
@@ -930,11 +935,77 @@ Add a `Sys.getenv("GOOGLE_API_KEY")` check at the top of any script that uses th
 - L9: Agent processes data the user already has
 - Tool calling combines them: the LLM answers a free-form question by calling functions you provide
 
-## 
+##
 
 ![&nbsp;](tool_calling.png){.r-stretch fig-align="center"}
 
-## A tiny example
+
+## A motivating example: the model has no clock
+
+```{r}
+#| eval: false
+#| output-location: default
+chat <- chat_google_gemini(model = "gemini-3-flash-preview")
+chat$chat("How long ago exactly was Neil Armstrong's moon landing?
+           Answer in years, months, and days.")
+```
+
+```text
+As of today, **May 22, 2024**, Neil Armstrong’s moon landing (July 20, 1969) was exactly:
+
+**54 years, 10 months, and 2 days ago.**
+
+**Calculation breakdown:**
+*   **Landing Date:** July 20, 1969
+*   **Years:** From July 20, 1969, to July 20, 2023 = 54 years.
+*   **Months:** From July 20, 2023, to May 20, 2024 = 10 months.
+*   **Days:** From May 20, 2024, to May 22, 2024 = 2 days.
+```
+
+- The arithmetic is trivial; the model is missing one input
+- Fix: register a tool that returns `Sys.time()` and let the model call it
+
+```{r}
+#| output-location: default
+library(lubridate)
+p <- as.period(interval(ymd("1969-07-20"), Sys.time()))
+sprintf("%d years, %d months, %d days", year(p), month(p), day(p))
+```
+
+## `Sys.time()` as a tool
+
+```{r}
+#| echo: false
+#| results: asis
+show_file(file.path(project_root, "in_class_examples", "lecture_9", "tool_calling_armstrong.R"))
+```
+
+- Register `get_current_time` once; the model decides when to call it
+- The tool body runs locally — `Sys.time()` is now one function call away from the model
+
+## The model's response with the tool
+
+```text
+◯ [tool call] get_current_time()
+● #> 2026-05-18 13:54:17 CEST
+As of today, May 18, 2026, Neil Armstrong's moon landing (which occurred on July 20, 1969) was 
+exactly:
+
+**56 years, 9 months, and 28 days ago.**
+
+***
+
+**Calculation Details:**
+*   **Moon Landing Date:** July 20, 1969
+*   **Current Date:** May 18, 2026
+*   **Years:** From July 20, 1969, to July 20, 2025, is **56 years**.
+*   **Months:** From July 20, 2025, to April 20, 2026, is **9
+months**.
+*   **Days:** From April 20, 2026, to May 18, 2026, is **28 days**
+(10 days remaining in April + 18 days in May).
+```
+
+## SCB API as a tool
 
 ```{r}
 #| echo: false
@@ -945,7 +1016,7 @@ show_file(file.path(project_root, "in_class_examples", "lecture_9", "tool_callin
 - The model decides whether and when to call the tool
 - The user code controls *what* the tool actually does
 
-## A tiny example (output)
+## SCB API as a tool (cont.)
 
 ```text
 ◯ [tool call] fetch_population(municipality = "Uppsala")
@@ -955,7 +1026,7 @@ Uppsala's population has grown steadily every year since 2016, increasing from
 approximately 15.6% over the eight-year period.
 ```
 
-- The model chose the tool and the argument (`"Uppsala"`)
+- The model chose the tool and extracted the argument (`"Uppsala"`)
 - The returned `data.table` is serialised to JSON for the model
 - The prose answer is composed from the returned numbers
 
@@ -972,7 +1043,7 @@ Tool calling is basically the structured version of the Agent skill from L8: the
 - Structured output removes a whole class of parsing bugs
 - Classification is extraction with a one-field schema; the validation discipline is the same
 - Summarisation produces prose, not data
-- Always validate, use automatic verification
+- Always validate and use automatic verification
 
 ## Next lecture: Visualisation and Communication
 
