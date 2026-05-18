@@ -177,7 +177,7 @@ This is an animation of various data scatter patterns with identical summary sta
 
 ## Wrangling ↔ Visualization
 
-![](visualize_workflow.png){.r-stretch}
+![](visualize_workflow.png){.r-stretch fig-align="center"}
 
 ::: {.attribution}
 Workflow adapted from @Wickham2023_data_science
@@ -966,6 +966,8 @@ p
 It can be quite hard to get custom fonts looking the way you want with vector formats. With rasterized formats the [ragg package](https://ragg.r-lib.org/) makes it super easy. For vectors, use [svglite](https://svglite.r-lib.org/) and make sure the font is installed on the system.
 :::
 
+# Wrapping up
+
 ## Best practices
 
 - Choose the right plot for your data and question
@@ -997,7 +999,7 @@ Habits that move slowly:
 
 ## LLMs as plot generators
 
-![&nbsp;](gapminder-imagegen.png){.r-stretch fig-align="center"}
+![](gapminder-imagegen.png){fig-align="center" width="70%"}
 
 ::: aside
 I've been experimenting with gpt-image-2 to generate slide infographics. Image generation has gotten good enough to get text right, but representing data truthfully is still a challenge. Although it does generate beatiful figures with the right prompt.
