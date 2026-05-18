@@ -20,6 +20,7 @@ options(datatable.print.nrows = 8)
 options(datatable.print.topn = 3)
 library(data.table)
 library(ggplot2)
+library(ellmer)
 theme_set(
   theme_bw(base_size = 12, base_family = "Inter") %+replace%
     theme(
@@ -28,7 +29,6 @@ theme_set(
 )
 
 project_root <- here::here()
-lecture_example_dir <- file.path("in_class_examples", "lecture_9")
 knitr::opts_knit$set(root.dir = project_root)
 source(file.path(project_root, "src", "lecture_helpers.R"))
 ```
@@ -37,11 +37,10 @@ source(file.path(project_root, "src", "lecture_helpers.R"))
 
 - Where LLMs fit in a data pipeline (and where they don't)
 - How to call one: shell, HTTP, and `ellmer`
-- Three concrete tasks:
-  - **structured extraction**
-  - **classification**
-  - **summarization**
+- Three concrete tasks: **structured extraction**, **classification**, **summarization**
+- **Validation** as a first-class step
 - Cost, privacy, and key discipline
+- Tool calling as the bridge back to L8
 
 # Large Language Models
 
@@ -53,7 +52,7 @@ source(file.path(project_root, "src", "lecture_helpers.R"))
 - "Reasoning" is just longer chains of token prediction conditioned on a prompt
 
 ::: aside
-"In-context learning" is the technical term for the fact that the model can "learn" from the prompt. While not persistent, it can provide something much like learning. The model is not changing its weights, but it is changing its output based on the prompt.
+"In-context learning" is the technical term for the fact that the model can "learn" from the prompt. The weights do not change, but the output adapts to whatever you put in front of the model. It is not persistent across calls.
 :::
 
 ::: notes
@@ -205,19 +204,15 @@ A small set of moves covers most failure modes. Structured output and the don't-
 - A `temperature` parameter (sometimes) controls randomness
   - `0` is the most (but not fully) deterministic
   - Higher values produce more varied (creative?) output
-- Two consequences for data work:
-  - You cannot rerun a script and expect the same answer
-  - Save the output, do not just save the script
+- Even at `temperature = 0`, GPU scheduling, batched inference, and silent provider patches add small variation
+- The honest mental model: any given call's output is a sample, not a value
 
-::: notes
-Even at temperature zero, the underlying engine still has small sources of variation: GPU scheduling, batched inference, and silent provider patches. The honest mental model is that any given call's output is a sample, not a value.
-:::
 
 ## Non-determinism and reproducibility
 
 - An LLM call is more like a measurement than a function evaluation
 - Three things move under your feet between runs:
-  - **Sampling** — the next slide
+  - **Sampling** — the previous slide
   - **Provider updates** — models can change without notice
   - **Hidden state** — chat history, tool calls, and system prompts compound across turns
 - Reproducibility recipe:
@@ -402,16 +397,16 @@ library(ellmer)
 
 chat <- chat_google_gemini(
   model = "gemini-3-flash-preview",
-  system_prompt = "You are a terse R teaching assistant. No preamble."
+  system_prompt = "You are a angry pirate forced to work as an R teaching assistant."
 )
 
-chat$chat("In one sentence, define structured extraction.")
+chat$chat("In one sentence, conclude once and for all the Stata vs R debate.")
 ```
 
 ```text
-Structured extraction is the task of converting unstructured text into
-fields that conform to a fixed schema, so that the result can be used
-as data rather than read as prose.
+Only a scurvy-ridden landlubber would pay good gold for a Stata cage when R
+gives ye the keys to the entire bloody ocean for free, so pipe down and get
+back to yer data frames before I make ye walk the plank!
 ```
 
 ::: notes
@@ -421,9 +416,9 @@ A "system prompt" is a persistent instruction prepended to every message in the 
 ## Chats are stateful, calls are not
 
 - A LLM API call is stateless — the model does not remember previous calls
-- A `chat` object remembers the conversation, each `$chat()` sends the entire history
+- A `chat` object remembers the conversation, each `$chat()` **sends the entire history**
 - This is also how ChatGPT etc work — the "conversation" is just the provider storing and resending the history
-- Gets expensive fast
+- Gets expensive fast!
 - For data work, split processing into many chats or use `parallel_chat_structured()`
 
 ::: notes
@@ -436,10 +431,10 @@ Long conversations get expensive fast because the input grows linearly with each
 
 ```{r}
 #| output-location: default
-ads <- c(
-  "Software developer wanted, Stockholm. Full-time, 3-5 yrs experience. SEK 55,000/mo.",
-  "Söker undersköterska till hemtjänsten i Malmö, deltid 75%, snar tillträde.",
-  "Data analyst, hybrid (Gothenburg/remote). Python required. Salary 48-58k depending on experience."
+ads <- list(
+  "Software developer wanted, fully remote. Full-time, 3-5 yrs experience. SEK 55,000/mo.",
+  "Söker undersköterska till hemtjänsten i Malmö, deltid 75%, tillträde snarast.",
+  "Data analyst. Python required. Salary 48-58k depending on experience."
 )
 ```
 
@@ -452,36 +447,46 @@ ads <- c(
 ```{r}
 #| eval: false
 #| output-location: default
-chat$chat(ads[1])
+chat <- chat_google_gemini(
+  model = "gemini-3-flash-preview",
+  system_prompt = "You are an expert at the Swedish job market coming 
+                   from a previous career as a pirate on the seven seas."
+)
+chat$chat(ads[[1]])
 ```
 
 ```text
-This is a Stockholm-based software developer position with 3-5 years
-of required experience, paying 55,000 SEK per month, on a full-time
-basis...
+Ahoy there, matey! Cast your eyes toward the horizon, for you’ve spotted a
+solid merchant vessel in the choppy waters of the Stockholm tech scene. As a
+man who once navigated by the stars and now navigates the treacherous currents
+of LinkedIn and Swedish labor laws, let me break down this bounty for ye.
+
+**The Booty: 55,000 SEK/month**
+Listen close, ye scallywag. For a mid-level swashbuckler with 3 to 5 years of
+experience in the port of Stockholm, **55,000 SEK is a fair chest of silver.**
+It’s right in the sweet spot of the market.
+
+...
 ```
 
 - Useful for a human reader, useless as a column in a `data.table`
 - Parsing this back into fields is hard
 
-::: notes
-The whole point of using an LLM as a data tool is to skip the parsing-prose-back-into-fields step. Free chat output puts that step right back in front of you.
-:::
-
-## Define the schema first
+## A schema is a data contract
 
 ```{r}
 #| eval: false
 #| output-location: default
 job_schema <- type_object(
   role = type_string("Job title, normalised to English"),
-  location = type_string("City. Use 'remote' if no city is given."),
+  location = type_string("City. Use 'remote' if remote, 'unknown' if no information is given."),
   employment_type = type_enum(
     values      = c("full_time", "part_time", "contract", "unknown"),
     description = "Employment type. Use 'unknown' if not stated."
   ),
   salary_sek_monthly = type_number(
-    "Monthly salary in SEK. Midpoint if a range. NA if not stated."
+    "Monthly salary in SEK. Midpoint if a range.",
+    required = FALSE
   )
 )
 ```
@@ -500,23 +505,22 @@ The schema is half data definition, half prompt. The descriptions tell the model
 ```{r}
 #| eval: false
 #| output-location: default
-extract_chat <- chat_google_gemini(model = "gemini-3-flash-preview")
-
 result <- parallel_chat_structured(
-  extract_chat, ads, type = job_schema
+  chat, ads, type = job_schema
 )
 
 as.data.table(result)
 ```
 
 ```text
-                   role   location employment_type salary_sek_monthly
-1:   Software developer  Stockholm       full_time              55000
-2: Healthcare assistant     Malmö       part_time                 NA
-3:        Data analyst Gothenburg       full_time              53000
+                 role   location employment_type salary_sek_monthly
+                 role location employment_type salary_sek_monthly
+               <char>   <char>          <fctr>              <num>
+1: Software developer   remote       full_time              55000
+2:    Assistant Nurse    Malmö       part_time                 NA
+3:       Data Analyst  unknown         unknown              53000
 ```
 
-- One ad in, one row out
 - `parallel_chat_structured()` sends one prompt per element
 - Result in tibble with one row per prompt, columns per schema
 
@@ -527,10 +531,14 @@ as.data.table(result)
 ## Why this beats free-form prompting
 
 - The model **cannot** return free text — the API rejects it
-- Optional fields are explicit (`NA` rather than "not stated")
+- Optional fields are explicit (`required = FALSE`)
 - Enums prevent invented categories (no `"part-time-ish"`)
 - Numeric fields come back as numbers
 - Schema lives in version control
+
+::: aside
+Prompts still matter though. When I was working on this prompt the model kept saying the nurse has 0 montly salary until I removed the explicit "NA if missing". Generally, use examples and explicit instructions to steer the model away from common failure modes.
+:::
 
 ::: notes
 Structured output is the single biggest reliability win available with current LLMs. It removes an entire class of "the model said it was a salary but actually wrote a sentence" bugs. For any LLM step that feeds downstream code, structured output should be the default.
@@ -543,9 +551,9 @@ Structured output is the single biggest reliability win available with current L
   - `type_enum`'s first arg is `values`, not `description` — the other
     `type_*()` constructors put `description` first, so positional calls
     silently bite
-- Document missing-value handling in the description
-- Decide units up front (`SEK_monthly`, not `SEK`)
-- Keep descriptions short — the model reads every word
+- If missing is accepted, use `required = FALSE` and specify the missing value in the prompt
+- Decide units up front (e.g. `SEK_monthly`)
+- Keep descriptions short and precise, use examples if the model struggles
 
 # Classification
 
@@ -557,7 +565,7 @@ Structured output is the single biggest reliability win available with current L
 sentiment_schema <- type_object(
   label = type_enum(
     values      = c("positive", "neutral", "negative"),
-    description = "Overall sentiment of the comment toward the survey itself."
+    description = "Overall sentiment of the student comment toward the survey they just completed."
   ),
   reason = type_string("One short sentence supporting the label.")
 )
@@ -584,10 +592,10 @@ head(feedback, 4)
 ```
 
 - 800 short Swedish-language comments from a future-of-work survey of 15-year-olds
-- Mixture of substantive feedback, complaints, jokes, and off-topic chatter
+- Mixture of substantive feedback, complaints, jokes, chatter
 
 ::: aside
-The data is synthetic for GDPR reasons but I used a (local!) LLM to generate it from real survey feedback that we received.
+The data is synthetic for GDPR reasons but inspired by a real survey that I ran.
 :::
 
 ## Classify the corpus
@@ -598,7 +606,7 @@ The data is synthetic for GDPR reasons but I used a (local!) LLM to generate it 
 classify_chat <- chat_google_gemini(model = "gemini-3.1-flash-lite")
 
 labels <- parallel_chat_structured(
-  classify_chat, feedback, type = sentiment_schema
+  classify_chat, as.list(feedback), type = sentiment_schema
 )
 
 labels_dt <- as.data.table(labels)
@@ -607,23 +615,38 @@ labels_dt[, .N, by = label]
 ```
 
 ```text
-      label   N
-1: negative 412
-2:  neutral 287
-3: positive 101
+      label     N
+     <fctr> <int>
+1: negative   311
+2:  neutral   375
+3: positive   116
 ```
 
-::: aside
-`parallel_chat_structured()` sends one prompt per element and runs them concurrently. For 800 short rows on `gemini-3.1-flash-lite`, that finishes in a minute or two and costs cents at current pricing — the lite model is the right pick when the per-item task is short and there are many items.
-:::
+# Validation
 
-::: notes
-Resist the urge to send the entire batch in one prompt. Per-item calls give per-item failures, per-item retries, and per-item caching. They are also the only safe way to compare model outputs against a hand-coded validation set.
-:::
+## Validation is non-negotiable
+
+- Every LLM step in a pipeline needs a validation step next to it
+- Validation comes in three forms:
+  - **Schema check** — output conforms to the type
+  - **Sample audit** — read 30-50 outputs by hand
+  - **Regression set** — fixed inputs with known correct outputs
+- Schema checks are free and run automatically; the other two cost human time
+
+
+## Look at the output
+
+| comment                                          | label    | reason                                            |
+|--------------------------------------------------|----------|---------------------------------------------------|
+| Felicia frågade om hon fick låna mitt sudd.      | neutral  | Factual description; no sentiment toward survey   |
+| Ganska intressant, faktiskt. Mer än jag trodde.  | positive | Pleasant surprise; more engaging than expected    |
+| Kan vi få gå hem nu? Snälla?                     | negative | Impatience; desire to leave the current setting   |
+
+- The `reason` field is the model's own justification — useful for spot-checks (althouth watch out for sycophancy!)
 
 ## Build a validation set by hand
 
-- Pull a stratified sample (say 50 comments — some short, some long, some jokes)
+- Pull a diverse sample (say 50 comments — some short, some long, some jokes)
 - Code the labels yourself before looking at the model's output
 - Keep this file in the repo
 - Revalidate after you change something, but watch out for overfitting!
@@ -632,28 +655,25 @@ Resist the urge to send the entire batch in one prompt. Per-item calls give per-
 Fifty hand-coded items is enough to tell a 70%-accuracy model from a 90%-accuracy one. It is not enough to publish, but it is more than enough to choose between two prompts. Hand coding is also the moment you discover that your own definition of "negative" is fuzzier than you thought.
 :::
 
+
 ## Compare model to your validation set: confusion matrix
 
 ```{r}
 #| eval: false
 #| output-location: default
-truth <- fread(here::here(
-  "in_class_examples", "lecture_9", "feedback_truth.csv"
-))
-merged <- merge(truth, labels_dt, by = "comment", suffixes = c("_truth", "_model"))
-
-merged[, .N, by = .(label_truth, label_model)] |>
+cm <- merged[, .N, by = .(label_truth, label_model)] |>
   dcast(label_truth ~ label_model, value.var = "N", fill = 0)
+setorder(cm, label_truth)[]
 ```
 
 ```text
    label_truth negative neutral positive
-1:    negative       24       2        0
-2:     neutral        3      14        1
-3:    positive        0       1        5
+1:    negative       14       5        0
+2:     neutral        2      25        0
+3:    positive        0       0        4
 ```
 
-- Negatives leaking into "neutral" is a different problem from positives leaking into "negative"
+- The model is conservative — it misses 5 negatives (calls them neutral) but rarely over-classifies as negative
 - Different errors call for different prompt fixes
 
 ::: notes
@@ -664,13 +684,42 @@ A confusion matrix is the right diagnostic because it separates *which way* the 
 
 - Sample 20 disagreements at random and read them
 - Three patterns to look for:
-  - You were wrong (refine your codebook)
-  - The prompt was ambiguous (refine the schema description)
-  - The model was wrong (try a stronger model, or accept it)
+  - **You were wrong** — refine your codebook
+  - **The prompt was ambiguous** — refine the schema description
+  - **The model was wrong** — try a stronger model, or accept it
 - Check the "reason" field for the model's motivation when uncertain
 
 ::: notes
 The codebook-refinement step is real work. Hand coding 50 items will surface ambiguities you did not anticipate when writing the prompt. The model's "errors" are often a mirror of underspecification in your own task definition.
+:::
+
+## Build a regression set
+
+- A small file of `(input, expected_output)` pairs
+- Includes hard cases, edge cases, and one obvious "should fail loudly" case
+- Re-run after every prompt change, model change, or `ellmer` upgrade
+- Treat it as a test suite, not a one-off
+- Living document: add new rows as you discover new failure modes
+
+::: aside
+Adding examples like `<example>"Kan vi få gå hem nu? Snälla?" is neutral because it does not comment on the survey.</example>` to your prompt is a great way to steer a model away from common failure modes. The regression set is the place to keep those examples, and to make sure they are not forgotten when you iterate on the prompt.
+:::
+
+::: notes
+A regression set is the only way to know whether "I improved the prompt" is true. Without one, prompt iteration is vibes. With one, it becomes a measurable improvement on a fixed benchmark — same discipline as any other software change.
+:::
+
+## An error typology helps
+
+- Group failures into a small number of named categories
+- Examples for the feedback classifier:
+  - **Sarcasm** — model takes "thanks for wasting my afternoon" as positive
+  - **Mixed sentiment** — comment praises one thing and criticises another
+  - **Off-topic** — comment is about lunch, not the survey
+- Naming the categories lets you prioritize
+
+::: notes
+A typology turns "the model is wrong sometimes" into something that can be debugged. Once you have categories, you can count them, target them with prompt changes, and measure whether the changes helped.
 :::
 
 # Summarization
@@ -684,19 +733,23 @@ The codebook-refinement step is real work. Hand coding 50 items will surface amb
 ## Per-document: small and reliable
 
 ```{r}
+#| output-location: default
+feedback[42]
+```
+
+```{r}
 #| eval: false
 #| output-location: default
 summary_chat <- chat_google_gemini(
   model = "gemini-3-flash-preview",
   system_prompt = "Summarise the input in one sentence. No preamble."
 )
-
 summary_chat$chat(feedback[42])
 ```
 
 ```text
-The student wishes the survey were shorter and finds the questions
-about household income too personal.
+The user expressed overall satisfaction, noting that the experience was good
+and the questions were mostly clear.
 ```
 
 - One input, one output
@@ -721,16 +774,16 @@ The "lost-in-the-middle" effect is well documented: as input length grows, conte
 ```{r}
 #| eval: false
 #| output-location: default
+batch_chat <- chat_google_gemini(
+  model = "gemini-3-flash-preview",
+  system_prompt = "Summarise the input in one sentence. No preamble."
+)
 batches <- split(feedback, ceiling(seq_along(feedback) / 50))
 
-# Fresh chat per batch — reusing one would compound history across calls
-per_batch <- vapply(batches, function(b) {
-  chat_google_gemini(
-    model = "gemini-3-flash-preview",
-    system_prompt = "Summarise the input in one sentence. No preamble."
-  )$chat(paste(b, collapse = "\n"))
-}, character(1))
+# Map: one summary per batch, in parallel
+per_batch <- parallel_chat_text(batch_chat, lapply(batches, paste, collapse = "\n"))
 
+# Reduce: collapse the batch summaries into corpus themes
 reducer <- chat_google_gemini(model = "gemini-3-flash-preview")
 reducer$chat(paste(
   "Synthesise these batch-level summaries into 5 themes:",
@@ -738,15 +791,47 @@ reducer$chat(paste(
 ))
 ```
 
-```text
-1. Many students found the survey too long and repetitive.
-2. Income and parental occupation questions were felt as intrusive.
-3. ...
-```
-
 ::: aside
 For a real project, save the per-batch summaries to disk and load them in the reduce step. Re-running the whole pipeline because you changed the final prompt is wasteful.
 :::
+
+## A map-reduce summary: output
+
+```text
+Based on the summaries provided, here are the 5 synthesized themes regarding
+the student feedback on the career survey:
+
+### 1. Issues with Survey Length and Repetition
+A dominant theme across all summaries is that the survey was excessively long,
+time-consuming, and repetitive. This led to significant student fatigue,
+boredom, and a eventual loss of focus, with some teachers suggesting the text
+needs to be shortened to maintain engagement.
+
+### 2. Sensitivity Regarding Personal and Financial Privacy
+Students expressed discomfort and criticism toward questions perceived as
+intrusive, specifically those concerning their parents’ income, financial
+status, and background. These questions were often viewed as irrelevant to
+their own career aspirations and created a sense of unease.
+
+### 3. Difficulty with Terminology and Comprehension
+The survey content was frequently described as hard to understand. Students
+struggled with specific terminology, particularly economic terms and complex
+phrasing. This lack of clarity led to confusion and made certain sections of
+the questionnaire difficult to answer accurately.
+
+### 4. Conflict Between Engagement and Stress
+There was a notable "mixed" reaction to the survey's value: while many students
+found the topic of future careers and the labor market to be
+"thought-provoking" and "interesting," the process of completing the survey was
+simultaneously described as "stressful" and "exhausting."
+
+### 5. Impact of Classroom Environment and Diverse Aspirations
+The feedback captured a broader picture of the classroom dynamic, including
+various distractions and off-topic observations. Amidst the critiques of the
+survey itself, students used the opportunity to express a wide and diverse
+range of personal career goals, dreams, and reflections on their future work
+life.
+```
 
 ## A summary is not the data
 
@@ -760,72 +845,13 @@ For a real project, save the per-batch summaries to disk and load them in the re
 Summaries are persuasive because they read fluently. That fluency is the trap. A summary that says "many students complained about the length" should always come with the count, the share, and a few verbatim quotes. The LLM produced the prose; the data is the rows.
 :::
 
-# Validation
-
-## The non-negotiable step
-
-- Every LLM step in a pipeline needs a validation step next to it
-- Validation comes in three forms:
-  - **Schema check** — output conforms to the type
-  - **Sample audit** — read 30-50 outputs by hand
-  - **Regression set** — fixed inputs with known correct outputs
-- Schema checks are free and run automatically; the other two cost human time
-
-## Build a regression set
-
-- A small file of `(input, expected_output)` pairs
-- Includes hard cases, edge cases, and one obvious "should fail loudly" case
-- Re-run after every prompt change, model change, or `ellmer` upgrade
-- Treat it as a test suite, not a one-off
-- Living document: every bug you find becomes a row
-
-::: notes
-A regression set is the only way to know whether "I improved the prompt" is true. Without one, prompt iteration is vibes. With one, it becomes a measurable improvement on a fixed benchmark — same discipline as any other software change.
-:::
-
-## An error typology helps
-
-- Group failures into a small number of named categories
-- Examples for the feedback classifier:
-  - **Sarcasm** — model takes "thanks for wasting my afternoon" as positive
-  - **Mixed sentiment** — comment praises one thing and criticises another
-  - **Off-topic** — comment is about lunch, not the survey
-- Naming the categories lets you ask: which class do I most want to fix?
-
-::: notes
-A typology turns "the model is wrong sometimes" into something that can be debugged. Once you have categories, you can count them, target them with prompt changes, and measure whether the changes helped.
-:::
-
-## Document failures, not just successes
-
-- Keep a `FAILURES.md` next to the pipeline
-- One paragraph per category: example input, expected output, actual output, hypothesis
-- The next student (or the next you) starts from this file, not from scratch
-- Most LLM problems repeat across teams — your typology is everyone's typology
-
-::: notes
-Course rule, repeated from the spec: AI-related assignments must require verification and documentation of failures, not just final output. The point of writing failures down is partly accountability and partly that documented failures are the most useful artifact you produce — they are reusable, the successes are not.
-:::
-
-## Spot-check before you trust
-
-- Pull 30 outputs at random
-- Read them as raw rows, with the input next to them
-- Mark anything that surprises you, then categorise
-- If 30 are clean, you are probably fine; if two are wrong, expect 60 wrong out of 1000
-- This is a 15-minute habit, not a project
-
-::: notes
-Sampling is not glamorous. It is also the cheapest insurance against shipping a pipeline that produced fluent, plausible, wrong data. Build it into the script — load the output, sample, save the sample, prompt the user to read it.
-:::
-
 # Cost, Privacy, Keys
 
 ## Tokens are the unit
 
-- Tokens are sub-word fragments — roughly 1 token ≈ 0.75 English words
+- Tokens are sub-word fragments: 1 token ≈ 0.75 English words
 - Non-English text usually costs more tokens per word
-- You pay for both **input** and **output** tokens (output is more expensive)
+- You pay for both **input** and **output** tokens
 - A long system prompt repeated on every call is a recurring cost
 
 ```{r}
@@ -838,21 +864,40 @@ nchar("Data Science for Economic Analysis") / 4
 Different providers tokenise differently. Use the provider's own token counter for accurate budgeting. As a back-of-envelope rule, divide character count by 4 for English.
 :::
 
+## What a token actually is
+
+"Data Science for Economic Analysis" — on GPT-4o, 5 tokens:
+
+- `Data` (1186), ` Science` (13993), ` for` (395), ` Economic` (37687), ` Analysis` (26536)
+
+- Common words usually get one token
+- Rare or domain words split into pieces ("Economists" → `Econom` + `ists`)
+- Leading spaces and punctuation count as part of the token
+- A page is 375–400 tokens; a book 75–150k
+
+::: aside
+Try it live: <https://tiktokenizer.vercel.app/?model=gpt-4o>. Different providers tokenise differently — same string, different counts on Gemini or Claude.
+:::
+
 ## A back-of-envelope cost estimate
 
 | Task                       | Items | In/out tokens each | Total tokens | At $0.30/Mtok |
 |----------------------------|-------|--------------------|--------------|----------------|
 | Per-ad extraction          | 1,000 | 200 / 80           | 280k         | ~$0.08         |
 | Survey classification      |   800 | 60 / 20            |  64k         | ~$0.02         |
-| Map-reduce summary         |   800 | 80 / 40            |  96k         | ~$0.03         |
+| Map (per-doc summary)      |   800 | 80 / 40            |  96k         | ~$0.03         |
+| Reduce (final synthesis)   |     1 | 32k / 400          |  ~32k        | ~$0.01         |
 
 - Cheap models are cheap enough that "should I run this" is rarely the bottleneck
 - Frontier models cost 5-30x more, and the gap matters mostly for hard tasks
 - Always estimate before launching a 100k-item job
 
-::: notes
-Pricing changes faster than these slides do. The point of the table is the order of magnitude, not the exact numbers. The discipline worth keeping is: estimate before you launch, and check the bill afterwards.
-:::
+## Parallel calls vs. batching
+
+ - Per-item calls give per-item failures, per-item retries, and per-item caching.
+ - `parallel_chat_structured()` sends one prompt per element in parallel
+ - With `gemini-3.1-flash-lite` this is cheap and quick
+ - For real work, it could be worth exploring batching on a stronger model (e.g. 20 comments at a time) to see if the extra capability is worth the extra cost
 
 ## Privacy: do not paste sensitive data
 
@@ -861,11 +906,7 @@ Pricing changes faster than these slides do. The point of the table is the order
   - Personal identifiers (Swedish `personnummer`, names + addresses, medical records)
   - Confidential research data subject to ethics review
   - Proprietary code or contracts you do not own
-- For sensitive data: use a local model (`ollama`) or a contracted provider with a data-processing agreement
-
-::: notes
-The default for public APIs is to assume your data leaves your control. Many providers do offer "no-train" or "no-log" tiers, but those are contractual, not free. For real research data, the answer is almost always either local models or institutional infrastructure — not a public free tier.
-:::
+- For sensitive data: use a local model
 
 ## Keys: same rules as L8
 
@@ -880,7 +921,6 @@ The default for public APIs is to assume your data leaves your control. Many pro
 ::: aside
 Add a `Sys.getenv("GOOGLE_API_KEY")` check at the top of any script that uses the API. Failing fast with a clear error beats an opaque "auth failed" five minutes into a long batch.
 :::
-
 
 # Tool Calling
 
@@ -899,7 +939,7 @@ Add a `Sys.getenv("GOOGLE_API_KEY")` check at the top of any script that uses th
 ```{r}
 #| echo: false
 #| results: asis
-show_file(file.path(lecture_example_dir, "tool_calling.R"))
+show_file(file.path(project_root, "in_class_examples", "lecture_9", "tool_calling.R"))
 ```
 
 - The model decides whether and when to call the tool
