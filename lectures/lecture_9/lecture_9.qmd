@@ -38,9 +38,9 @@ source(file.path(project_root, "src", "lecture_helpers.R"))
 - Where LLMs fit in a data pipeline (and where they don't)
 - How to call one: shell, HTTP, and `ellmer`
 - Three concrete tasks: **structured extraction**, **classification**, **summarization**
-- **Validation** as a first-class step
+- **Validation**
 - Cost, privacy, and key discipline
-- Tool calling as the bridge back to L8
+- **Tool calling**
 
 # Large Language Models
 
@@ -186,13 +186,15 @@ Vafa, Chang, Rambachan, and Mullainathan (ICML 2025) introduce *inductive bias p
 Hallucination used to be treated as the single defining failure. With grounded tasks and frontier models the picture is broader — any of the four can sink a pipeline. None can be eliminated, all can be contained.
 :::
 
-## Containment patterns
+## Containment patterns and validation
 
 - **Structured output** — schema rejects free-form invention
 - **"Don't know" option** — `unknown` enum value, fail loudly on it
 - **Sample audit** — eyeball 30-50 outputs against their inputs
 - **Regression set** — fixed cases re-run on every change
 - **Re-ask differently** — labels that flip reveal sycophancy
+
+We will be coming back to these throughout the lecture.
 
 ::: notes
 A small set of moves covers most failure modes. Structured output and the don't-know path catch hallucination and spec drift; re-asking catches sycophancy; sample audit and regression set catch calibration drift over time. The Validation section later in the lecture turns these into a workflow.
@@ -205,7 +207,7 @@ A small set of moves covers most failure modes. Structured output and the don't-
   - `0` is the most (but not fully) deterministic
   - Higher values produce more varied (creative?) output
 - Even at `temperature = 0`, GPU scheduling, batched inference, and silent provider patches add small variation
-- The honest mental model: any given call's output is a sample, not a value
+- The mental model: any given output is a sample, not a value
 
 
 ## Non-determinism and reproducibility
