@@ -177,7 +177,7 @@ This is an animation of various data scatter patterns with identical summary sta
 
 ## Wrangling ↔ Visualization
 
-![](visualize_workflow.png){.r-stretch fig-align="center"}
+![](visualize_workflow.png){fig-align="center" width="90%"}
 
 ::: {.attribution}
 Workflow adapted from @Wickham2023_data_science
